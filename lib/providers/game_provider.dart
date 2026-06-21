@@ -21,7 +21,7 @@ class GameProvider extends ChangeNotifier {
   Position? get lastMove => _state.lastMove;
   Position? get winStart => _state.winStart;
   Position? get winEnd => _state.winEnd;
-  bool get canUndo => _state.history.isNotEmpty && _state.status == GameStatus.playing;
+  bool get canUndo => _state.history.isNotEmpty;
   bool get isGameOver => _state.status != GameStatus.playing;
 
   /// 落子
@@ -135,6 +135,7 @@ class GameProvider extends ChangeNotifier {
     Position last,
     StoneColor color,
   ) {
+    final size = board.length;
     const directions = [
       (0, 1), // 水平
       (1, 0), // 垂直
@@ -149,11 +150,7 @@ class GameProvider extends ChangeNotifier {
       // 正方向
       r = last.row + dr;
       c = last.col + dc;
-      while (r >= 0 &&
-          r < _state.boardSize &&
-          c >= 0 &&
-          c < _state.boardSize &&
-          board[r][c] == color) {
+      while (r >= 0 && r < size && c >= 0 && c < size && board[r][c] == color) {
         count++;
         r += dr;
         c += dc;
@@ -164,11 +161,7 @@ class GameProvider extends ChangeNotifier {
       // 反方向
       r = last.row - dr;
       c = last.col - dc;
-      while (r >= 0 &&
-          r < _state.boardSize &&
-          c >= 0 &&
-          c < _state.boardSize &&
-          board[r][c] == color) {
+      while (r >= 0 && r < size && c >= 0 && c < size && board[r][c] == color) {
         count++;
         r -= dr;
         c -= dc;
