@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/game_state.dart';
 import '../providers/game_provider.dart';
 import '../widgets/board_widget.dart';
+import '../widgets/settings_sheet.dart';
 
 /// 游戏主页面
 class GamePage extends StatelessWidget {
@@ -29,7 +30,7 @@ class GamePage extends StatelessWidget {
         child: Column(
           children: [
             // 状态栏
-            _buildStatusBar(context, state, theme),
+            _buildStatusBar(state, theme),
             // 棋盘
             Expanded(
               child: const Center(
@@ -43,14 +44,14 @@ class GamePage extends StatelessWidget {
               ),
             ),
             // 操作按钮
-            _buildActionBar(context, game, state, theme),
+            _buildActionBar(context, game, theme),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStatusBar(BuildContext context, GameState state, ThemeData theme) {
+  Widget _buildStatusBar(GameState state, ThemeData theme) {
     String statusText;
     Color statusColor;
 
@@ -133,7 +134,6 @@ class GamePage extends StatelessWidget {
   Widget _buildActionBar(
     BuildContext context,
     GameProvider game,
-    GameState state,
     ThemeData theme,
   ) {
     return Container(
@@ -191,58 +191,7 @@ class GamePage extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),
-      builder: (ctx) => const _SettingsSheet(),
-    );
-  }
-}
-
-class _SettingsSheet extends StatefulWidget {
-  const _SettingsSheet();
-  @override
-  State<_SettingsSheet> createState() => _SettingsSheetState();
-}
-
-class _SettingsSheetState extends State<_SettingsSheet> {
-  @override
-  Widget build(BuildContext context) {
-    final game = context.read<GameProvider>();
-    final theme = Theme.of(context);
-
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text('棋盘大小', style: theme.textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [9, 13, 15, 19].map((size) {
-                final isSelected = game.boardSize == size;
-                return ChoiceChip(
-                  label: Text('${size}x$size'),
-                  selected: isSelected,
-                  onSelected: (_) => game.setBoardSize(size),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
+      builder: (ctx) => const SettingsSheet(),
     );
   }
 }
