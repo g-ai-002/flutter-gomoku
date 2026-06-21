@@ -22,16 +22,16 @@
 ## 版本历史
 
 ### v0.1.2 (PATCH)
-- **状态**: 进行中 🚧
+- **状态**: 已完成 ✅
 - **目标**: 重构优化存量代码，提升代码质量和可维护性
 - **任务**:
-  - [ ] 重构：简化服务层单例模式（StorageService, LogService, FileSystemService）
-  - [ ] 重构：提取设置面板为独立组件
-  - [ ] 重构：优化 BoardPainter shouldRepaint 性能
-  - [ ] 测试：补充边界用例测试
-  - [ ] 代码审查与清理
-  - [ ] 更新版本号到 0.1.2
-  - [ ] 更新 README
+  - [x] 重构：简化服务层单例模式（StorageService, LogService, FileSystemService）
+  - [x] 重构：提取设置面板为独立组件
+  - [x] 重构：优化 BoardPainter shouldRepaint 性能
+  - [x] 测试：补充边界用例测试
+  - [x] 代码审查与清理
+  - [x] 更新版本号到 0.1.2
+  - [x] 更新 README
 
 ### v0.1.1 (PATCH)
 - **状态**: 已完成 ✅
