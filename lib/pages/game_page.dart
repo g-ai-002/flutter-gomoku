@@ -35,7 +35,7 @@ class GamePage extends StatelessWidget {
             Expanded(
               child: const Center(
                 child: Padding(
-                  padding: EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8),
                   child: AspectRatio(
                     aspectRatio: 1,
                     child: BoardWidget(),

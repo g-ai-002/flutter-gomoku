@@ -15,8 +15,8 @@
 
 | 平台 | 下载 |
 |------|------|
-| Android | [v0.1.2 APK](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.1.2) |
-| Windows | [v0.1.2 ZIP](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.1.2) |
+| Android | [v0.1.3 APK](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.1.3) |
+| Windows | [v0.1.3 ZIP](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.1.3) |
 
 ## 开发
 
@@ -39,6 +39,10 @@ flutter run
 - SharedPreferences 本地存储
 
 ## 版本历史
+
+### v0.1.3 (2026-06-22)
+- 修复 CI 流水线：GameState 缺少 isGameOver getter 导致测试编译失败
+- 修复 lint 警告：game_page.dart prefer_const_constructors
 
 ### v0.1.2 (2026-06-22)
 - 重构优化：简化服务层单例模式、提取设置面板组件、优化棋盘重绘性能

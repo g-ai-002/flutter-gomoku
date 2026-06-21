@@ -84,6 +84,8 @@ class GameState {
     );
   }
 
+  bool get isGameOver => status != GameStatus.playing;
+
   GameState copyWith({
     int? boardSize,
     List<List<StoneColor?>>? board,
