@@ -22,13 +22,13 @@
 ## 版本历史
 
 ### v0.1.3 (PATCH)
-- **状态**: 进行中 🔄
+- **状态**: 已完成 ✅
 - **目标**: 修复 CI 流水线报错（lint 警告 + 测试失败）
 - **任务**:
-  - [ ] 修复：GameState 缺少 isGameOver getter 导致测试编译失败
-  - [ ] 修复：game_page.dart prefer_const_constructors lint 警告
-  - [ ] 更新版本号到 0.1.3
-  - [ ] 更新 README
+  - [x] 修复：GameState 缺少 isGameOver getter 导致测试编译失败
+  - [x] 修复：game_page.dart prefer_const_constructors lint 警告
+  - [x] 更新版本号到 0.1.3
+  - [x] 更新 README
 
 ### v0.1.2 (PATCH)
 - **状态**: 已完成 ✅
