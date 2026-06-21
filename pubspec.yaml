@@ -1,0 +1,26 @@
+name: flutter_gomoku
+description: 五子棋游戏 - 支持双人对弈与人机对弈
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: '>=3.10.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  provider: 6.1.5+1
+  shared_preferences: 2.5.5
+  path_provider: 2.1.5
+  path: 1.9.1
+  window_manager: 0.5.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: 6.0.0
+
+flutter:
+  uses-material-design: true
