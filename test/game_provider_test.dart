@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_gomoku/providers/game_provider.dart';
 import 'package:flutter_gomoku/models/game_state.dart';
 import 'package:flutter_gomoku/services/storage_service.dart';
+import 'package:flutter_gomoku/utils/constants.dart';
 
 void main() {
   late StorageService storage;
@@ -11,6 +12,7 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     storage = await StorageService.instance;
+    await storage.setBoardSize(AppConstants.defaultBoardSize);
     provider = GameProvider(storage);
   });
 
@@ -133,12 +135,17 @@ void main() {
     });
 
     test('白棋获胜', () {
-      // 黑棋先走
-      provider.placeStone(0, 0);
-      for (int i = 0; i < 5; i++) {
-        provider.placeStone(i, 7); // 白
-        if (i < 4) provider.placeStone(i + 1, 0); // 黑
-      }
+      // 黑棋先走，但白棋在第10步连成五子
+      provider.placeStone(0, 0); // 黑
+      provider.placeStone(0, 7); // 白
+      provider.placeStone(0, 1); // 黑
+      provider.placeStone(1, 7); // 白
+      provider.placeStone(0, 2); // 黑
+      provider.placeStone(2, 7); // 白
+      provider.placeStone(0, 3); // 黑
+      provider.placeStone(3, 7); // 白
+      provider.placeStone(1, 0); // 黑（避免黑棋五连）
+      provider.placeStone(4, 7); // 白 — 垂直五连获胜
       expect(provider.status, equals(GameStatus.whiteWin));
     });
 

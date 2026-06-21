@@ -15,8 +15,8 @@
 
 | 平台 | 下载 |
 |------|------|
-| Android | [v0.1.0 APK](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.1.0) |
-| Windows | [v0.1.0 ZIP](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.1.0) |
+| Android | [v0.1.1 APK](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.1.1) |
+| Windows | [v0.1.1 ZIP](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.1.1) |
 
 ## 开发
 
@@ -39,6 +39,9 @@ flutter run
 - SharedPreferences 本地存储
 
 ## 版本历史
+
+### v0.1.1 (2026-06-22)
+- 修复 CI 测试失败和 lint 警告
 
 ### v0.1.0 (2026-06-21)
 - 首个版本：双人本地对弈

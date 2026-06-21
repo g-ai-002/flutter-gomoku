@@ -32,12 +32,12 @@ class GamePage extends StatelessWidget {
             _buildStatusBar(context, state, theme),
             // 棋盘
             Expanded(
-              child: Center(
+              child: const Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(8),
+                  padding: EdgeInsets.all(8),
                   child: AspectRatio(
                     aspectRatio: 1,
-                    child: const BoardWidget(),
+                    child: BoardWidget(),
                   ),
                 ),
               ),
