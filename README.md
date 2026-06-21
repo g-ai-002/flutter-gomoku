@@ -15,8 +15,8 @@
 
 | 平台 | 下载 |
 |------|------|
-| Android | [v0.1.1 APK](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.1.1) |
-| Windows | [v0.1.1 ZIP](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.1.1) |
+| Android | [v0.1.2 APK](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.1.2) |
+| Windows | [v0.1.2 ZIP](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.1.2) |
 
 ## 开发
 
@@ -40,12 +40,13 @@ flutter run
 
 ## 版本历史
 
-### v0.1.1 (2026-06-22)
-- 修复 CI 测试失败和 lint 警告
+### v0.1.2 (2026-06-22)
+- 重构优化：简化服务层单例模式、提取设置面板组件、优化棋盘重绘性能
+- 补充边界测试用例
+- 允许游戏结束后悔棋
 
-### v0.1.0 (2026-06-21)
-- 首个版本：双人本地对弈
-- 支持 9x9 / 13x13 / 15x15 / 19x19 棋盘
-- 悔棋、重新开始功能
-- 浅色/深色主题
+### v0.1.0 ~ v0.1.1 (2026-06-21)
+- 首个版本：双人本地对弈，支持 9x9/13x13/15x15/19x19 棋盘
+- 悔棋、重新开始功能，浅色/深色主题
 - Windows + Android 双平台
+- 修复 CI 测试失败和 lint 警告
