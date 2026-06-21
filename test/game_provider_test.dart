@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_gomoku/ai/ai_engine.dart';
 import 'package:flutter_gomoku/providers/game_provider.dart';
 import 'package:flutter_gomoku/models/game_state.dart';
 import 'package:flutter_gomoku/services/storage_service.dart';
@@ -13,6 +14,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     storage = await StorageService.instance;
     await storage.setBoardSize(AppConstants.defaultBoardSize);
+    await storage.setGameMode(GameMode.pvp);
     provider = GameProvider(storage);
   });
 
@@ -24,6 +26,8 @@ void main() {
       expect(provider.history, isEmpty);
       expect(provider.canUndo, isFalse);
       expect(provider.isGameOver, isFalse);
+      expect(provider.mode, equals(GameMode.pvp));
+      expect(provider.aiThinking, isFalse);
     });
 
     test('落子成功', () {
@@ -48,7 +52,6 @@ void main() {
     });
 
     test('游戏结束后不能落子', () {
-      // 模拟黑棋获胜
       for (int i = 0; i < 5; i++) {
         provider.placeStone(i, 0); // 黑
         if (i < 4) provider.placeStone(i, 1); // 白
@@ -101,6 +104,75 @@ void main() {
     });
   });
 
+  group('游戏模式', () {
+    test('默认双人对弈', () {
+      expect(provider.mode, equals(GameMode.pvp));
+    });
+
+    test('切换为人机对弈', () {
+      provider.setGameMode(GameMode.pve);
+      expect(provider.mode, equals(GameMode.pve));
+      expect(provider.history, isEmpty);
+    });
+
+    test('切换模式重置游戏', () {
+      provider.placeStone(7, 7);
+      provider.setGameMode(GameMode.pve);
+      expect(provider.history, isEmpty);
+      expect(provider.status, equals(GameStatus.playing));
+    });
+
+    test('设置 AI 难度', () {
+      provider.setAIDifficulty(AIDifficulty.easy);
+      expect(provider.aiDifficulty, equals(AIDifficulty.easy));
+      provider.setAIDifficulty(AIDifficulty.hard);
+      expect(provider.aiDifficulty, equals(AIDifficulty.hard));
+    });
+
+    test('设置 AI 难度重置游戏', () {
+      provider.placeStone(7, 7);
+      provider.setAIDifficulty(AIDifficulty.hard);
+      expect(provider.history, isEmpty);
+    });
+  });
+
+  group('人机对弈', () {
+    setUp(() async {
+      provider.setGameMode(GameMode.pve);
+    });
+
+    test('玩家落子后 AI 开始思考', () {
+      provider.placeStone(7, 7);
+      expect(provider.aiThinking, isTrue);
+    });
+
+    test('AI 思考中不能落子', () {
+      provider.placeStone(7, 7);
+      expect(provider.aiThinking, isTrue);
+      final result = provider.placeStone(8, 8);
+      expect(result, isFalse);
+    });
+
+    test('AI 思考中不能悔棋', () {
+      provider.placeStone(7, 7);
+      expect(provider.aiThinking, isTrue);
+      final result = provider.undo();
+      expect(result, isFalse);
+    });
+
+    test('人机模式悔棋悔两步', () async {
+      provider.placeStone(7, 7); // 玩家
+      // 等待 AI 落子
+      await Future.delayed(const Duration(milliseconds: 300));
+      expect(provider.history.length, equals(2));
+      expect(provider.aiThinking, isFalse);
+
+      provider.undo();
+      expect(provider.history.length, equals(0));
+      expect(provider.currentPlayer, equals(StoneColor.black));
+    });
+  });
+
   group('胜负判定', () {
     test('水平五连', () {
       for (int i = 0; i < 5; i++) {
@@ -135,7 +207,6 @@ void main() {
     });
 
     test('白棋获胜', () {
-      // 黑棋先走，但白棋在第10步连成五子
       provider.placeStone(0, 0); // 黑
       provider.placeStone(0, 7); // 白
       provider.placeStone(0, 1); // 黑
@@ -144,8 +215,8 @@ void main() {
       provider.placeStone(2, 7); // 白
       provider.placeStone(0, 3); // 黑
       provider.placeStone(3, 7); // 白
-      provider.placeStone(1, 0); // 黑（避免黑棋五连）
-      provider.placeStone(4, 7); // 白 — 垂直五连获胜
+      provider.placeStone(1, 0); // 黑
+      provider.placeStone(4, 7); // 白
       expect(provider.status, equals(GameStatus.whiteWin));
     });
 
@@ -158,7 +229,6 @@ void main() {
     });
 
     test('平局判定', () {
-      // 验证 GameState 平局状态可正确创建
       final drawState = GameState.initial(15).copyWith(status: GameStatus.draw);
       expect(drawState.status, equals(GameStatus.draw));
       expect(drawState.isGameOver, isTrue);
