@@ -32,6 +32,11 @@ class StorageService {
     return _instance!;
   }
 
+  /// 仅用于测试：重置单例
+  static void reset() {
+    _instance = null;
+  }
+
   // ---- 主题 ----
   bool get darkMode => _prefs.getBool(AppConstants.prefKeyDarkMode) ?? false;
   Future<void> setDarkMode(bool v) =>

@@ -12,6 +12,7 @@ void main() {
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
+    StorageService.reset();
     storage = await StorageService.instance;
     await storage.setBoardSize(AppConstants.defaultBoardSize);
     await storage.setGameMode(GameMode.pvp);
