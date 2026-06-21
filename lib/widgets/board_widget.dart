@@ -210,5 +210,13 @@ class _BoardPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _BoardPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _BoardPainter oldDelegate) {
+    return boardSize != oldDelegate.boardSize ||
+        cellSize != oldDelegate.cellSize ||
+        padding != oldDelegate.padding ||
+        lastMove != oldDelegate.lastMove ||
+        winStart != oldDelegate.winStart ||
+        winEnd != oldDelegate.winEnd ||
+        isDark != oldDelegate.isDark;
+  }
 }
