@@ -21,15 +21,16 @@
 
 ## 版本历史
 
-### v0.1.1 (PATCH) — 当前开发中
-- **状态**: 开发中 🔧
+### v0.1.1 (PATCH)
+- **状态**: 已完成 ✅
 - **目标**: 修复 CI 测试失败和 lint 警告
 - **任务**:
-  - [ ] 修复测试：无效棋盘大小不生效（StorageService 单例跨测试持久化）
-  - [ ] 修复测试：白棋获胜（测试逻辑错误，黑棋先连成五子）
-  - [ ] 修复 lint：game_page.dart 中 4 个 prefer_const_constructors
-  - [ ] 更新版本号到 0.1.1
-  - [ ] 更新 README
+  - [x] 修复测试：无效棋盘大小不生效（StorageService 单例跨测试持久化）
+  - [x] 修复测试：白棋获胜（测试逻辑错误，黑棋先连成五子）
+  - [x] 修复 lint：game_page.dart 中 4 个 prefer_const_constructors
+  - [x] 修复 Android 构建：添加缺失的启动图标资源
+  - [x] 更新版本号到 0.1.1
+  - [x] 更新 README
 
 ### v0.1.0 (MINOR)
 - **状态**: 已完成 ✅
