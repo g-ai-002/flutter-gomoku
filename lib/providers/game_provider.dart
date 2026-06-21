@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
+import '../ai/ai_engine.dart';
 import '../models/game_state.dart';
 import '../services/log_service.dart';
 import '../services/storage_service.dart';
@@ -8,9 +10,16 @@ import '../utils/constants.dart';
 class GameProvider extends ChangeNotifier {
   final StorageService _storage;
   GameState _state;
+  GameMode _mode;
+  AIDifficulty _aiDifficulty;
+  GomokuAI _ai;
+  bool _aiThinking = false;
 
   GameProvider(this._storage)
-      : _state = GameState.initial(_storage.boardSize);
+      : _state = GameState.initial(_storage.boardSize),
+        _mode = _storage.gameMode,
+        _aiDifficulty = _storage.aiDifficulty,
+        _ai = GomokuAI(_storage.aiDifficulty);
 
   GameState get state => _state;
   int get boardSize => _state.boardSize;
@@ -23,15 +32,30 @@ class GameProvider extends ChangeNotifier {
   Position? get winEnd => _state.winEnd;
   bool get canUndo => _state.history.isNotEmpty;
   bool get isGameOver => _state.status != GameStatus.playing;
+  GameMode get mode => _mode;
+  AIDifficulty get aiDifficulty => _aiDifficulty;
+  bool get aiThinking => _aiThinking;
 
   /// 落子
   bool placeStone(int row, int col) {
     if (_state.status != GameStatus.playing) return false;
+    if (_aiThinking) return false;
     if (row < 0 || row >= _state.boardSize || col < 0 || col >= _state.boardSize) {
       return false;
     }
     if (_state.board[row][col] != null) return false;
 
+    _applyMove(row, col);
+
+    // 人机模式：AI 自动落子
+    if (_mode == GameMode.pve && _state.status == GameStatus.playing) {
+      _scheduleAIMove();
+    }
+
+    return true;
+  }
+
+  void _applyMove(int row, int col) {
     final newBoard = _state.board.map((r) => List<StoneColor?>.from(r)).toList();
     newBoard[row][col] = _state.currentPlayer;
 
@@ -44,7 +68,6 @@ class GameProvider extends ChangeNotifier {
 
     final newHistory = [..._state.history, move];
 
-    // 检查胜负
     final winResult = _checkWin(newBoard, pos, _state.currentPlayer);
 
     GameStatus newStatus;
@@ -76,37 +99,57 @@ class GameProvider extends ChangeNotifier {
     LogService.info(
         '落子: ${_state.currentPlayer.opponent.label} @ (${row + 1}, ${col + 1}), 步数: ${move.stepNumber}');
     notifyListeners();
-    return true;
+  }
+
+  void _scheduleAIMove() {
+    _aiThinking = true;
+    notifyListeners();
+
+    // 使用微延迟让 UI 先刷新
+    Future.delayed(const Duration(milliseconds: 200), () {
+      final move = _ai.findBestMove(_state);
+      if (move != null && _state.status == GameStatus.playing) {
+        _applyMove(move.row, move.col);
+      }
+      _aiThinking = false;
+      notifyListeners();
+    });
   }
 
   /// 悔棋
   bool undo() {
     if (!canUndo) return false;
+    if (_aiThinking) return false;
 
-    final newHistory = List<Move>.from(_state.history)..removeLast();
+    // 人机模式：悔两步（玩家 + AI）
+    final steps = (_mode == GameMode.pve && _state.history.length >= 2) ? 2 : 1;
 
-    // 重建棋盘
-    final newBoard = List.generate(
-      _state.boardSize,
-      (_) => List<StoneColor?>.filled(_state.boardSize, null),
-    );
-    for (final m in newHistory) {
-      newBoard[m.position.row][m.position.col] = m.color;
+    for (int i = 0; i < steps; i++) {
+      if (_state.history.isEmpty) break;
+      final newHistory = List<Move>.from(_state.history)..removeLast();
+
+      final newBoard = List.generate(
+        _state.boardSize,
+        (_) => List<StoneColor?>.filled(_state.boardSize, null),
+      );
+      for (final m in newHistory) {
+        newBoard[m.position.row][m.position.col] = m.color;
+      }
+
+      final lastM = newHistory.isNotEmpty ? newHistory.last : null;
+
+      _state = _state.copyWith(
+        board: newBoard,
+        currentPlayer: _state.currentPlayer.opponent,
+        status: GameStatus.playing,
+        history: newHistory,
+        lastMove: lastM?.position,
+        winStart: null,
+        winEnd: null,
+      );
     }
 
-    final lastM = newHistory.isNotEmpty ? newHistory.last : null;
-
-    _state = _state.copyWith(
-      board: newBoard,
-      currentPlayer: _state.currentPlayer.opponent,
-      status: GameStatus.playing,
-      history: newHistory,
-      lastMove: lastM?.position,
-      winStart: null,
-      winEnd: null,
-    );
-
-    LogService.info('悔棋, 当前步数: ${newHistory.length}');
+    LogService.info('悔棋, 当前步数: ${_state.history.length}');
     notifyListeners();
     return true;
   }
@@ -114,6 +157,7 @@ class GameProvider extends ChangeNotifier {
   /// 重新开始
   void restart() {
     _state = GameState.initial(_state.boardSize);
+    _aiThinking = false;
     LogService.info('重新开始游戏');
     notifyListeners();
   }
@@ -125,7 +169,31 @@ class GameProvider extends ChangeNotifier {
     }
     _storage.setBoardSize(size);
     _state = GameState.initial(size);
+    _aiThinking = false;
     LogService.info('设置棋盘大小: $size');
+    notifyListeners();
+  }
+
+  /// 设置游戏模式
+  void setGameMode(GameMode mode) {
+    if (_mode == mode) return;
+    _mode = mode;
+    _storage.setGameMode(mode);
+    _state = GameState.initial(_state.boardSize);
+    _aiThinking = false;
+    LogService.info('设置游戏模式: ${mode.label}');
+    notifyListeners();
+  }
+
+  /// 设置 AI 难度
+  void setAIDifficulty(AIDifficulty difficulty) {
+    if (_aiDifficulty == difficulty) return;
+    _aiDifficulty = difficulty;
+    _ai = GomokuAI(difficulty);
+    _storage.setAIDifficulty(difficulty);
+    _state = GameState.initial(_state.boardSize);
+    _aiThinking = false;
+    LogService.info('设置 AI 难度: ${difficulty.label}');
     notifyListeners();
   }
 
