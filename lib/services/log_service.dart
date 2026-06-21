@@ -6,8 +6,6 @@ class LogService {
   static LogService? _instance;
   File? _logFile;
   bool _initialized = false;
-  final List<String> _buffer = [];
-  static const int _maxBufferLines = 1000;
 
   LogService._();
 
@@ -44,8 +42,6 @@ class LogService {
     final ts =
         '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}.${now.millisecond.toString().padLeft(3, '0')}';
     final line = '[$ts][$level] $message';
-    _buffer.add(line);
-    if (_buffer.length > _maxBufferLines) _buffer.removeAt(0);
     try {
       _logFile?.writeAsStringSync('$line\n', mode: FileMode.append);
     } catch (_) {
@@ -55,12 +51,5 @@ class LogService {
 
   static Future<String> getLogFilePath() async {
     return _instance?._logFile?.path ?? '';
-  }
-
-  static List<String> getRecentLogs([int n = 200]) {
-    if (_instance == null) return const [];
-    final buf = _instance!._buffer;
-    if (buf.length <= n) return List.from(buf);
-    return buf.sublist(buf.length - n);
   }
 }

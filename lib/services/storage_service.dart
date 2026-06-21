@@ -3,55 +3,33 @@ import '../utils/constants.dart';
 
 /// 简单存储服务封装：SharedPreferences
 class StorageService {
-  static Future<StorageService>? _initFuture;
+  static StorageService? _instance;
 
-  SharedPreferences? _prefs;
-  bool _initialized = false;
+  final SharedPreferences _prefs;
 
-  StorageService._();
+  StorageService._(this._prefs);
 
-  static Future<StorageService> get instance {
-    final cached = _initFuture;
-    if (cached != null) return cached;
-    final f = _bootstrap();
-    _initFuture = f;
-    return f;
-  }
-
-  static Future<StorageService> _bootstrap() async {
-    final s = StorageService._();
-    await s._init();
-    return s;
-  }
-
-  Future<void> _init() async {
-    if (_initialized) return;
-    _prefs = await SharedPreferences.getInstance();
-    _initialized = true;
-  }
-
-  SharedPreferences get _p {
-    final p = _prefs;
-    if (p == null) {
-      throw StateError('StorageService 尚未初始化');
-    }
-    return p;
+  static Future<StorageService> get instance async {
+    if (_instance != null) return _instance!;
+    final prefs = await SharedPreferences.getInstance();
+    _instance = StorageService._(prefs);
+    return _instance!;
   }
 
   // ---- 主题 ----
-  bool get darkMode => _p.getBool(AppConstants.prefKeyDarkMode) ?? false;
+  bool get darkMode => _prefs.getBool(AppConstants.prefKeyDarkMode) ?? false;
   Future<void> setDarkMode(bool v) =>
-      _p.setBool(AppConstants.prefKeyDarkMode, v);
+      _prefs.setBool(AppConstants.prefKeyDarkMode, v);
 
   // ---- 棋盘大小 ----
   int get boardSize =>
-      _p.getInt(AppConstants.prefKeyBoardSize) ?? AppConstants.defaultBoardSize;
+      _prefs.getInt(AppConstants.prefKeyBoardSize) ?? AppConstants.defaultBoardSize;
   Future<void> setBoardSize(int v) =>
-      _p.setInt(AppConstants.prefKeyBoardSize, v);
+      _prefs.setInt(AppConstants.prefKeyBoardSize, v);
 
   // ---- 音效 ----
   bool get soundEnabled =>
-      _p.getBool(AppConstants.prefKeySoundEnabled) ?? true;
+      _prefs.getBool(AppConstants.prefKeySoundEnabled) ?? true;
   Future<void> setSoundEnabled(bool v) =>
-      _p.setBool(AppConstants.prefKeySoundEnabled, v);
+      _prefs.setBool(AppConstants.prefKeySoundEnabled, v);
 }
