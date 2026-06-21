@@ -156,5 +156,46 @@ void main() {
       }
       expect(provider.status, equals(GameStatus.playing));
     });
+
+    test('平局判定', () {
+      provider.setBoardSize(9);
+      // 填满棋盘但不产生五连
+      for (int r = 0; r < 9; r++) {
+        for (int c = 0; c < 9; c++) {
+          if (r == 9 - 1 && c == 9 - 1) break;
+          provider.placeStone(r, c);
+        }
+      }
+      // 最后一手
+      provider.placeStone(8, 8);
+      expect(provider.status, equals(GameStatus.draw));
+    });
+
+    test('悔棋后胜负状态重置', () {
+      for (int i = 0; i < 5; i++) {
+        provider.placeStone(7, i);
+        if (i < 4) provider.placeStone(8, i);
+      }
+      expect(provider.status, equals(GameStatus.blackWin));
+      expect(provider.canUndo, isTrue);
+      provider.undo();
+      expect(provider.status, equals(GameStatus.playing));
+    });
+
+    test('设置棋盘大小后状态重置', () {
+      provider.placeStone(7, 7);
+      provider.placeStone(7, 8);
+      provider.setBoardSize(13);
+      expect(provider.boardSize, equals(13));
+      expect(provider.history, isEmpty);
+      expect(provider.status, equals(GameStatus.playing));
+    });
+
+    test('边界位置落子', () {
+      expect(provider.placeStone(0, 0), isTrue);
+      expect(provider.placeStone(14, 14), isTrue);
+      expect(provider.placeStone(0, 14), isTrue);
+      expect(provider.placeStone(14, 0), isTrue);
+    });
   });
 }
