@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../ai/ai_engine.dart';
 import '../providers/game_provider.dart';
+import '../services/storage_service.dart';
 
 /// 设置面板
 class SettingsSheet extends StatefulWidget {
@@ -35,6 +37,36 @@ class _SettingsSheetState extends State<SettingsSheet> {
               ),
             ),
             const SizedBox(height: 16),
+            Text('游戏模式', style: theme.textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: GameMode.values.map((mode) {
+                final isSelected = game.mode == mode;
+                return ChoiceChip(
+                  label: Text(mode.label),
+                  selected: isSelected,
+                  onSelected: (_) => game.setGameMode(mode),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
+            if (game.mode == GameMode.pve) ...[
+              Text('AI 难度', style: theme.textTheme.titleMedium),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: AIDifficulty.values.map((diff) {
+                  final isSelected = game.aiDifficulty == diff;
+                  return ChoiceChip(
+                    label: Text(diff.label),
+                    selected: isSelected,
+                    onSelected: (_) => game.setAIDifficulty(diff),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+            ],
             Text('棋盘大小', style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
             Row(

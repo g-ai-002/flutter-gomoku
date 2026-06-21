@@ -29,9 +29,7 @@ class GamePage extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // 状态栏
-            _buildStatusBar(state, theme),
-            // 棋盘
+            _buildStatusBar(state, game, theme),
             Expanded(
               child: const Center(
                 child: Padding(
@@ -43,7 +41,6 @@ class GamePage extends StatelessWidget {
                 ),
               ),
             ),
-            // 操作按钮
             _buildActionBar(context, game, theme),
           ],
         ),
@@ -51,29 +48,34 @@ class GamePage extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusBar(GameState state, ThemeData theme) {
+  Widget _buildStatusBar(GameState state, GameProvider game, ThemeData theme) {
     String statusText;
     Color statusColor;
 
-    switch (state.status) {
-      case GameStatus.playing:
-        statusText = '当前: ${state.currentPlayer.label}';
-        statusColor = state.currentPlayer == StoneColor.black
-            ? Colors.black87
-            : Colors.grey.shade700;
-        break;
-      case GameStatus.blackWin:
-        statusText = '🏆 黑棋获胜!';
-        statusColor = Colors.black87;
-        break;
-      case GameStatus.whiteWin:
-        statusText = '🏆 白棋获胜!';
-        statusColor = Colors.grey.shade700;
-        break;
-      case GameStatus.draw:
-        statusText = '🤝 平局!';
-        statusColor = theme.colorScheme.onSurfaceVariant;
-        break;
+    if (game.aiThinking) {
+      statusText = 'AI 思考中...';
+      statusColor = theme.colorScheme.primary;
+    } else {
+      switch (state.status) {
+        case GameStatus.playing:
+          statusText = '当前: ${state.currentPlayer.label}';
+          statusColor = state.currentPlayer == StoneColor.black
+              ? Colors.black87
+              : Colors.grey.shade700;
+          break;
+        case GameStatus.blackWin:
+          statusText = '🏆 黑棋获胜!';
+          statusColor = Colors.black87;
+          break;
+        case GameStatus.whiteWin:
+          statusText = '🏆 白棋获胜!';
+          statusColor = Colors.grey.shade700;
+          break;
+        case GameStatus.draw:
+          statusText = '🤝 平局!';
+          statusColor = theme.colorScheme.onSurfaceVariant;
+          break;
+      }
     }
 
     return Container(
@@ -88,8 +90,7 @@ class GamePage extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // 当前玩家指示器
-          if (state.status == GameStatus.playing)
+          if (state.status == GameStatus.playing && !game.aiThinking)
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: Container(
@@ -111,6 +112,15 @@ class GamePage extends StatelessWidget {
                 ),
               ),
             ),
+          if (game.aiThinking)
+            const Padding(
+              padding: EdgeInsets.only(right: 8),
+              child: SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
           Text(
             statusText,
             style: theme.textTheme.titleMedium?.copyWith(
@@ -118,7 +128,7 @@ class GamePage extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-          if (state.status == GameStatus.playing)
+          if (state.status == GameStatus.playing && !game.aiThinking)
             Padding(
               padding: const EdgeInsets.only(left: 12),
               child: Text(
@@ -148,12 +158,12 @@ class GamePage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           OutlinedButton.icon(
-            onPressed: game.canUndo ? () => game.undo() : null,
+            onPressed: game.canUndo && !game.aiThinking ? () => game.undo() : null,
             icon: const Icon(Icons.undo, size: 18),
             label: const Text('悔棋'),
           ),
           ElevatedButton.icon(
-            onPressed: () => _confirmRestart(context, game),
+            onPressed: game.aiThinking ? null : () => _confirmRestart(context, game),
             icon: const Icon(Icons.refresh, size: 18),
             label: const Text('重新开始'),
           ),
