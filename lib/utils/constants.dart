@@ -3,12 +3,14 @@ class AppConstants {
   AppConstants._();
 
   static const String appName = '五子棋';
-  static const String version = '0.1.3';
+  static const String version = '0.2.0';
 
   // SharedPreferences keys
   static const String prefKeyDarkMode = 'dark_mode';
   static const String prefKeyBoardSize = 'board_size';
   static const String prefKeySoundEnabled = 'sound_enabled';
+  static const String prefKeyGameMode = 'game_mode';
+  static const String prefKeyAIDifficulty = 'ai_difficulty';
 
   // 棋盘默认大小
   static const int defaultBoardSize = 15;
