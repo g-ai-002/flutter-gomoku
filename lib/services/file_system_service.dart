@@ -3,9 +3,19 @@ import 'package:path_provider/path_provider.dart';
 
 /// 文件系统服务：提供应用目录访问
 class FileSystemService {
-  static final FileSystemService instance = FileSystemService._();
+  static FileSystemService? _instance;
+
+  static FileSystemService get instance {
+    _instance ??= FileSystemService._();
+    return _instance!;
+  }
 
   FileSystemService._();
+
+  /// 仅用于测试：重置单例
+  static void reset() {
+    _instance = null;
+  }
 
   /// 获取日志根目录
   Future<Directory> getLogRoot() async {

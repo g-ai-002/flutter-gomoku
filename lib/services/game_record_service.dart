@@ -5,8 +5,19 @@ import 'log_service.dart';
 
 /// 对局记录服务：保存/加载对局历史
 class GameRecordService {
-  static final GameRecordService instance = GameRecordService._();
+  static GameRecordService? _instance;
+
+  static GameRecordService get instance {
+    _instance ??= GameRecordService._();
+    return _instance!;
+  }
+
   GameRecordService._();
+
+  /// 仅用于测试：重置单例
+  static void reset() {
+    _instance = null;
+  }
 
   Directory? _recordsDir;
 
