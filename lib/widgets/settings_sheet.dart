@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../ai/ai_engine.dart';
 import '../models/game_state.dart';
 import '../providers/game_provider.dart';
+import '../utils/constants.dart';
 
 /// 设置面板
 class SettingsSheet extends StatefulWidget {
@@ -71,7 +72,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [9, 13, 15, 19].map((size) {
+              children: AppConstants.boardSizeOptions.map((size) {
                 final isSelected = game.boardSize == size;
                 return ChoiceChip(
                   label: Text('${size}x$size'),

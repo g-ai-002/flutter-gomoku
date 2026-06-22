@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/game_state.dart';
+import '../utils/constants.dart';
 
 /// 棋盘绘制器
 class BoardPainter extends CustomPainter {
@@ -87,7 +88,7 @@ class BoardPainter extends CustomPainter {
   }
 
   void _drawStones(Canvas canvas) {
-    final radius = cellSize * 0.43;
+    final radius = cellSize * AppConstants.stoneRadiusRatio;
 
     for (int r = 0; r < boardSize; r++) {
       for (int c = 0; c < boardSize; c++) {
@@ -109,8 +110,8 @@ class BoardPainter extends CustomPainter {
           center: const Alignment(-0.3, -0.3),
           radius: 0.8,
           colors: stone == StoneColor.black
-              ? [const Color(0xFF555555), const Color(0xFF111111)]
-              : [const Color(0xFFFFFFFF), const Color(0xFFCCCCCC)],
+              ? [AppConstants.blackStoneLight, AppConstants.blackStoneDark]
+              : [AppConstants.whiteStoneLight, AppConstants.whiteStoneDark],
         );
 
         final stonePaint = Paint()
@@ -122,8 +123,8 @@ class BoardPainter extends CustomPainter {
 
         final borderPaint = Paint()
           ..color = stone == StoneColor.black
-              ? const Color(0xFF333333)
-              : const Color(0xFFAAAAAA)
+              ? AppConstants.blackStoneBorder
+              : AppConstants.whiteStoneBorder
           ..style = PaintingStyle.stroke
           ..strokeWidth = 0.5;
         canvas.drawCircle(center, radius * scale, borderPaint);

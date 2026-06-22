@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/game_state.dart';
 import '../providers/game_provider.dart';
+import '../utils/constants.dart';
 
 /// 游戏状态栏组件
 class StatusBar extends StatelessWidget {
@@ -102,13 +103,13 @@ class _StoneIcon extends StatelessWidget {
         shape: BoxShape.circle,
         gradient: RadialGradient(
           colors: color == StoneColor.black
-              ? [const Color(0xFF555555), const Color(0xFF111111)]
-              : [const Color(0xFFFFFFFF), const Color(0xFFCCCCCC)],
+              ? [AppConstants.blackStoneLight, AppConstants.blackStoneDark]
+              : [AppConstants.whiteStoneLight, AppConstants.whiteStoneDark],
         ),
         border: Border.all(
           color: color == StoneColor.black
-              ? const Color(0xFF333333)
-              : const Color(0xFFAAAAAA),
+              ? AppConstants.blackStoneBorder
+              : AppConstants.whiteStoneBorder,
           width: 0.5,
         ),
       ),

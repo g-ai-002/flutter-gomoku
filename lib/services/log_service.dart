@@ -1,4 +1,5 @@
 import 'dart:io';
+import '../utils/constants.dart';
 import 'file_system_service.dart';
 
 /// 日志服务：按日期生成日志文件，写入用户目录 logs/ 子目录
@@ -7,17 +8,16 @@ class LogService {
   File? _logFile;
   bool _initialized = false;
 
-  /// 单个日志文件最大大小（5MB）
-  static const int _maxFileSize = 5 * 1024 * 1024;
-
-  /// 日志文件最大保留天数
-  static const int _maxRetentionDays = 7;
-
   LogService._();
 
   static Future<void> init() async {
     _instance ??= LogService._();
     await _instance!._init();
+  }
+
+  /// 仅用于测试：重置单例
+  static void reset() {
+    _instance = null;
   }
 
   Future<void> _init() async {
@@ -38,7 +38,7 @@ class LogService {
   void _cleanOldLogs(Directory dir) {
     try {
       final now = DateTime.now();
-      final cutoff = now.subtract(const Duration(days: _maxRetentionDays));
+      final cutoff = now.subtract(Duration(days: AppConstants.logMaxRetentionDays));
       final files = dir.listSync().whereType<File>();
       for (final f in files) {
         final name = f.uri.pathSegments.last;
@@ -82,7 +82,7 @@ class LogService {
       if (_logFile == null) return;
       if (!_logFile!.existsSync()) return;
       final size = _logFile!.lengthSync();
-      if (size < _maxFileSize) return;
+      if (size < AppConstants.logMaxFileSize) return;
 
       // 文件过大，重命名为带序号的备份
       final parent = _logFile!.parent;

@@ -136,7 +136,7 @@ class GameProvider extends ChangeNotifier {
     _aiThinking = true;
     notifyListeners();
 
-    Future.delayed(const Duration(milliseconds: 200), () {
+    Future.delayed(Duration(milliseconds: AppConstants.aiMoveDelayMs), () {
       final move = _ai.findBestMove(_state);
       if (move != null && _state.status == GameStatus.playing) {
         _applyMove(move.row, move.col);

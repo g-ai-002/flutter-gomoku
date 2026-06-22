@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/game_state.dart';
 import '../providers/game_provider.dart';
+import '../utils/constants.dart';
 import 'board_painter.dart';
 
 /// 棋盘组件
@@ -22,7 +23,7 @@ class _BoardWidgetState extends State<BoardWidget>
     super.initState();
     _animController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: AppConstants.aiMoveDelayMs),
     );
   }
 
@@ -47,7 +48,7 @@ class _BoardWidgetState extends State<BoardWidget>
     return LayoutBuilder(
       builder: (context, constraints) {
         final maxSize = constraints.maxWidth;
-        final cellSize = (maxSize - 16) / boardSize;
+        final cellSize = (maxSize - AppConstants.boardPadding) / boardSize;
         final boardPixelSize = cellSize * (boardSize - 1);
         final padding = (maxSize - boardPixelSize) / 2;
 
