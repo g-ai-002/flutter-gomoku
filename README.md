@@ -19,8 +19,8 @@
 
 | 平台 | 下载 |
 |------|------|
-| Android | [v0.3.1 APK](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.3.1) |
-| Windows | [v0.3.1 ZIP](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.3.1) |
+| Android | [v0.3.2 APK](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.3.2) |
+| Windows | [v0.3.2 ZIP](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.3.2) |
 
 ## 开发
 
@@ -45,6 +45,13 @@ flutter run
 - 程序化音效生成（无需外部资源）
 
 ## 版本历史
+
+### v0.3.2 (2026-06-22)
+- 修复 GameState.copyWith 中 winStart/winEnd 丢失旧值的 bug
+- 消除 ReplayPage 与 BoardUtils 的五连检测代码重复
+- 提取棋子颜色、棋盘参数等共享常量，消除魔法数字
+- 统一服务层单例模式，添加测试重置方法
+- 新增 BoardUtils 单元测试
 
 ### v0.3.1 (2026-06-22)
 - 修复 CI 测试失败：SoundService 在测试环境 binding 未初始化导致 22 个测试失败

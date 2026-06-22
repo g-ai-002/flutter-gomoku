@@ -21,6 +21,20 @@
 
 ## 版本历史
 
+### v0.3.2 (PATCH)
+- **状态**: 已完成 ✅
+- **目标**: 重构优化存量代码，消除重复、修复潜在 bug、统一代码风格
+- **任务**:
+  - [x] 修复 GameState.copyWith 中 winStart/winEnd 丢失旧值的 bug
+  - [x] 消除 ReplayPage._checkWin 与 BoardUtils.checkWin 的代码重复
+  - [x] 提取棋子颜色常量到共享模块，消除 BoardPainter/StatusBar 中的重复
+  - [x] 提取结果标签字符串到共享模块
+  - [x] 统一服务层单例模式
+  - [x] 提取魔法数字为命名常量
+  - [x] 补充 BoardUtils 单元测试
+  - [x] 更新版本号到 0.3.2
+  - [x] 更新 README
+
 ### v0.3.1 (PATCH)
 - **状态**: 已完成 ✅
 - **目标**: 修复 CI 测试失败（SoundService 在测试环境 binding 未初始化）
