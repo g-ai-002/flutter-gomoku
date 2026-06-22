@@ -9,6 +9,9 @@
 - 🎨 Material 3 浅色/深色主题
 - 📐 多种棋盘大小（9x9 / 13x13 / 15x15 / 19x19）
 - ↩️ 悔棋功能
+- 📋 对局记录与回放
+- 🔊 落子/获胜音效
+- ✨ 落子缩放动画
 - 🖥️ Windows 窗口自适应
 - 📱 Android 手机/折叠屏/平板自适应
 
@@ -16,8 +19,8 @@
 
 | 平台 | 下载 |
 |------|------|
-| Android | [v0.2.1 APK](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.2.1) |
-| Windows | [v0.2.1 ZIP](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.2.1) |
+| Android | [v0.3.0 APK](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.3.0) |
+| Windows | [v0.3.0 ZIP](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.3.0) |
 
 ## 开发
 
@@ -39,23 +42,21 @@ flutter run
 - Material 3 设计
 - SharedPreferences 本地存储
 - Minimax + Alpha-Beta 剪枝 AI
+- 程序化音效生成（无需外部资源）
 
 ## 版本历史
 
-### v0.2.1 (2026-06-22)
-- 重构优化：提取共享五连检测逻辑到 BoardUtils 工具类
-- GameMode 枚举移至 models 层，修复依赖方向
-- 修复深色模式切换不实时生效，设置面板新增深色模式开关
-- AI 引擎魔法数字提取为命名常量
-- BoardPainter 和 StatusBar 提取为独立组件
-- 优化 undo() 性能，改为仅清除被撤销棋子
-- 日志服务新增轮转和过期清理机制
+### v0.3.0 (2026-06-22)
+- 新增对局记录：自动保存每局对局到本地 JSON 文件
+- 新增对局列表页：查看历史对局，显示日期/模式/结果/步数
+- 新增对局回放：逐步回放，支持前进/后退/自动播放
+- 新增音效系统：程序化生成落子音效和获胜音效
+- 新增落子动画：棋子缩放弹入效果
 
-### v0.2.0 (2026-06-22)
-- 新增人机对弈模式，支持简单/中等/困难三级 AI 难度
+### v0.2.0 ~ v0.2.1 (2026-06-22)
+- 人机对弈模式，支持简单/中等/困难三级 AI 难度
 - AI 引擎：简单（随机）、中等（评分策略）、困难（Minimax + Alpha-Beta 剪枝）
-- 人机模式悔棋自动撤销两步
-- 设置面板新增游戏模式和 AI 难度选择
+- 重构优化：提取共享工具类、修复主题切换、优化性能
 
 ### v0.1.0 ~ v0.1.3 (2026-06-21 ~ 2026-06-22)
 - 首个版本：双人本地对弈，支持 9x9/13x13/15x15/19x19 棋盘
