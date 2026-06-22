@@ -21,6 +21,15 @@
 
 ## 版本历史
 
+### v0.3.3 (PATCH)
+- **状态**: 已完成 ✅
+- **目标**: 修复 CI 测试失败（test/board_utils_test.dart 类型推断错误）
+- **任务**:
+  - [x] 修复 test/board_utils_test.dart 中 `List.filled(size, null)` 类型推断为 `List<Null>` 的问题
+  - [x] 修复 lib/models/game_state.dart 和 lib/pages/replay_page.dart 中相同问题
+  - [x] 更新版本号到 0.3.3
+  - [x] 更新 README
+
 ### v0.3.2 (PATCH)
 - **状态**: 已完成 ✅
 - **目标**: 重构优化存量代码，消除重复、修复潜在 bug、统一代码风格

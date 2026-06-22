@@ -19,8 +19,8 @@
 
 | 平台 | 下载 |
 |------|------|
-| Android | [v0.3.2 APK](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.3.2) |
-| Windows | [v0.3.2 ZIP](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.3.2) |
+| Android | [v0.3.3 APK](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.3.3) |
+| Windows | [v0.3.3 ZIP](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.3.3) |
 
 ## 开发
 
@@ -46,6 +46,9 @@ flutter run
 
 ## 版本历史
 
+### v0.3.3 (2026-06-22)
+- 修复 CI 测试失败：`List.filled(size, null)` 类型推断为 `List<Null>` 导致编译错误
+
 ### v0.3.2 (2026-06-22)
 - 修复 GameState.copyWith 中 winStart/winEnd 丢失旧值的 bug
 - 消除 ReplayPage 与 BoardUtils 的五连检测代码重复
@@ -63,13 +66,10 @@ flutter run
 - 新增音效系统：程序化生成落子音效和获胜音效
 - 新增落子动画：棋子缩放弹入效果
 
-### v0.2.0 ~ v0.2.1 (2026-06-22)
+### v0.1.0 ~ v0.2.1 (2026-06-21 ~ 2026-06-22)
+- 首个版本：双人本地对弈，支持 9x9/13x13/15x15/19x19 棋盘
 - 人机对弈模式，支持简单/中等/困难三级 AI 难度
 - AI 引擎：简单（随机）、中等（评分策略）、困难（Minimax + Alpha-Beta 剪枝）
-- 重构优化：提取共享工具类、修复主题切换、优化性能
-
-### v0.1.0 ~ v0.1.3 (2026-06-21 ~ 2026-06-22)
-- 首个版本：双人本地对弈，支持 9x9/13x13/15x15/19x19 棋盘
 - 悔棋、重新开始功能，浅色/深色主题
 - Windows + Android 双平台
 - 修复 CI 测试失败和 lint 警告
