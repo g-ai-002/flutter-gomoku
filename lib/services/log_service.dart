@@ -38,7 +38,7 @@ class LogService {
   void _cleanOldLogs(Directory dir) {
     try {
       final now = DateTime.now();
-      final cutoff = now.subtract(Duration(days: _maxRetentionDays));
+      final cutoff = now.subtract(const Duration(days: _maxRetentionDays));
       final files = dir.listSync().whereType<File>();
       for (final f in files) {
         final name = f.uri.pathSegments.last;

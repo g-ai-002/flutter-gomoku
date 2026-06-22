@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/game_record.dart';
+import '../models/game_state.dart';
 import '../services/game_record_service.dart';
 import 'replay_page.dart';
 
@@ -81,7 +82,7 @@ class _RecordsPageState extends State<RecordsPage> {
                   child: ListView.separated(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     itemCount: _records.length,
-                    separatorBuilder: (_, __) => Divider(
+                    separatorBuilder: (_, _) => Divider(
                       height: 1,
                       indent: 16,
                       endIndent: 16,

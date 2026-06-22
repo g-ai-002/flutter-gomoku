@@ -257,7 +257,6 @@ class GomokuAI {
   int _evaluateBoard(List<List<StoneColor?>> board, StoneColor aiColor) {
     int score = 0;
     final size = board.length;
-    final opponent = aiColor.opponent;
 
     for (int r = 0; r < size; r++) {
       for (int c = 0; c < size; c++) {

@@ -41,7 +41,7 @@ class GamePage extends StatelessWidget {
           children: [
             const StatusBar(),
             Expanded(
-              child: const Center(
+              child: Center(
                 child: Padding(
                   padding: const EdgeInsets.all(8),
                   child: AspectRatio(

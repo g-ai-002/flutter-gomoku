@@ -166,7 +166,6 @@ class _ReplayPageState extends State<ReplayPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isOver = _status != GameStatus.playing;
 
     return Scaffold(
       appBar: AppBar(
