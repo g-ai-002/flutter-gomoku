@@ -8,7 +8,7 @@ void main() {
     });
 
     test('版本号', () {
-      expect(AppConstants.version, equals('0.2.0'));
+      expect(AppConstants.version, equals('0.2.1'));
     });
 
     test('默认棋盘大小', () {
