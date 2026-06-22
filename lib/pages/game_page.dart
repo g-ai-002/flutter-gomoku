@@ -4,6 +4,7 @@ import '../providers/game_provider.dart';
 import '../widgets/board_widget.dart';
 import '../widgets/settings_sheet.dart';
 import '../widgets/status_bar.dart';
+import 'records_page.dart';
 
 /// 游戏主页面
 class GamePage extends StatelessWidget {
@@ -18,6 +19,16 @@ class GamePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('五子棋'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.history_outlined),
+            tooltip: '对局记录',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const RecordsPage()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             tooltip: '设置',

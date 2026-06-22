@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/game_state.dart';
 
@@ -11,6 +12,8 @@ class BoardPainter extends CustomPainter {
   final Position? winStart;
   final Position? winEnd;
   final bool isDark;
+  final double stoneAnimProgress;
+  final bool isGameOver;
 
   BoardPainter({
     required this.boardSize,
@@ -21,6 +24,8 @@ class BoardPainter extends CustomPainter {
     this.winStart,
     this.winEnd,
     required this.isDark,
+    this.stoneAnimProgress = 1.0,
+    this.isGameOver = false,
   });
 
   @override
@@ -91,10 +96,14 @@ class BoardPainter extends CustomPainter {
 
         final center = Offset(padding + c * cellSize, padding + r * cellSize);
 
+        // 落子动画：最新一颗棋子缩放弹入
+        final isNewStone = lastMove != null && lastMove!.row == r && lastMove!.col == c;
+        final scale = isNewStone ? _easeOutBack(stoneAnimProgress) : 1.0;
+
         final shadowPaint = Paint()
           ..color = Colors.black.withValues(alpha: 0.15)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
-        canvas.drawCircle(center + const Offset(1, 1.5), radius, shadowPaint);
+        canvas.drawCircle(center + const Offset(1, 1.5), radius * scale, shadowPaint);
 
         final gradient = RadialGradient(
           center: const Alignment(-0.3, -0.3),
@@ -109,7 +118,7 @@ class BoardPainter extends CustomPainter {
             Rect.fromCircle(center: center, radius: radius),
           );
 
-        canvas.drawCircle(center, radius, stonePaint);
+        canvas.drawCircle(center, radius * scale, stonePaint);
 
         final borderPaint = Paint()
           ..color = stone == StoneColor.black
@@ -117,14 +126,14 @@ class BoardPainter extends CustomPainter {
               : const Color(0xFFAAAAAA)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 0.5;
-        canvas.drawCircle(center, radius, borderPaint);
+        canvas.drawCircle(center, radius * scale, borderPaint);
 
-        if (lastMove != null && lastMove!.row == r && lastMove!.col == c) {
+        if (isNewStone && !isGameOver) {
           final markPaint = Paint()
             ..color = const Color(0xFFFF5252)
             ..style = PaintingStyle.stroke
             ..strokeWidth = 1.5;
-          canvas.drawCircle(center, radius * 0.35, markPaint);
+          canvas.drawCircle(center, radius * 0.35 * scale, markPaint);
         }
       }
     }
@@ -132,6 +141,13 @@ class BoardPainter extends CustomPainter {
     if (winStart != null && winEnd != null) {
       _drawWinLine(canvas);
     }
+  }
+
+  /// 缓出回弹曲线
+  double _easeOutBack(double t) {
+    const c1 = 1.70158;
+    const c3 = c1 + 1;
+    return 1 + c3 * pow(t - 1, 3) + c1 * pow(t - 1, 2);
   }
 
   void _drawWinLine(Canvas canvas) {
@@ -161,6 +177,8 @@ class BoardPainter extends CustomPainter {
         lastMove != oldDelegate.lastMove ||
         winStart != oldDelegate.winStart ||
         winEnd != oldDelegate.winEnd ||
-        isDark != oldDelegate.isDark;
+        isDark != oldDelegate.isDark ||
+        stoneAnimProgress != oldDelegate.stoneAnimProgress ||
+        isGameOver != oldDelegate.isGameOver;
   }
 }

@@ -84,11 +84,21 @@ class _SettingsSheetState extends State<SettingsSheet> {
             Text('外观', style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
             Consumer<GameProvider>(
-              builder: (context, game, _) => SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('深色模式'),
-                value: game.darkMode,
-                onChanged: (_) => game.toggleDarkMode(),
+              builder: (context, game, _) => Column(
+                children: [
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('深色模式'),
+                    value: game.darkMode,
+                    onChanged: (_) => game.toggleDarkMode(),
+                  ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('音效'),
+                    value: game.soundEnabled,
+                    onChanged: (_) => game.toggleSound(),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 16),

@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../ai/ai_engine.dart';
+import '../models/game_record.dart';
 import '../models/game_state.dart';
+import '../services/game_record_service.dart';
 import '../services/log_service.dart';
+import '../services/sound_service.dart';
 import '../services/storage_service.dart';
 import '../utils/board_utils.dart';
 import '../utils/constants.dart';
@@ -15,12 +18,14 @@ class GameProvider extends ChangeNotifier {
   AIDifficulty _aiDifficulty;
   GomokuAI _ai;
   bool _aiThinking = false;
+  bool _soundEnabled;
 
   GameProvider(this._storage)
       : _state = GameState.initial(_storage.boardSize),
         _mode = _storage.gameMode,
         _aiDifficulty = _storage.aiDifficulty,
-        _ai = GomokuAI(_storage.aiDifficulty);
+        _ai = GomokuAI(_storage.aiDifficulty),
+        _soundEnabled = _storage.soundEnabled;
 
   GameState get state => _state;
   int get boardSize => _state.boardSize;
@@ -37,6 +42,7 @@ class GameProvider extends ChangeNotifier {
   AIDifficulty get aiDifficulty => _aiDifficulty;
   bool get aiThinking => _aiThinking;
   bool get darkMode => _storage.darkMode;
+  bool get soundEnabled => _soundEnabled;
 
   /// 落子
   bool placeStone(int row, int col) {
@@ -81,11 +87,16 @@ class GameProvider extends ChangeNotifier {
       ws = winResult.$1;
       we = winResult.$2;
       LogService.info('${_state.currentPlayer.label} 获胜! 位置: $ws -> $we');
+      if (_soundEnabled) SoundService.playWin();
     } else if (newHistory.length >= _state.boardSize * _state.boardSize) {
       newStatus = GameStatus.draw;
       LogService.info('平局!');
     } else {
       newStatus = GameStatus.playing;
+    }
+
+    if (_soundEnabled && newStatus == GameStatus.playing) {
+      SoundService.playPlaceStone();
     }
 
     _state = _state.copyWith(
@@ -100,14 +111,31 @@ class GameProvider extends ChangeNotifier {
 
     LogService.info(
         '落子: ${_state.currentPlayer.opponent.label} @ (${row + 1}, ${col + 1}), 步数: ${move.stepNumber}');
+
+    if (newStatus != GameStatus.playing) {
+      _saveRecord(newStatus, newHistory);
+    }
+
     notifyListeners();
+  }
+
+  void _saveRecord(GameStatus result, List<Move> moves) {
+    final record = GameRecord(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      date: DateTime.now(),
+      mode: _mode,
+      aiDifficulty: _mode == GameMode.pve ? _aiDifficulty : null,
+      boardSize: _state.boardSize,
+      result: result,
+      moves: moves,
+    );
+    GameRecordService.instance.save(record);
   }
 
   void _scheduleAIMove() {
     _aiThinking = true;
     notifyListeners();
 
-    // 使用微延迟让 UI 先刷新
     Future.delayed(const Duration(milliseconds: 200), () {
       final move = _ai.findBestMove(_state);
       if (move != null && _state.status == GameStatus.playing) {
@@ -123,7 +151,6 @@ class GameProvider extends ChangeNotifier {
     if (!canUndo) return false;
     if (_aiThinking) return false;
 
-    // 人机模式：悔两步（玩家 + AI）
     final steps = (_mode == GameMode.pve && _state.history.length >= 2) ? 2 : 1;
 
     var newBoard = BoardUtils.copyBoard(_state.board);
@@ -201,6 +228,14 @@ class GameProvider extends ChangeNotifier {
   Future<void> toggleDarkMode() async {
     await _storage.setDarkMode(!_storage.darkMode);
     LogService.info('切换深色模式: ${_storage.darkMode}');
+    notifyListeners();
+  }
+
+  /// 切换音效
+  Future<void> toggleSound() async {
+    _soundEnabled = !_soundEnabled;
+    await _storage.setSoundEnabled(_soundEnabled);
+    LogService.info('切换音效: $_soundEnabled');
     notifyListeners();
   }
 }
