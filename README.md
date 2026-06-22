@@ -16,8 +16,8 @@
 
 | 平台 | 下载 |
 |------|------|
-| Android | [v0.2.0 APK](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.2.0) |
-| Windows | [v0.2.0 ZIP](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.2.0) |
+| Android | [v0.2.1 APK](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.2.1) |
+| Windows | [v0.2.1 ZIP](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.2.1) |
 
 ## 开发
 
@@ -41,6 +41,15 @@ flutter run
 - Minimax + Alpha-Beta 剪枝 AI
 
 ## 版本历史
+
+### v0.2.1 (2026-06-22)
+- 重构优化：提取共享五连检测逻辑到 BoardUtils 工具类
+- GameMode 枚举移至 models 层，修复依赖方向
+- 修复深色模式切换不实时生效，设置面板新增深色模式开关
+- AI 引擎魔法数字提取为命名常量
+- BoardPainter 和 StatusBar 提取为独立组件
+- 优化 undo() 性能，改为仅清除被撤销棋子
+- 日志服务新增轮转和过期清理机制
 
 ### v0.2.0 (2026-06-22)
 - 新增人机对弈模式，支持简单/中等/困难三级 AI 难度
