@@ -1,21 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import '../ai/ai_engine.dart';
+import '../models/game_state.dart';
 import '../utils/constants.dart';
-
-/// 游戏模式
-enum GameMode {
-  pvp,
-  pve;
-
-  String get label {
-    switch (this) {
-      case GameMode.pvp:
-        return '双人对弈';
-      case GameMode.pve:
-        return '人机对弈';
-    }
-  }
-}
 
 /// 简单存储服务封装：SharedPreferences
 class StorageService {
@@ -57,37 +43,21 @@ class StorageService {
   // ---- 游戏模式 ----
   GameMode get gameMode {
     final v = _prefs.getString(AppConstants.prefKeyGameMode);
-    return v == 'pve' ? GameMode.pve : GameMode.pvp;
+    if (v == GameMode.pve.name) return GameMode.pve;
+    return GameMode.pvp;
   }
 
   Future<void> setGameMode(GameMode v) =>
-      _prefs.setString(AppConstants.prefKeyGameMode, v == GameMode.pve ? 'pve' : 'pvp');
+      _prefs.setString(AppConstants.prefKeyGameMode, v.name);
 
   // ---- AI 难度 ----
   AIDifficulty get aiDifficulty {
     final v = _prefs.getString(AppConstants.prefKeyAIDifficulty);
-    switch (v) {
-      case 'easy':
-        return AIDifficulty.easy;
-      case 'hard':
-        return AIDifficulty.hard;
-      default:
-        return AIDifficulty.medium;
-    }
+    if (v == AIDifficulty.easy.name) return AIDifficulty.easy;
+    if (v == AIDifficulty.hard.name) return AIDifficulty.hard;
+    return AIDifficulty.medium;
   }
 
-  Future<void> setAIDifficulty(AIDifficulty v) async {
-    String key;
-    switch (v) {
-      case AIDifficulty.easy:
-        key = 'easy';
-        break;
-      case AIDifficulty.hard:
-        key = 'hard';
-        break;
-      default:
-        key = 'medium';
-    }
-    await _prefs.setString(AppConstants.prefKeyAIDifficulty, key);
-  }
+  Future<void> setAIDifficulty(AIDifficulty v) =>
+      _prefs.setString(AppConstants.prefKeyAIDifficulty, v.name);
 }

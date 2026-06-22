@@ -4,6 +4,7 @@ import '../ai/ai_engine.dart';
 import '../models/game_state.dart';
 import '../services/log_service.dart';
 import '../services/storage_service.dart';
+import '../utils/board_utils.dart';
 import '../utils/constants.dart';
 
 /// 游戏状态管理
@@ -35,6 +36,7 @@ class GameProvider extends ChangeNotifier {
   GameMode get mode => _mode;
   AIDifficulty get aiDifficulty => _aiDifficulty;
   bool get aiThinking => _aiThinking;
+  bool get darkMode => _storage.darkMode;
 
   /// 落子
   bool placeStone(int row, int col) {
@@ -56,7 +58,7 @@ class GameProvider extends ChangeNotifier {
   }
 
   void _applyMove(int row, int col) {
-    final newBoard = _state.board.map((r) => List<StoneColor?>.from(r)).toList();
+    final newBoard = BoardUtils.copyBoard(_state.board);
     newBoard[row][col] = _state.currentPlayer;
 
     final pos = Position(row, col);
@@ -68,7 +70,7 @@ class GameProvider extends ChangeNotifier {
 
     final newHistory = [..._state.history, move];
 
-    final winResult = _checkWin(newBoard, pos, _state.currentPlayer);
+    final winResult = BoardUtils.checkWin(newBoard, pos);
 
     GameStatus newStatus;
     Position? ws, we;
@@ -124,30 +126,28 @@ class GameProvider extends ChangeNotifier {
     // 人机模式：悔两步（玩家 + AI）
     final steps = (_mode == GameMode.pve && _state.history.length >= 2) ? 2 : 1;
 
+    var newBoard = BoardUtils.copyBoard(_state.board);
+    var newHistory = List<Move>.from(_state.history);
+    var newPlayer = _state.currentPlayer;
+
     for (int i = 0; i < steps; i++) {
-      if (_state.history.isEmpty) break;
-      final newHistory = List<Move>.from(_state.history)..removeLast();
-
-      final newBoard = List.generate(
-        _state.boardSize,
-        (_) => List<StoneColor?>.filled(_state.boardSize, null),
-      );
-      for (final m in newHistory) {
-        newBoard[m.position.row][m.position.col] = m.color;
-      }
-
-      final lastM = newHistory.isNotEmpty ? newHistory.last : null;
-
-      _state = _state.copyWith(
-        board: newBoard,
-        currentPlayer: _state.currentPlayer.opponent,
-        status: GameStatus.playing,
-        history: newHistory,
-        lastMove: lastM?.position,
-        winStart: null,
-        winEnd: null,
-      );
+      if (newHistory.isEmpty) break;
+      final removed = newHistory.removeLast();
+      newBoard[removed.position.row][removed.position.col] = null;
+      newPlayer = newPlayer.opponent;
     }
+
+    final lastM = newHistory.isNotEmpty ? newHistory.last : null;
+
+    _state = _state.copyWith(
+      board: newBoard,
+      currentPlayer: newPlayer,
+      status: GameStatus.playing,
+      history: newHistory,
+      lastMove: lastM?.position,
+      winStart: null,
+      winEnd: null,
+    );
 
     LogService.info('悔棋, 当前步数: ${_state.history.length}');
     notifyListeners();
@@ -197,50 +197,10 @@ class GameProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// 检查五子连珠
-  (Position, Position)? _checkWin(
-    List<List<StoneColor?>> board,
-    Position last,
-    StoneColor color,
-  ) {
-    final size = board.length;
-    const directions = [
-      (0, 1), // 水平
-      (1, 0), // 垂直
-      (1, 1), // 对角线
-      (1, -1), // 反对角线
-    ];
-
-    for (final (dr, dc) in directions) {
-      int count = 1;
-      int r, c;
-
-      // 正方向
-      r = last.row + dr;
-      c = last.col + dc;
-      while (r >= 0 && r < size && c >= 0 && c < size && board[r][c] == color) {
-        count++;
-        r += dr;
-        c += dc;
-      }
-      final endRow = r - dr;
-      final endCol = c - dc;
-
-      // 反方向
-      r = last.row - dr;
-      c = last.col - dc;
-      while (r >= 0 && r < size && c >= 0 && c < size && board[r][c] == color) {
-        count++;
-        r -= dr;
-        c -= dc;
-      }
-      final startRow = r + dr;
-      final startCol = c + dc;
-
-      if (count >= 5) {
-        return (Position(startRow, startCol), Position(endRow, endCol));
-      }
-    }
-    return null;
+  /// 切换深色模式
+  Future<void> toggleDarkMode() async {
+    await _storage.setDarkMode(!_storage.darkMode);
+    LogService.info('切换深色模式: ${_storage.darkMode}');
+    notifyListeners();
   }
 }

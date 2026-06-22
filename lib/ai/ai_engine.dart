@@ -1,5 +1,6 @@
 import 'dart:math';
 import '../models/game_state.dart';
+import '../utils/board_utils.dart';
 
 /// AI 难度
 enum AIDifficulty {
@@ -25,6 +26,28 @@ class GomokuAI {
   final Random _random = Random();
 
   GomokuAI(this.difficulty);
+
+  // ---- 评分常量 ----
+  static const int _winScore = 1000000;
+  static const int _liveFourScore = 100000;
+  static const int _deadFourScore = 10000;
+  static const int _liveThreeScore = 10000;
+  static const int _deadThreeScore = 1000;
+  static const int _liveTwoScore = 1000;
+  static const int _deadTwoScore = 100;
+  static const int _liveOneScore = 100;
+  static const int _deadOneScore = 10;
+  static const int _minScore = -99999999;
+  static const int _maxScore = 99999999;
+
+  /// Minimax 搜索深度
+  static const int _searchDepth = 3;
+
+  /// 候选位置数量上限
+  static const int _candidateLimit = 15;
+
+  /// 候选位置搜索范围（已有棋子周围格数）
+  static const int _candidateRange = 2;
 
   /// 寻找最佳落子位置
   Position? findBestMove(GameState state) {
@@ -61,17 +84,18 @@ class GomokuAI {
     final candidates = _getCandidateMoves(state);
     if (candidates.isEmpty) return null;
 
-    int bestScore = -99999999;
+    int bestScore = _minScore;
     Position? best;
 
     for (final pos in candidates) {
-      final newBoard = _copyBoard(state.board);
+      final newBoard = BoardUtils.copyBoard(state.board);
       newBoard[pos.row][pos.col] = aiColor;
       final newState = state.copyWith(
         board: newBoard,
         currentPlayer: aiColor.opponent,
+        lastMove: pos,
       );
-      final score = _minimax(newState, 3, -99999999, 99999999, false, aiColor);
+      final score = _minimax(newState, _searchDepth, _minScore, _maxScore, false, aiColor);
       if (score > bestScore) {
         bestScore = score;
         best = pos;
@@ -89,10 +113,10 @@ class GomokuAI {
     bool isMaximizing,
     StoneColor aiColor,
   ) {
-    // 检查终局
-    final winCheck = _checkImmediateWin(state.board, state.lastMove);
+    final winCheck = BoardUtils.checkWin(state.board, state.lastMove ?? const Position(-1, -1));
     if (winCheck != null) {
-      return winCheck == aiColor ? 1000000 + depth : -1000000 - depth;
+      final winner = state.board[winCheck.$1.row][winCheck.$1.col];
+      return winner == aiColor ? _winScore + depth : -_winScore - depth;
     }
 
     if (depth == 0) {
@@ -103,9 +127,9 @@ class GomokuAI {
     if (candidates.isEmpty) return 0;
 
     if (isMaximizing) {
-      int maxScore = -99999999;
+      int maxScore = _minScore;
       for (final pos in candidates) {
-        final newBoard = _copyBoard(state.board);
+        final newBoard = BoardUtils.copyBoard(state.board);
         newBoard[pos.row][pos.col] = aiColor;
         final newState = state.copyWith(
           board: newBoard,
@@ -119,10 +143,10 @@ class GomokuAI {
       }
       return maxScore;
     } else {
-      int minScore = 99999999;
+      int minScore = _maxScore;
       final opponent = aiColor.opponent;
       for (final pos in candidates) {
-        final newBoard = _copyBoard(state.board);
+        final newBoard = BoardUtils.copyBoard(state.board);
         newBoard[pos.row][pos.col] = opponent;
         final newState = state.copyWith(
           board: newBoard,
@@ -138,7 +162,7 @@ class GomokuAI {
     }
   }
 
-  /// 获取候选落子位置（已有棋子周围 2 格内）
+  /// 获取候选落子位置（已有棋子周围 N 格内）
   List<Position> _getCandidateMoves(GameState state) {
     final size = state.boardSize;
     final candidates = <Position>{};
@@ -148,8 +172,8 @@ class GomokuAI {
       for (int c = 0; c < size; c++) {
         if (state.board[r][c] != null) {
           hasStone = true;
-          for (int dr = -2; dr <= 2; dr++) {
-            for (int dc = -2; dc <= 2; dc++) {
+          for (int dr = -_candidateRange; dr <= _candidateRange; dr++) {
+            for (int dc = -_candidateRange; dc <= _candidateRange; dc++) {
               final nr = r + dr;
               final nc = c + dc;
               if (nr >= 0 && nr < size && nc >= 0 && nc < size && state.board[nr][nc] == null) {
@@ -167,22 +191,21 @@ class GomokuAI {
     }
 
     final list = candidates.toList();
-    // 按评分排序，取前 15 个减少搜索空间
+    // 按评分排序，取前 N 个减少搜索空间
     list.sort((a, b) {
       final scoreA = _quickScore(state.board, a, state.currentPlayer);
       final scoreB = _quickScore(state.board, b, state.currentPlayer);
       return scoreB.compareTo(scoreA);
     });
-    return list.take(15).toList();
+    return list.take(_candidateLimit).toList();
   }
 
   /// 快速评分（用于候选排序）
   int _quickScore(List<List<StoneColor?>> board, Position pos, StoneColor color) {
     int score = 0;
     final size = board.length;
-    const dirs = [(0, 1), (1, 0), (1, 1), (1, -1)];
 
-    for (final (dr, dc) in dirs) {
+    for (final (dr, dc) in BoardUtils.directions) {
       int count = 1;
       int openEnds = 0;
 
@@ -241,8 +264,7 @@ class GomokuAI {
         final stone = board[r][c];
         if (stone == null) continue;
 
-        const dirs = [(0, 1), (1, 0), (1, 1), (1, -1)];
-        for (final (dr, dc) in dirs) {
+        for (final (dr, dc) in BoardUtils.directions) {
           // 只从每个方向的起点开始计数（避免重复）
           final pr = r - dr;
           final pc = c - dc;
@@ -282,53 +304,20 @@ class GomokuAI {
 
   /// 模式评分
   int _patternScore(int count, int openEnds) {
-    if (count >= 5) return 1000000;
+    if (count >= 5) return _winScore;
     if (openEnds == 0) return 0;
 
     switch (count) {
       case 4:
-        return openEnds == 2 ? 100000 : 10000;
+        return openEnds == 2 ? _liveFourScore : _deadFourScore;
       case 3:
-        return openEnds == 2 ? 10000 : 1000;
+        return openEnds == 2 ? _liveThreeScore : _deadThreeScore;
       case 2:
-        return openEnds == 2 ? 1000 : 100;
+        return openEnds == 2 ? _liveTwoScore : _deadTwoScore;
       case 1:
-        return openEnds == 2 ? 100 : 10;
+        return openEnds == 2 ? _liveOneScore : _deadOneScore;
       default:
         return 0;
     }
-  }
-
-  /// 检查是否已有五连
-  StoneColor? _checkImmediateWin(List<List<StoneColor?>> board, Position? last) {
-    if (last == null) return null;
-    final size = board.length;
-    final color = board[last.row][last.col];
-    if (color == null) return null;
-
-    const dirs = [(0, 1), (1, 0), (1, 1), (1, -1)];
-    for (final (dr, dc) in dirs) {
-      int count = 1;
-      int r = last.row + dr;
-      int c = last.col + dc;
-      while (r >= 0 && r < size && c >= 0 && c < size && board[r][c] == color) {
-        count++;
-        r += dr;
-        c += dc;
-      }
-      r = last.row - dr;
-      c = last.col - dc;
-      while (r >= 0 && r < size && c >= 0 && c < size && board[r][c] == color) {
-        count++;
-        r -= dr;
-        c -= dc;
-      }
-      if (count >= 5) return color;
-    }
-    return null;
-  }
-
-  List<List<StoneColor?>> _copyBoard(List<List<StoneColor?>> board) {
-    return board.map((r) => List<StoneColor?>.from(r)).toList();
   }
 }

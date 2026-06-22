@@ -1,3 +1,18 @@
+/// 游戏模式
+enum GameMode {
+  pvp,
+  pve;
+
+  String get label {
+    switch (this) {
+      case GameMode.pvp:
+        return '双人对弈';
+      case GameMode.pve:
+        return '人机对弈';
+    }
+  }
+}
+
 /// 棋子颜色
 enum StoneColor {
   black,
