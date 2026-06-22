@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../ai/ai_engine.dart';
+import '../models/game_state.dart';
 import '../providers/game_provider.dart';
-import '../services/storage_service.dart';
 
 /// 设置面板
 class SettingsSheet extends StatefulWidget {
@@ -79,6 +79,17 @@ class _SettingsSheetState extends State<SettingsSheet> {
                   onSelected: (_) => game.setBoardSize(size),
                 );
               }).toList(),
+            ),
+            const SizedBox(height: 16),
+            Text('外观', style: theme.textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Consumer<GameProvider>(
+              builder: (context, game, _) => SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('深色模式'),
+                value: game.darkMode,
+                onChanged: (_) => game.toggleDarkMode(),
+              ),
             ),
             const SizedBox(height: 16),
           ],

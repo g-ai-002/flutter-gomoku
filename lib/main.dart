@@ -53,20 +53,24 @@ class GomokuApp extends StatelessWidget {
     final fontFamily = Platform.isWindows ? 'Microsoft YaHei UI' : null;
     return ChangeNotifierProvider(
       create: (_) => GameProvider(storage),
-      child: MaterialApp(
-        title: AppConstants.appName,
-        debugShowCheckedModeBanner: false,
-        theme: buildLightTheme(fontFamily: fontFamily),
-        darkTheme: buildDarkTheme(fontFamily: fontFamily),
-        themeMode: storage.darkMode ? ThemeMode.dark : ThemeMode.light,
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [Locale('zh', 'CN')],
-        locale: const Locale('zh', 'CN'),
-        home: const GamePage(),
+      child: Consumer<GameProvider>(
+        builder: (context, game, _) {
+          return MaterialApp(
+            title: AppConstants.appName,
+            debugShowCheckedModeBanner: false,
+            theme: buildLightTheme(fontFamily: fontFamily),
+            darkTheme: buildDarkTheme(fontFamily: fontFamily),
+            themeMode: game.darkMode ? ThemeMode.dark : ThemeMode.light,
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [Locale('zh', 'CN')],
+            locale: const Locale('zh', 'CN'),
+            home: const GamePage(),
+          );
+        },
       ),
     );
   }
