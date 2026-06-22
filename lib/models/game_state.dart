@@ -104,7 +104,7 @@ class GameState {
       boardSize: boardSize,
       board: List.generate(
         boardSize,
-        (_) => List.filled(boardSize, null),
+        (_) => List<StoneColor?>.filled(boardSize, null),
       ),
       currentPlayer: StoneColor.black,
       status: GameStatus.playing,

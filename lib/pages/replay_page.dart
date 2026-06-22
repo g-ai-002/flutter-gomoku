@@ -32,7 +32,7 @@ class _ReplayPageState extends State<ReplayPage> {
     _currentStep = 0;
     _board = List.generate(
       record.boardSize,
-      (_) => List.filled(record.boardSize, null),
+      (_) => List<StoneColor?>.filled(record.boardSize, null),
     );
     _status = GameStatus.playing;
     _applyMovesUpTo(0);
@@ -41,7 +41,7 @@ class _ReplayPageState extends State<ReplayPage> {
   void _applyMovesUpTo(int step) {
     _board = List.generate(
       record.boardSize,
-      (_) => List.filled(record.boardSize, null),
+      (_) => List<StoneColor?>.filled(record.boardSize, null),
     );
     _lastMove = null;
     _winStart = null;

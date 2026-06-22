@@ -5,7 +5,7 @@ import 'package:flutter_gomoku/utils/board_utils.dart';
 void main() {
   group('BoardUtils.checkWin', () {
     List<List<StoneColor?>> _emptyBoard(int size) =>
-        List.generate(size, (_) => List.filled(size, null));
+        List.generate(size, (_) => List<StoneColor?>.filled(size, null));
 
     test('空棋盘无获胜', () {
       final board = _emptyBoard(15);
@@ -108,7 +108,7 @@ void main() {
 
   group('BoardUtils.copyBoard', () {
     test('深拷贝后修改不影响原棋盘', () {
-      final original = List.generate(15, (_) => List.filled(15, null));
+      final original = List.generate(15, (_) => List<StoneColor?>.filled(15, null));
       original[7][7] = StoneColor.black;
       final copy = BoardUtils.copyBoard(original);
       copy[7][7] = StoneColor.white;
@@ -117,7 +117,7 @@ void main() {
     });
 
     test('空棋盘拷贝', () {
-      final original = List.generate(9, (_) => List.filled(9, null));
+      final original = List.generate(9, (_) => List<StoneColor?>.filled(9, null));
       final copy = BoardUtils.copyBoard(original);
       expect(copy.length, equals(9));
       expect(copy[0].length, equals(9));
