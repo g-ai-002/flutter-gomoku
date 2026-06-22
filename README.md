@@ -19,8 +19,8 @@
 
 | 平台 | 下载 |
 |------|------|
-| Android | [v0.3.0 APK](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.3.0) |
-| Windows | [v0.3.0 ZIP](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.3.0) |
+| Android | [v0.3.1 APK](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.3.1) |
+| Windows | [v0.3.1 ZIP](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.3.1) |
 
 ## 开发
 
@@ -45,6 +45,9 @@ flutter run
 - 程序化音效生成（无需外部资源）
 
 ## 版本历史
+
+### v0.3.1 (2026-06-22)
+- 修复 CI 测试失败：SoundService 在测试环境 binding 未初始化导致 22 个测试失败
 
 ### v0.3.0 (2026-06-22)
 - 新增对局记录：自动保存每局对局到本地 JSON 文件

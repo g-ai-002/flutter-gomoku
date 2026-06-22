@@ -67,11 +67,18 @@ class SoundService {
     return samples;
   }
 
+  static Future<void> _play(Uint8List wav) async {
+    try {
+      await SystemChannels.platform.invokeMethod('SystemSound.play', wav);
+    } catch (_) {
+      // 测试环境或无平台支持时静默失败
+    }
+  }
+
   /// 落子音效
   static Future<void> playPlaceStone() async {
     final samples = _tone(880, 40, volume: 0.25);
-    final wav = _generateWav(samples);
-    await SystemChannels.platform.invokeMethod('SystemSound.play', wav);
+    await _play(_generateWav(samples));
   }
 
   /// 获胜音效
@@ -82,7 +89,6 @@ class SoundService {
       allSamples.addAll(_tone(freq, 120, volume: 0.3));
       allSamples.addAll(List.filled((_sampleRate * 0.03).round(), 0.0));
     }
-    final wav = _generateWav(allSamples);
-    await SystemChannels.platform.invokeMethod('SystemSound.play', wav);
+    await _play(_generateWav(allSamples));
   }
 }
