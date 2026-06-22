@@ -24,18 +24,7 @@ class GameRecord {
 
   int get totalMoves => moves.length;
 
-  String get resultLabel {
-    switch (result) {
-      case GameStatus.blackWin:
-        return '黑棋胜';
-      case GameStatus.whiteWin:
-        return '白棋胜';
-      case GameStatus.draw:
-        return '平局';
-      case GameStatus.playing:
-        return '未完成';
-    }
-  }
+  String get resultLabel => result.label;
 
   String get modeLabel {
     if (mode == GameMode.pve && aiDifficulty != null) {

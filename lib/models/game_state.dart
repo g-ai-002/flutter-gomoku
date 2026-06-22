@@ -29,7 +29,20 @@ enum GameStatus {
   playing,
   blackWin,
   whiteWin,
-  draw,
+  draw;
+
+  String get label {
+    switch (this) {
+      case GameStatus.playing:
+        return '对弈中';
+      case GameStatus.blackWin:
+        return '黑棋胜';
+      case GameStatus.whiteWin:
+        return '白棋胜';
+      case GameStatus.draw:
+        return '平局';
+    }
+  }
 }
 
 /// 棋盘上的一个位置
@@ -118,8 +131,8 @@ class GameState {
       status: status ?? this.status,
       history: history ?? this.history,
       lastMove: lastMove ?? this.lastMove,
-      winStart: winStart,
-      winEnd: winEnd,
+      winStart: winStart ?? this.winStart,
+      winEnd: winEnd ?? this.winEnd,
     );
   }
 }

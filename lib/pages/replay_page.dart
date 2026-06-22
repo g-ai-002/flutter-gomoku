@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/game_record.dart';
 import '../models/game_state.dart';
+import '../utils/board_utils.dart';
+import '../utils/constants.dart';
 import '../widgets/board_painter.dart';
 
 /// 对局回放页面
@@ -54,7 +56,7 @@ class _ReplayPageState extends State<ReplayPage> {
       // 检查胜负
       final color = _board[move.position.row][move.position.col];
       if (color != null) {
-        final win = _checkWin(move.position);
+        final win = BoardUtils.checkWin(_board, move.position);
         if (win != null) {
           _winStart = win.$1;
           _winEnd = win.$2;
@@ -66,40 +68,6 @@ class _ReplayPageState extends State<ReplayPage> {
     if (_status == GameStatus.playing && step >= record.moves.length && record.moves.isNotEmpty) {
       _status = record.result;
     }
-  }
-
-  (Position, Position)? _checkWin(Position last) {
-    final size = record.boardSize;
-    final color = _board[last.row][last.col];
-    if (color == null) return null;
-
-    const dirs = [(0, 1), (1, 0), (1, 1), (1, -1)];
-    for (final (dr, dc) in dirs) {
-      int count = 1;
-      int r = last.row + dr, c = last.col + dc;
-      while (r >= 0 && r < size && c >= 0 && c < size && _board[r][c] == color) {
-        count++;
-        r += dr;
-        c += dc;
-      }
-      final endRow = r - dr;
-      final endCol = c - dc;
-
-      r = last.row - dr;
-      c = last.col - dc;
-      while (r >= 0 && r < size && c >= 0 && c < size && _board[r][c] == color) {
-        count++;
-        r -= dr;
-        c -= dc;
-      }
-      final startRow = r + dr;
-      final startCol = c + dc;
-
-      if (count >= 5) {
-        return (Position(startRow, startCol), Position(endRow, endCol));
-      }
-    }
-    return null;
   }
 
   void _stepForward() {
@@ -154,7 +122,7 @@ class _ReplayPageState extends State<ReplayPage> {
       _currentStep++;
       _applyMovesUpTo(_currentStep);
     });
-    Future.delayed(const Duration(milliseconds: 500), _autoStep);
+    Future.delayed(Duration(milliseconds: AppConstants.replayAutoPlayDelayMs), _autoStep);
   }
 
   @override
@@ -184,7 +152,7 @@ class _ReplayPageState extends State<ReplayPage> {
                     child: LayoutBuilder(
                       builder: (context, constraints) {
                         final maxSize = constraints.maxWidth;
-                        final cellSize = (maxSize - 16) / record.boardSize;
+                        final cellSize = (maxSize - AppConstants.boardPadding) / record.boardSize;
                         final boardPixelSize = cellSize * (record.boardSize - 1);
                         final padding = (maxSize - boardPixelSize) / 2;
 
@@ -218,14 +186,10 @@ class _ReplayPageState extends State<ReplayPage> {
     String statusText;
     if (_status == GameStatus.playing && _currentStep < record.moves.length) {
       statusText = '回放中';
-    } else if (_status == GameStatus.blackWin) {
-      statusText = '黑棋胜';
-    } else if (_status == GameStatus.whiteWin) {
-      statusText = '白棋胜';
-    } else if (_status == GameStatus.draw) {
-      statusText = '平局';
-    } else {
+    } else if (_status == GameStatus.playing) {
       statusText = '准备开始';
+    } else {
+      statusText = _status.label;
     }
 
     return Container(
