@@ -55,8 +55,9 @@ class _BoardWidgetState extends State<BoardWidget>
         return GestureDetector(
           onTapUp: (details) {
             if (state.status != GameStatus.playing) return;
-            final col = ((details.localPosition.dx - padding + cellSize / 2) / cellSize).round();
-            final row = ((details.localPosition.dy - padding + cellSize / 2) / cellSize).round();
+            // 吸附到最近交叉点（棋子落在交叉点上而非格子中心，不能加半格偏移）
+            final col = ((details.localPosition.dx - padding) / cellSize).round();
+            final row = ((details.localPosition.dy - padding) / cellSize).round();
             if (row >= 0 && row < boardSize && col >= 0 && col < boardSize) {
               game.placeStone(row, col);
             }
