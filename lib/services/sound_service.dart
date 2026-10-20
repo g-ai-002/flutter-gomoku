@@ -83,10 +83,10 @@ class SoundService {
 
   /// 获胜音效
   static Future<void> playWin() async {
-    final notes = [523.0, 659.0, 784.0, 1047.0]; // C5 E5 G5 C6
+    const notes = [523.0, 659.0, 784.0, 1047.0]; // C5 E5 G5 C6
     final allSamples = <double>[];
     for (final freq in notes) {
-      allSamples.addAll(_tone(freq, 120, volume: 0.3));
+      allSamples.addAll(_tone(freq, 120));
       allSamples.addAll(List.filled((_sampleRate * 0.03).round(), 0.0));
     }
     await _play(_generateWav(allSamples));

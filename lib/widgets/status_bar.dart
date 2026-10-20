@@ -103,8 +103,8 @@ class _StoneIcon extends StatelessWidget {
         shape: BoxShape.circle,
         gradient: RadialGradient(
           colors: color == StoneColor.black
-              ? [AppConstants.blackStoneLight, AppConstants.blackStoneDark]
-              : [AppConstants.whiteStoneLight, AppConstants.whiteStoneDark],
+              ? const [AppConstants.blackStoneLight, AppConstants.blackStoneDark]
+              : const [AppConstants.whiteStoneLight, AppConstants.whiteStoneDark],
         ),
         border: Border.all(
           color: color == StoneColor.black

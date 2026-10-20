@@ -110,8 +110,8 @@ class BoardPainter extends CustomPainter {
           center: const Alignment(-0.3, -0.3),
           radius: 0.8,
           colors: stone == StoneColor.black
-              ? [AppConstants.blackStoneLight, AppConstants.blackStoneDark]
-              : [AppConstants.whiteStoneLight, AppConstants.whiteStoneDark],
+              ? const [AppConstants.blackStoneLight, AppConstants.blackStoneDark]
+              : const [AppConstants.whiteStoneLight, AppConstants.whiteStoneDark],
         );
 
         final stonePaint = Paint()

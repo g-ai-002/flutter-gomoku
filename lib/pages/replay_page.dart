@@ -122,7 +122,7 @@ class _ReplayPageState extends State<ReplayPage> {
       _currentStep++;
       _applyMovesUpTo(_currentStep);
     });
-    Future.delayed(Duration(milliseconds: AppConstants.replayAutoPlayDelayMs), _autoStep);
+    Future.delayed(const Duration(milliseconds: AppConstants.replayAutoPlayDelayMs), _autoStep);
   }
 
   @override
@@ -237,7 +237,6 @@ class _ReplayPageState extends State<ReplayPage> {
             ),
             child: Slider(
               value: _currentStep.toDouble(),
-              min: 0,
               max: record.moves.length.toDouble(),
               divisions: record.moves.length,
               onChanged: (v) {

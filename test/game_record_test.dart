@@ -5,9 +5,9 @@ import 'package:flutter_gomoku/ai/ai_engine.dart';
 
 void main() {
   group('GameRecord', () {
-    final moves = [
-      const Move(position: Position(7, 7), color: StoneColor.black, stepNumber: 1),
-      const Move(position: Position(7, 8), color: StoneColor.white, stepNumber: 2),
+    const moves = [
+      Move(position: Position(7, 7), color: StoneColor.black, stepNumber: 1),
+      Move(position: Position(7, 8), color: StoneColor.white, stepNumber: 2),
     ];
 
     final record = GameRecord(

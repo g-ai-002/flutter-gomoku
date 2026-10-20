@@ -110,7 +110,8 @@ class GameProvider extends ChangeNotifier {
     );
 
     LogService.info(
-        '落子: ${_state.currentPlayer.opponent.label} @ (${row + 1}, ${col + 1}), 步数: ${move.stepNumber}');
+      '落子: ${_state.currentPlayer.opponent.label} @ (${row + 1}, ${col + 1}), 步数: ${move.stepNumber}',
+    );
 
     if (newStatus != GameStatus.playing) {
       _saveRecord(newStatus, newHistory);
@@ -136,7 +137,7 @@ class GameProvider extends ChangeNotifier {
     _aiThinking = true;
     notifyListeners();
 
-    Future.delayed(Duration(milliseconds: AppConstants.aiMoveDelayMs), () {
+    Future.delayed(const Duration(milliseconds: AppConstants.aiMoveDelayMs), () {
       final move = _ai.findBestMove(_state);
       if (move != null && _state.status == GameStatus.playing) {
         _applyMove(move.row, move.col);
@@ -153,8 +154,8 @@ class GameProvider extends ChangeNotifier {
 
     final steps = (_mode == GameMode.pve && _state.history.length >= 2) ? 2 : 1;
 
-    var newBoard = BoardUtils.copyBoard(_state.board);
-    var newHistory = List<Move>.from(_state.history);
+    final newBoard = BoardUtils.copyBoard(_state.board);
+    final newHistory = List<Move>.from(_state.history);
     var newPlayer = _state.currentPlayer;
 
     for (int i = 0; i < steps; i++) {
