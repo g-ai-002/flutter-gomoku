@@ -241,9 +241,13 @@ void main() {
         if (i < 4) provider.placeStone(8, i);
       }
       expect(provider.status, equals(GameStatus.blackWin));
+      expect(provider.winStart, equals(const Position(7, 0)));
+      expect(provider.winEnd, equals(const Position(7, 4)));
       expect(provider.canUndo, isTrue);
       provider.undo();
       expect(provider.status, equals(GameStatus.playing));
+      expect(provider.winStart, isNull);
+      expect(provider.winEnd, isNull);
     });
 
     test('设置棋盘大小后状态重置', () {

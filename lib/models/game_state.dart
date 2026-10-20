@@ -114,15 +114,19 @@ class GameState {
 
   bool get isGameOver => status != GameStatus.playing;
 
+  /// 区分"未传入"与"显式传 null"的哨兵值，
+  /// 否则 `?? 默认值` 写法无法把 winStart/winEnd 等清空（悔棋后连线残留的根因）
+  static const Object _unset = Object();
+
   GameState copyWith({
     int? boardSize,
     List<List<StoneColor?>>? board,
     StoneColor? currentPlayer,
     GameStatus? status,
     List<Move>? history,
-    Position? lastMove,
-    Position? winStart,
-    Position? winEnd,
+    Object? lastMove = _unset,
+    Object? winStart = _unset,
+    Object? winEnd = _unset,
   }) {
     return GameState(
       boardSize: boardSize ?? this.boardSize,
@@ -130,9 +134,9 @@ class GameState {
       currentPlayer: currentPlayer ?? this.currentPlayer,
       status: status ?? this.status,
       history: history ?? this.history,
-      lastMove: lastMove ?? this.lastMove,
-      winStart: winStart ?? this.winStart,
-      winEnd: winEnd ?? this.winEnd,
+      lastMove: identical(lastMove, _unset) ? this.lastMove : lastMove as Position?,
+      winStart: identical(winStart, _unset) ? this.winStart : winStart as Position?,
+      winEnd: identical(winEnd, _unset) ? this.winEnd : winEnd as Position?,
     );
   }
 }

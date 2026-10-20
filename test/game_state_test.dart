@@ -43,6 +43,34 @@ void main() {
       expect(updated.currentPlayer, equals(StoneColor.white));
       expect(updated.boardSize, equals(15));
     });
+
+    test('copyWith 显式传 null 可清空可空字段', () {
+      final state = GameState.initial(15).copyWith(
+        lastMove: const Position(7, 7),
+        winStart: const Position(7, 3),
+        winEnd: const Position(7, 11),
+      );
+      final cleared = state.copyWith(
+        lastMove: null,
+        winStart: null,
+        winEnd: null,
+      );
+      expect(cleared.lastMove, isNull);
+      expect(cleared.winStart, isNull);
+      expect(cleared.winEnd, isNull);
+    });
+
+    test('copyWith 未传可空字段时保留原值', () {
+      final state = GameState.initial(15).copyWith(
+        lastMove: const Position(7, 7),
+        winStart: const Position(7, 3),
+        winEnd: const Position(7, 11),
+      );
+      final updated = state.copyWith(currentPlayer: StoneColor.white);
+      expect(updated.lastMove, equals(const Position(7, 7)));
+      expect(updated.winStart, equals(const Position(7, 3)));
+      expect(updated.winEnd, equals(const Position(7, 11)));
+    });
   });
 
   group('Move', () {
