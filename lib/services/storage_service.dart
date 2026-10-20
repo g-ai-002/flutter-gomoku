@@ -43,8 +43,8 @@ class StorageService {
   // ---- 游戏模式 ----
   GameMode get gameMode {
     final v = _prefs.getString(AppConstants.prefKeyGameMode);
-    if (v == GameMode.pve.name) return GameMode.pve;
-    return GameMode.pvp;
+    if (v == GameMode.pvp.name) return GameMode.pvp;
+    return GameMode.pve;
   }
 
   Future<void> setGameMode(GameMode v) =>

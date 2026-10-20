@@ -106,7 +106,7 @@ void main() {
   });
 
   group('游戏模式', () {
-    test('默认双人对弈', () {
+    test('读取已保存的双人对弈模式', () {
       expect(provider.mode, equals(GameMode.pvp));
     });
 
@@ -260,6 +260,17 @@ void main() {
       expect(provider.placeStone(14, 14), isTrue);
       expect(provider.placeStone(0, 14), isTrue);
       expect(provider.placeStone(14, 0), isTrue);
+    });
+  });
+
+  group('默认设置', () {
+    test('默认人机对弈与中等难度', () async {
+      SharedPreferences.setMockInitialValues({});
+      StorageService.reset();
+      final fresh = await StorageService.instance;
+      expect(fresh.gameMode, equals(GameMode.pve));
+      expect(fresh.aiDifficulty, equals(AIDifficulty.medium));
+      expect(GameProvider(fresh).mode, equals(GameMode.pve));
     });
   });
 }
