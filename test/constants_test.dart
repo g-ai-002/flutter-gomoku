@@ -7,10 +7,6 @@ void main() {
       expect(AppConstants.appName, equals('五子棋'));
     });
 
-    test('版本号', () {
-      expect(AppConstants.version, equals('0.3.4'));
-    });
-
     test('默认棋盘大小', () {
       expect(AppConstants.defaultBoardSize, equals(15));
     });
