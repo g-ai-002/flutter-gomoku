@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/game_provider.dart';
 import '../widgets/board_widget.dart';
-import '../widgets/settings_sheet.dart';
 import '../widgets/status_bar.dart';
-import 'records_page.dart';
 
 /// 游戏主页面
 class GamePage extends StatelessWidget {
@@ -18,23 +16,6 @@ class GamePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('五子棋'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.history_outlined),
-            tooltip: '对局记录',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const RecordsPage()),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            tooltip: '设置',
-            onPressed: () => _showSettings(context),
-          ),
-        ],
       ),
       body: SafeArea(
         child: Column(
@@ -109,16 +90,6 @@ class GamePage extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  void _showSettings(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-      ),
-      builder: (ctx) => const SettingsSheet(),
     );
   }
 }

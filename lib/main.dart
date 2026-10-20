@@ -5,7 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
-import 'pages/game_page.dart';
+import 'pages/home_page.dart';
 import 'providers/game_provider.dart';
 import 'services/log_service.dart';
 import 'services/storage_service.dart';
@@ -70,7 +70,7 @@ class GomokuApp extends StatelessWidget {
             ],
             supportedLocales: const [Locale('zh', 'CN')],
             locale: const Locale('zh', 'CN'),
-            home: const GamePage(),
+            home: const HomePage(),
           );
         },
       ),
