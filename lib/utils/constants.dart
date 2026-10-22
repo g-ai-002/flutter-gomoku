@@ -42,8 +42,4 @@ class AppConstants {
 
   // 回放自动播放间隔
   static const int replayAutoPlayDelayMs = 500;
-
-  // 日志
-  static const int logMaxFileSize = 5 * 1024 * 1024;
-  static const int logMaxRetentionDays = 7;
 }
