@@ -5,7 +5,7 @@ class AppConstants {
   AppConstants._();
 
   static const String appName = '五子棋';
-  static const String version = '0.3.7';
+  static const String version = '0.3.8';
 
   // SharedPreferences keys
   static const String prefKeyDarkMode = 'dark_mode';
