@@ -19,10 +19,19 @@ class FileSystemService {
     _instance = null;
   }
 
-  /// 获取日志根目录
+  /// 获取日志根目录：<Documents 或 external>/FlutterGomoku/logs
   Future<Directory> getLogRoot() async {
-    final home = await getApplicationSupportDirectory();
-    final logDir = Directory('${home.path}${Platform.pathSeparator}logs');
+    Directory base;
+    if (Platform.isAndroid) {
+      final ext = await getExternalStorageDirectory();
+      base = ext ?? await getApplicationDocumentsDirectory();
+    } else {
+      base = await getApplicationDocumentsDirectory();
+    }
+    final logDir = Directory(
+      '${base.path}${Platform.pathSeparator}FlutterGomoku'
+      '${Platform.pathSeparator}logs',
+    );
     if (!await logDir.exists()) {
       await logDir.create(recursive: true);
     }
