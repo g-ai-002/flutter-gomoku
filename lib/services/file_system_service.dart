@@ -1,40 +1,41 @@
 import 'dart:io';
+
 import 'package:path_provider/path_provider.dart';
 
 import 'log_service.dart';
 
-/// 文件系统服务：提供应用目录访问
+/// 文件系统服务：解析日志目录、打开系统文件管理器。
 class FileSystemService {
-  static FileSystemService? _instance;
+  FileSystemService._(this.appDirName);
 
-  static FileSystemService get instance {
-    _instance ??= FileSystemService._();
-    return _instance!;
-  }
+  static final FileSystemService instance =
+      FileSystemService._('FlutterGomoku');
 
-  FileSystemService._();
+  /// 应用数据目录名（位于 Documents 或应用外部存储下）
+  final String appDirName;
 
-  /// 仅用于测试：重置单例
-  static void reset() {
-    _instance = null;
-  }
+  Directory? _logRoot;
 
-  /// 获取日志根目录：<Documents 或 external>/FlutterGomoku/logs
-  Future<Directory> getLogRoot() async {
-    Directory base;
+  Future<Directory> _baseDir() async {
     if (Platform.isAndroid) {
       final ext = await getExternalStorageDirectory();
-      base = ext ?? await getApplicationDocumentsDirectory();
-    } else {
-      base = await getApplicationDocumentsDirectory();
+      return ext ?? await getApplicationDocumentsDirectory();
     }
+    return getApplicationDocumentsDirectory();
+  }
+
+  /// 日志根目录：<Documents 或 external>/<appDirName>/logs
+  Future<Directory> getLogRoot() async {
+    if (_logRoot != null) return _logRoot!;
+    final base = await _baseDir();
     final logDir = Directory(
-      '${base.path}${Platform.pathSeparator}FlutterGomoku'
+      '${base.path}${Platform.pathSeparator}$appDirName'
       '${Platform.pathSeparator}logs',
     );
     if (!await logDir.exists()) {
       await logDir.create(recursive: true);
     }
+    _logRoot = logDir;
     return logDir;
   }
 
@@ -53,8 +54,8 @@ class FileSystemService {
         await Process.run('xdg-open', [path]);
         return true;
       }
-    } catch (e) {
-      LogService.error('打开目录失败: $path', e);
+    } catch (e, stack) {
+      LogService.error('打开目录失败: $path', e, stack);
     }
     return false;
   }
