@@ -7,9 +7,8 @@ import '../../providers/game_provider.dart';
 abstract class BoardLayerComponent extends PositionComponent {
   BoardLayerComponent({
     required this.provider,
-    int? priority,
+    super.priority,
   }) : super(
-          priority: priority,
           size: Vector2.all(GomokuBoardGeometry.worldSize),
         );
 

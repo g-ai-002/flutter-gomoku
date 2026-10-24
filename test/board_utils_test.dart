@@ -4,17 +4,17 @@ import 'package:flutter_gomoku/utils/board_utils.dart';
 
 void main() {
   group('BoardUtils.checkWin', () {
-    List<List<StoneColor?>> _emptyBoard(int size) =>
+    List<List<StoneColor?>> emptyBoard(int size) =>
         List.generate(size, (_) => List<StoneColor?>.filled(size, null));
 
     test('空棋盘无获胜', () {
-      final board = _emptyBoard(15);
+      final board = emptyBoard(15);
       final result = BoardUtils.checkWin(board, const Position(7, 7));
       expect(result, isNull);
     });
 
     test('水平五连获胜', () {
-      final board = _emptyBoard(15);
+      final board = emptyBoard(15);
       for (int c = 3; c <= 7; c++) {
         board[7][c] = StoneColor.black;
       }
@@ -25,7 +25,7 @@ void main() {
     });
 
     test('垂直五连获胜', () {
-      final board = _emptyBoard(15);
+      final board = emptyBoard(15);
       for (int r = 2; r <= 6; r++) {
         board[r][4] = StoneColor.white;
       }
@@ -36,7 +36,7 @@ void main() {
     });
 
     test('对角线五连获胜', () {
-      final board = _emptyBoard(15);
+      final board = emptyBoard(15);
       for (int i = 0; i < 5; i++) {
         board[3 + i][3 + i] = StoneColor.black;
       }
@@ -47,7 +47,7 @@ void main() {
     });
 
     test('反对角线五连获胜', () {
-      final board = _emptyBoard(15);
+      final board = emptyBoard(15);
       for (int i = 0; i < 5; i++) {
         board[3 + i][7 - i] = StoneColor.white;
       }
@@ -58,7 +58,7 @@ void main() {
     });
 
     test('四连不获胜', () {
-      final board = _emptyBoard(15);
+      final board = emptyBoard(15);
       for (int c = 3; c <= 6; c++) {
         board[7][c] = StoneColor.black;
       }
@@ -67,7 +67,7 @@ void main() {
     });
 
     test('六连获胜', () {
-      final board = _emptyBoard(15);
+      final board = emptyBoard(15);
       for (int c = 2; c <= 7; c++) {
         board[7][c] = StoneColor.black;
       }
@@ -78,7 +78,7 @@ void main() {
     });
 
     test('边界位置不越界', () {
-      final board = _emptyBoard(15);
+      final board = emptyBoard(15);
       board[0][0] = StoneColor.black;
       board[0][1] = StoneColor.black;
       board[0][2] = StoneColor.black;
@@ -89,13 +89,13 @@ void main() {
     });
 
     test('越界位置返回 null', () {
-      final board = _emptyBoard(15);
+      final board = emptyBoard(15);
       final result = BoardUtils.checkWin(board, const Position(-1, 0));
       expect(result, isNull);
     });
 
     test('空位置返回 null', () {
-      final board = _emptyBoard(15);
+      final board = emptyBoard(15);
       board[7][3] = StoneColor.black;
       board[7][4] = StoneColor.black;
       board[7][5] = StoneColor.black;

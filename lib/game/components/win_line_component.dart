@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
-import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 
 import 'board_layer_component.dart';

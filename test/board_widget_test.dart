@@ -43,8 +43,8 @@ void main() {
     provider = GameProvider(storage);
     board = ChangeNotifierProvider<GameProvider>.value(
       value: provider,
-      child: MaterialApp(
-        home: const Align(
+      child: const MaterialApp(
+        home: Align(
           alignment: Alignment.topLeft,
           child: SizedBox(
             width: viewSize,

@@ -1,6 +1,5 @@
 import 'dart:ui' as ui;
 
-import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 
 import '../../models/game_state.dart';

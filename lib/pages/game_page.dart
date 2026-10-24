@@ -21,13 +21,13 @@ class GamePage extends StatelessWidget {
         child: Column(
           children: [
             const StatusBar(),
-            Expanded(
+            const Expanded(
               child: Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(8),
+                  padding: EdgeInsets.all(8),
                   child: AspectRatio(
                     aspectRatio: 1,
-                    child: const BoardWidget(),
+                    child: BoardWidget(),
                   ),
                 ),
               ),

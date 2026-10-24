@@ -20,17 +20,14 @@ const _darkOutline = Color(0xFF34383E);
 ThemeData buildLightTheme({String? fontFamily}) {
   const colorScheme = ColorScheme.light(
     primary: _primary,
-    onPrimary: Colors.white,
     primaryContainer: Color(0xFFD7CCC8),
     onPrimaryContainer: Color(0xFF3E2723),
     secondary: Color(0xFF78909C),
     onSecondary: Colors.white,
-    surface: _lightSurface,
     onSurface: _lightOnSurface,
     surfaceContainerHighest: _lightSurfaceVariant,
     onSurfaceVariant: _lightOnSurfaceVariant,
     error: Color(0xFFE53935),
-    onError: Colors.white,
     outline: _lightOutline,
     surfaceTint: Colors.transparent,
   );
@@ -130,7 +127,7 @@ ThemeData _buildBase({
         elevation: 0,
         foregroundColor: colorScheme.primary,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        side: BorderSide(color: colorScheme.primary, width: 1),
+        side: BorderSide(color: colorScheme.primary),
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 18),
       ),
     ),

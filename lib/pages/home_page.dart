@@ -108,8 +108,8 @@ class HomePage extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   mode == GameMode.pve
-                      ? '棋盘: ${boardSize}×$boardSize  |  难度: ${aiDifficulty.label}'
-                      : '棋盘: ${boardSize}×$boardSize',
+                      ? '棋盘: $boardSize×$boardSize  |  难度: ${aiDifficulty.label}'
+                      : '棋盘: $boardSize×$boardSize',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
