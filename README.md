@@ -20,8 +20,8 @@
 
 | 平台 | 下载 |
 |------|------|
-| Android | [v0.3.3 APK](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.3.3) |
-| Windows | [v0.3.3 ZIP](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.3.3) |
+| Android | [v0.4.1 APK](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.4.1) |
+| Windows | [v0.4.1 ZIP](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.4.1) |
 
 ## 开发
 
@@ -46,6 +46,11 @@ flutter run
 - 程序化音效生成（无需外部资源）
 
 ## 版本历史
+
+### v0.4.1 (2026-10-24)
+- 回放棋盘改为增量 seek：前进/回退只处理差值，不再从第 0 手全量重放
+- 回放页单步、滑杆与自动播放统一走增量推进
+- 补充 ReplayBoard 前进/回退与胜负重判测试
 
 ### v0.4.0 (2026-10-24)
 - 棋盘渲染与落子交互迁移到 Flame 1.38.2（固定分辨率 World + CameraComponent）
