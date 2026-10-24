@@ -6,7 +6,6 @@ import '../game/gomoku_palette.dart';
 import '../game/replay_board.dart';
 import '../models/game_record.dart';
 import '../models/game_state.dart';
-import '../utils/board_utils.dart';
 import '../utils/constants.dart';
 
 /// 对局回放页面（Flame 棋盘 + Flutter 控制条）。
@@ -58,25 +57,7 @@ class _ReplayPageState extends State<ReplayPage> {
   }
 
   void _applyMovesUpTo(int step) {
-    _view.reset();
-
-    for (var i = 0; i < step && i < record.moves.length; i++) {
-      final move = record.moves[i];
-      _view.board[move.position.row][move.position.col] = move.color;
-      _view.lastMove = move.position;
-
-      final color = _view.board[move.position.row][move.position.col];
-      if (color != null) {
-        final win = BoardUtils.checkWin(_view.board, move.position);
-        if (win != null) {
-          _view.winStart = win.$1;
-          _view.winEnd = win.$2;
-          _view.status = color == StoneColor.black
-              ? GameStatus.blackWin
-              : GameStatus.whiteWin;
-        }
-      }
-    }
+    _view.seek(step, record.moves);
 
     if (_view.status == GameStatus.playing &&
         step >= record.moves.length &&
