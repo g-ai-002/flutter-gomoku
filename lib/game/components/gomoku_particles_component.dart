@@ -91,8 +91,8 @@ class _Spark {
     required this.radius,
   }) : maxLife = life;
 
-  final Vector2 position;
-  final Vector2 velocity;
+  Vector2 position;
+  Vector2 velocity;
   final Color color;
   final double maxLife;
   final double radius;

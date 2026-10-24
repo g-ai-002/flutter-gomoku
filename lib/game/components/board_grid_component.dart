@@ -16,7 +16,7 @@ class BoardGridComponent extends BoardLayerComponent {
     const worldSize = GomokuBoardGeometry.worldSize;
     final g = geometry;
     final rect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(0, 0, worldSize, worldSize),
+      const Rect.fromLTWH(0, 0, worldSize, worldSize),
       const Radius.circular(14),
     );
 

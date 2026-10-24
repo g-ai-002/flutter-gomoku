@@ -29,13 +29,18 @@ class GameProvider extends ChangeNotifier implements GomokuBoardSource {
         _soundEnabled = _storage.soundEnabled;
 
   GameState get state => _state;
+  @override
   int get boardSize => _state.boardSize;
+  @override
   List<List<StoneColor?>> get board => _state.board;
   StoneColor get currentPlayer => _state.currentPlayer;
   GameStatus get status => _state.status;
   List<Move> get history => _state.history;
+  @override
   Position? get lastMove => _state.lastMove;
+  @override
   Position? get winStart => _state.winStart;
+  @override
   Position? get winEnd => _state.winEnd;
   bool get canUndo => _state.history.isNotEmpty;
   bool get isGameOver => _state.status != GameStatus.playing;
