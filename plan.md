@@ -7,12 +7,13 @@
 - 持续可演进：每个版本可独立交付，可观测、可回滚
 
 ## 中期目标
-- [ ] 人机对弈（AI 难度分级）
-- [ ] 双人本地对弈
-- [ ] 悔棋 / 撤销
-- [ ] 对局记录与回放
-- [ ] 音效与动画
-- [ ] 自适应布局（折叠屏/平板/桌面）
+- [x] 人机对弈（AI 难度分级）
+- [x] 双人本地对弈
+- [x] 悔棋 / 撤销
+- [x] 对局记录与回放
+- [x] 音效与动画
+- [x] 自适应布局（折叠屏/平板/桌面）
+- [x] 基于 Flame 引擎的棋盘渲染与输入
 
 ## 短期目标
 - 持续按 prompt.md 的版本节奏：新功能 → patch 修复 → patch 重构
@@ -20,6 +21,20 @@
 ---
 
 ## 版本历史
+
+### v0.4.0 (MINOR) — 当前开发中
+- **状态**: 开发完成（待 CI 验证）
+- **目标**: 将棋盘渲染与落子交互迁移到 Flame 引擎
+- **任务**:
+  - [x] 引入 Flame 1.38.2，棋盘改为固定分辨率 World + CameraComponent
+  - [x] 棋盘背景/网格/星位拆为 `BoardGridComponent`
+  - [x] 棋子拆为 `StoneLayerComponent`，保留弹入动画与最后一手标记
+  - [x] 胜利连线拆为 `WinLineComponent`，逐段延伸绘制
+  - [x] 点击落子迁移到 Flame `TapCallbacks`，吸附逻辑抽为 `GomokuBoardGeometry`
+  - [x] 对局页改用 `GameWidget` 承载棋盘
+  - [x] 单元测试：棋盘几何换算、点击吸附、越界保护
+  - [x] 版本号 0.3.10 → 0.4.0
+  - [x] 更新 README/plan/versions
 
 ### v0.3.3 (PATCH)
 - **状态**: 已完成 ✅
@@ -152,9 +167,11 @@
 - **包体克制**：依赖均为成熟稳定的纯 Dart / Flutter 插件。
 
 ## 依赖与版本基线
-- Flutter: 3.44.1
+- Flutter: 3.47.7
+- Dart: 3.13.5
+- flame: 1.38.2
 - provider: 6.1.5+1
-- shared_preferences: 2.5.5
-- path_provider: 2.1.5
+- shared_preferences: 2.5.6
+- path_provider: 2.1.6
 - path: 1.9.1
-- window_manager: 0.5.1
+- window_manager: 0.5.2
