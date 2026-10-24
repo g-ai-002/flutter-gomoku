@@ -7,7 +7,11 @@ import 'board_layer_component.dart';
 
 /// 获胜五连的连线，随胜局出现逐段延伸。
 class WinLineComponent extends BoardLayerComponent {
-  WinLineComponent({required super.provider, super.priority});
+  WinLineComponent({
+    required super.source,
+    required super.palette,
+    super.priority,
+  });
 
   static const double _drawDuration = 0.28;
 
@@ -22,8 +26,8 @@ class WinLineComponent extends BoardLayerComponent {
   @override
   void update(double dt) {
     super.update(dt);
-    final start = provider.winStart;
-    final end = provider.winEnd;
+    final start = source.winStart;
+    final end = source.winEnd;
     if (start == null || end == null) {
       _progress = 0;
       return;
@@ -33,8 +37,8 @@ class WinLineComponent extends BoardLayerComponent {
 
   @override
   void render(Canvas canvas) {
-    final start = provider.winStart;
-    final end = provider.winEnd;
+    final start = source.winStart;
+    final end = source.winEnd;
     if (start == null || end == null || _progress <= 0) {
       return;
     }
@@ -47,7 +51,11 @@ class WinLineComponent extends BoardLayerComponent {
     );
 
     canvas.drawLine(from, tip, _linePaint);
-    canvas.drawCircle(from, g.cellSize * 0.1, _linePaint..style = PaintingStyle.fill);
+    canvas.drawCircle(
+      from,
+      g.cellSize * 0.1,
+      _linePaint..style = PaintingStyle.fill,
+    );
     _linePaint.style = PaintingStyle.stroke;
   }
 }

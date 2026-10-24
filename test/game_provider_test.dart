@@ -161,10 +161,10 @@ void main() {
       expect(result, isFalse);
     });
 
-    test('人机模式悔棋悔两步', () async {
+    test('人机模式悔棋悔两步', () {
       provider.placeStone(7, 7); // 玩家
-      // 等待 AI 落子
-      await Future.delayed(const Duration(milliseconds: 300));
+      // AI 落子由对局循环驱动；测试里直接触发一次
+      provider.resolveAiMove();
       expect(provider.history.length, equals(2));
       expect(provider.aiThinking, isFalse);
 

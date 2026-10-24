@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../ai/ai_engine.dart';
+import '../game/gomoku_board_source.dart';
 import '../models/game_record.dart';
 import '../models/game_state.dart';
 import '../services/game_record_service.dart';
@@ -11,7 +12,7 @@ import '../utils/board_utils.dart';
 import '../utils/constants.dart';
 
 /// 游戏状态管理
-class GameProvider extends ChangeNotifier {
+class GameProvider extends ChangeNotifier implements GomokuBoardSource {
   final StorageService _storage;
   GameState _state;
   GameMode _mode;
@@ -38,6 +39,8 @@ class GameProvider extends ChangeNotifier {
   Position? get winEnd => _state.winEnd;
   bool get canUndo => _state.history.isNotEmpty;
   bool get isGameOver => _state.status != GameStatus.playing;
+  @override
+  bool get isPlaying => _state.status == GameStatus.playing;
   GameMode get mode => _mode;
   AIDifficulty get aiDifficulty => _aiDifficulty;
   bool get aiThinking => _aiThinking;
@@ -133,18 +136,23 @@ class GameProvider extends ChangeNotifier {
     GameRecordService.instance.save(record);
   }
 
+  /// 标记 AI 开始思考；实际落子由 Flame 对局在延迟后调用 [resolveAiMove]。
   void _scheduleAIMove() {
     _aiThinking = true;
     notifyListeners();
+  }
 
-    Future.delayed(const Duration(milliseconds: AppConstants.aiMoveDelayMs), () {
-      final move = _ai.findBestMove(_state);
-      if (move != null && _state.status == GameStatus.playing) {
-        _applyMove(move.row, move.col);
-      }
-      _aiThinking = false;
-      notifyListeners();
-    });
+  /// 由 Flame 对局在 AI 思考延迟到达后调用。
+  void resolveAiMove() {
+    if (!_aiThinking) {
+      return;
+    }
+    final move = _ai.findBestMove(_state);
+    if (move != null && _state.status == GameStatus.playing) {
+      _applyMove(move.row, move.col);
+    }
+    _aiThinking = false;
+    notifyListeners();
   }
 
   /// 悔棋

@@ -3,14 +3,14 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../models/game_state.dart';
-import '../../providers/game_provider.dart';
 import '../../utils/constants.dart';
 import 'board_layer_component.dart';
 
-/// 棋子层：把 [GameProvider] 的棋盘同步成带落子弹入动画的棋子。
+/// 棋子层：把棋盘数据源同步成带落子弹入动画的棋子。
 class StoneLayerComponent extends BoardLayerComponent {
   StoneLayerComponent({
-    required super.provider,
+    required super.source,
+    required super.palette,
     super.priority,
   });
 
@@ -38,16 +38,16 @@ class StoneLayerComponent extends BoardLayerComponent {
   }
 
   void _sync() {
-    final state = provider.state;
-    if (state.boardSize != _boardSize) {
-      _boardSize = state.boardSize;
+    if (source.boardSize != _boardSize) {
+      _boardSize = source.boardSize;
       _stones.clear();
     }
 
+    final board = source.board;
     final present = <int>{};
     for (var row = 0; row < _boardSize; row++) {
       for (var col = 0; col < _boardSize; col++) {
-        final stone = state.board[row][col];
+        final stone = board[row][col];
         if (stone == null) {
           continue;
         }
@@ -66,8 +66,7 @@ class StoneLayerComponent extends BoardLayerComponent {
   void render(Canvas canvas) {
     final g = geometry;
     final radius = g.cellSize * AppConstants.stoneRadiusRatio;
-    final lastMove = provider.lastMove;
-    final playing = provider.state.status == GameStatus.playing;
+    final lastMove = source.lastMove;
 
     _stones.forEach((key, stone) {
       final row = key ~/ _boardSize;
@@ -82,7 +81,7 @@ class StoneLayerComponent extends BoardLayerComponent {
         _easeOutBack(progress),
       );
 
-      final isLast = playing &&
+      final isLast = source.isPlaying &&
           lastMove != null &&
           lastMove.row == row &&
           lastMove.col == col;

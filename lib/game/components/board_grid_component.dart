@@ -6,16 +6,10 @@ import 'board_layer_component.dart';
 /// 棋盘背景、网格线与星位。
 class BoardGridComponent extends BoardLayerComponent {
   BoardGridComponent({
-    required super.provider,
-    required this.boardColor,
-    required this.lineColor,
-    required this.borderColor,
+    required super.source,
+    required super.palette,
     super.priority,
   });
-
-  final Color boardColor;
-  final Color lineColor;
-  final Color borderColor;
 
   @override
   void render(Canvas canvas) {
@@ -26,10 +20,10 @@ class BoardGridComponent extends BoardLayerComponent {
       const Radius.circular(14),
     );
 
-    canvas.drawRRect(rect, Paint()..color = boardColor);
+    canvas.drawRRect(rect, Paint()..color = palette.boardColor);
 
     final linePaint = Paint()
-      ..color = lineColor
+      ..color = palette.lineColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2;
     final span = g.cellSize * (g.boardSize - 1);
@@ -47,7 +41,7 @@ class BoardGridComponent extends BoardLayerComponent {
       );
     }
 
-    final starPaint = Paint()..color = lineColor;
+    final starPaint = Paint()..color = palette.lineColor;
     for (final (row, col) in g.starPoints) {
       canvas.drawCircle(g.centerOf(row, col), g.cellSize * 0.09, starPaint);
     }
@@ -55,7 +49,7 @@ class BoardGridComponent extends BoardLayerComponent {
     canvas.drawRRect(
       rect.deflate(0.6),
       Paint()
-        ..color = borderColor
+        ..color = palette.borderColor
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.2,
     );

@@ -1,11 +1,15 @@
+import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+
+import '../game/gomoku_game.dart';
+import '../game/gomoku_palette.dart';
+import '../game/replay_board.dart';
 import '../models/game_record.dart';
 import '../models/game_state.dart';
 import '../utils/board_utils.dart';
 import '../utils/constants.dart';
-import '../widgets/board_painter.dart';
 
-/// 对局回放页面
+/// 对局回放页面（Flame 棋盘 + Flutter 控制条）。
 class ReplayPage extends StatefulWidget {
   final GameRecord record;
 
@@ -16,12 +20,10 @@ class ReplayPage extends StatefulWidget {
 }
 
 class _ReplayPageState extends State<ReplayPage> {
-  late int _currentStep;
-  late List<List<StoneColor?>> _board;
-  late GameStatus _status;
-  Position? _lastMove;
-  Position? _winStart;
-  Position? _winEnd;
+  late final ReplayBoard _view = ReplayBoard(widget.record.boardSize);
+  GomokuGame? _game;
+  GomokuPalette? _palette;
+  int _currentStep = 0;
   bool _autoPlaying = false;
 
   GameRecord get record => widget.record;
@@ -29,63 +31,78 @@ class _ReplayPageState extends State<ReplayPage> {
   @override
   void initState() {
     super.initState();
-    _currentStep = 0;
-    _board = List.generate(
-      record.boardSize,
-      (_) => List<StoneColor?>.filled(record.boardSize, null),
-    );
-    _status = GameStatus.playing;
     _applyMovesUpTo(0);
   }
 
-  void _applyMovesUpTo(int step) {
-    _board = List.generate(
-      record.boardSize,
-      (_) => List<StoneColor?>.filled(record.boardSize, null),
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final themePalette = GomokuPalette.of(Theme.of(context));
+    if (_game != null && _palette != null) {
+      _palette!.updateFrom(themePalette);
+      return;
+    }
+    _palette = themePalette;
+    _game = GomokuGame(
+      source: _view,
+      palette: themePalette,
+      onAutoStep: _handleAutoStep,
     );
-    _lastMove = null;
-    _winStart = null;
-    _winEnd = null;
-    _status = GameStatus.playing;
+  }
 
-    for (int i = 0; i < step && i < record.moves.length; i++) {
+  @override
+  void dispose() {
+    _autoPlaying = false;
+    _game?.autoPlay = false;
+    super.dispose();
+  }
+
+  void _applyMovesUpTo(int step) {
+    _view.reset();
+
+    for (var i = 0; i < step && i < record.moves.length; i++) {
       final move = record.moves[i];
-      _board[move.position.row][move.position.col] = move.color;
-      _lastMove = move.position;
+      _view.board[move.position.row][move.position.col] = move.color;
+      _view.lastMove = move.position;
 
-      // 检查胜负
-      final color = _board[move.position.row][move.position.col];
+      final color = _view.board[move.position.row][move.position.col];
       if (color != null) {
-        final win = BoardUtils.checkWin(_board, move.position);
+        final win = BoardUtils.checkWin(_view.board, move.position);
         if (win != null) {
-          _winStart = win.$1;
-          _winEnd = win.$2;
-          _status = color == StoneColor.black ? GameStatus.blackWin : GameStatus.whiteWin;
+          _view.winStart = win.$1;
+          _view.winEnd = win.$2;
+          _view.status = color == StoneColor.black
+              ? GameStatus.blackWin
+              : GameStatus.whiteWin;
         }
       }
     }
 
-    if (_status == GameStatus.playing && step >= record.moves.length && record.moves.isNotEmpty) {
-      _status = record.result;
+    if (_view.status == GameStatus.playing &&
+        step >= record.moves.length &&
+        record.moves.isNotEmpty) {
+      _view.status = record.result;
     }
   }
 
   void _stepForward() {
-    if (_currentStep < record.moves.length) {
-      setState(() {
-        _currentStep++;
-        _applyMovesUpTo(_currentStep);
-      });
+    if (_currentStep >= record.moves.length) {
+      return;
     }
+    setState(() {
+      _currentStep++;
+      _applyMovesUpTo(_currentStep);
+    });
   }
 
   void _stepBackward() {
-    if (_currentStep > 0) {
-      setState(() {
-        _currentStep--;
-        _applyMovesUpTo(_currentStep);
-      });
+    if (_currentStep <= 0) {
+      return;
     }
+    setState(() {
+      _currentStep--;
+      _applyMovesUpTo(_currentStep);
+    });
   }
 
   void _goToStart() {
@@ -104,41 +121,44 @@ class _ReplayPageState extends State<ReplayPage> {
 
   void _toggleAutoPlay() {
     if (_autoPlaying) {
-      _autoPlaying = false;
+      setState(() => _autoPlaying = false);
+      _game?.autoPlay = false;
       return;
     }
-    _autoPlaying = true;
-    _autoStep();
+    if (_currentStep >= record.moves.length) {
+      return;
+    }
+    setState(() => _autoPlaying = true);
+    final game = _game;
+    if (game != null) {
+      game.autoPlayInterval =
+          AppConstants.replayAutoPlayDelayMs / 1000;
+      game.autoPlay = true;
+    }
   }
 
-  void _autoStep() {
-    if (!_autoPlaying) return;
+  void _handleAutoStep() {
+    if (!_autoPlaying) {
+      return;
+    }
     if (_currentStep >= record.moves.length) {
-      _autoPlaying = false;
-      setState(() {});
+      setState(() => _autoPlaying = false);
+      _game?.autoPlay = false;
       return;
     }
     setState(() {
       _currentStep++;
       _applyMovesUpTo(_currentStep);
     });
-    Future.delayed(const Duration(milliseconds: AppConstants.replayAutoPlayDelayMs), _autoStep);
-  }
-
-  @override
-  void dispose() {
-    _autoPlaying = false;
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final game = _game;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('对局回放'),
-      ),
+      appBar: AppBar(title: const Text('对局回放')),
       body: SafeArea(
         child: Column(
           children: [
@@ -149,28 +169,12 @@ class _ReplayPageState extends State<ReplayPage> {
                   padding: const EdgeInsets.all(8),
                   child: AspectRatio(
                     aspectRatio: 1,
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final maxSize = constraints.maxWidth;
-                        final cellSize = (maxSize - AppConstants.boardPadding) / record.boardSize;
-                        final boardPixelSize = cellSize * (record.boardSize - 1);
-                        final padding = (maxSize - boardPixelSize) / 2;
-
-                        return CustomPaint(
-                          size: Size(maxSize, maxSize),
-                          painter: BoardPainter(
-                            boardSize: record.boardSize,
-                            cellSize: cellSize,
-                            padding: padding,
-                            board: _board,
-                            lastMove: _lastMove,
-                            winStart: _winStart,
-                            winEnd: _winEnd,
-                            isDark: theme.brightness == Brightness.dark,
+                    child: game == null
+                        ? const SizedBox.expand()
+                        : GameWidget<GomokuGame>(
+                            game: game,
+                            autofocus: false,
                           ),
-                        );
-                      },
-                    ),
                   ),
                 ),
               ),
@@ -184,12 +188,13 @@ class _ReplayPageState extends State<ReplayPage> {
 
   Widget _buildInfoBar(ThemeData theme) {
     String statusText;
-    if (_status == GameStatus.playing && _currentStep < record.moves.length) {
+    if (_view.status == GameStatus.playing &&
+        _currentStep < record.moves.length) {
       statusText = '回放中';
-    } else if (_status == GameStatus.playing) {
+    } else if (_view.status == GameStatus.playing) {
       statusText = '准备开始';
     } else {
-      statusText = _status.label;
+      statusText = _view.status.label;
     }
 
     return Container(
@@ -206,7 +211,9 @@ class _ReplayPageState extends State<ReplayPage> {
         children: [
           Text(
             statusText,
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(width: 12),
           Text(
@@ -239,9 +246,9 @@ class _ReplayPageState extends State<ReplayPage> {
               value: _currentStep.toDouble(),
               max: record.moves.length.toDouble(),
               divisions: record.moves.length,
-              onChanged: (v) {
+              onChanged: (value) {
                 setState(() {
-                  _currentStep = v.round();
+                  _currentStep = value.round();
                   _applyMovesUpTo(_currentStep);
                 });
               },
@@ -268,12 +275,14 @@ class _ReplayPageState extends State<ReplayPage> {
               IconButton(
                 icon: const Icon(Icons.navigate_next),
                 tooltip: '下一步',
-                onPressed: _currentStep < record.moves.length ? _stepForward : null,
+                onPressed:
+                    _currentStep < record.moves.length ? _stepForward : null,
               ),
               IconButton(
                 icon: const Icon(Icons.skip_next),
                 tooltip: '结束',
-                onPressed: _currentStep < record.moves.length ? _goToEnd : null,
+                onPressed:
+                    _currentStep < record.moves.length ? _goToEnd : null,
               ),
             ],
           ),
