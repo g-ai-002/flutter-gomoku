@@ -1,11 +1,11 @@
+import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/game_state.dart';
-import '../providers/game_provider.dart';
-import '../utils/constants.dart';
-import 'board_painter.dart';
 
-/// 棋盘组件
+import '../game/gomoku_game.dart';
+import '../providers/game_provider.dart';
+
+/// 棋盘组件：用 [GameWidget] 承载 Flame 对局。
 class BoardWidget extends StatefulWidget {
   const BoardWidget({super.key});
 
@@ -13,77 +13,39 @@ class BoardWidget extends StatefulWidget {
   State<BoardWidget> createState() => _BoardWidgetState();
 }
 
-class _BoardWidgetState extends State<BoardWidget>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animController;
-  int _lastHistoryLength = 0;
+class _BoardWidgetState extends State<BoardWidget> {
+  GomokuGame? _game;
+  Brightness? _brightness;
 
   @override
-  void initState() {
-    super.initState();
-    _animController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: AppConstants.aiMoveDelayMs),
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final brightness = Theme.of(context).brightness;
+    final provider = context.read<GameProvider>();
+    if (_game != null &&
+        _brightness == brightness &&
+        _game!.provider == provider) {
+      return;
+    }
+
+    _brightness = brightness;
+    final colors = Theme.of(context).colorScheme;
+    final isDark = brightness == Brightness.dark;
+    _game = GomokuGame(
+      provider: provider,
+      surfaceColor: colors.surface,
+      boardColor: isDark ? const Color(0xFF2A2724) : const Color(0xFFE8C99B),
+      lineColor: isDark ? const Color(0xFF5A5A5A) : const Color(0xFF8D6E63),
+      borderColor: isDark ? const Color(0xFF3A3A3A) : const Color(0xFFC9A97A),
     );
-  }
-
-  @override
-  void dispose() {
-    _animController.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final game = context.watch<GameProvider>();
-    final state = game.state;
-    final boardSize = state.boardSize;
-
-    // 检测新落子，触发动画
-    if (state.history.length > _lastHistoryLength) {
-      _animController.forward(from: 0);
+    final game = _game;
+    if (game == null) {
+      return const SizedBox.expand();
     }
-    _lastHistoryLength = state.history.length;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final maxSize = constraints.maxWidth;
-        final cellSize = (maxSize - AppConstants.boardPadding) / boardSize;
-        final boardPixelSize = cellSize * (boardSize - 1);
-        final padding = (maxSize - boardPixelSize) / 2;
-
-        return GestureDetector(
-          onTapUp: (details) {
-            if (state.status != GameStatus.playing) return;
-            // 吸附到最近交叉点（棋子落在交叉点上而非格子中心，不能加半格偏移）
-            final col = ((details.localPosition.dx - padding) / cellSize).round();
-            final row = ((details.localPosition.dy - padding) / cellSize).round();
-            if (row >= 0 && row < boardSize && col >= 0 && col < boardSize) {
-              game.placeStone(row, col);
-            }
-          },
-          child: AnimatedBuilder(
-            animation: _animController,
-            builder: (context, _) {
-              return CustomPaint(
-                size: Size(maxSize, maxSize),
-                painter: BoardPainter(
-                  boardSize: boardSize,
-                  cellSize: cellSize,
-                  padding: padding,
-                  board: state.board,
-                  lastMove: state.lastMove,
-                  winStart: state.winStart,
-                  winEnd: state.winEnd,
-                  isDark: Theme.of(context).brightness == Brightness.dark,
-                  stoneAnimProgress: _animController.value,
-                  isGameOver: state.status != GameStatus.playing,
-                ),
-              );
-            },
-          ),
-        );
-      },
-    );
+    return GameWidget<GomokuGame>(game: game);
   }
 }
