@@ -26,9 +26,9 @@
 
 | 平台 | 下载 |
 |------|------|
-| Android | [v0.4.1 APK](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.4.1) |
-| Windows | [v0.4.1 ZIP](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.4.1) |
-| Web | [在线试玩](https://g-ai-002.github.io/flutter-gomoku/) · [Web ZIP](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.4.1) |
+| Android | [v0.5.0 APK](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.5.0) |
+| Windows | [v0.5.0 ZIP](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.5.0) |
+| Web | [在线试玩](https://g-ai-002.github.io/flutter-gomoku/) · [Web ZIP](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.5.0) |
 
 ## 开发
 
@@ -65,6 +65,14 @@ Web 端说明：
 - 程序化音效生成（无需外部资源）
 
 ## 版本历史
+
+### v0.5.0 (2026-10-27)
+
+- 支持 Web 平台与 GitHub Pages 多版本在线试玩
+- 日志、文件系统、窗口初始化改为条件导入，Web 端保留内存日志
+- 静态网格/地形烘焙为 `ui.Picture`，暂停/结算时停掉 Flame 主循环
+- 操作提示按桌面、触屏与浏览器自适应
+- 版本号 0.4.1 → 0.5.0
 
 ### v0.4.1 (2026-10-24)
 - 回放棋盘改为增量 seek：前进/回退只处理差值，不再从第 0 手全量重放
