@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +7,8 @@ import '../providers/game_provider.dart';
 import '../services/file_system_service.dart';
 import '../services/log_service.dart';
 import '../utils/constants.dart';
+import '../utils/game_hints.dart';
+import '../utils/platform_info.dart';
 
 /// 设置页面
 class SettingsPage extends StatefulWidget {
@@ -37,18 +38,19 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _loadLogDir() async {
     try {
-      final dir = await FileSystemService.instance.getLogRoot();
+      // Web 端返回空串（日志只在内存），目录条目会自动隐藏。
+      final dir = await FileSystemService.instance.getLogRootPath();
       if (!mounted) {
         return;
       }
-      setState(() => _logDir = dir.path);
+      setState(() => _logDir = dir);
     } catch (e, stack) {
       LogService.error('读取日志目录失败', e, stack);
     }
   }
 
-  bool get _canOpenDir =>
-      Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+  /// 只有桌面端能打开系统文件管理器
+  bool get _canOpenDir => isDesktopPlatform;
 
   @override
   Widget build(BuildContext context) {
@@ -151,6 +153,16 @@ class _SettingsPageState extends State<SettingsPage> {
             leading: Icon(Icons.info_outline, color: colorScheme.primary),
             title: const Text('版本'),
             trailing: const Text(AppConstants.version),
+          ),
+          ListTile(
+            leading: Icon(Icons.devices, color: colorScheme.primary),
+            title: const Text('运行平台'),
+            trailing: Text(platformLabel),
+          ),
+          ListTile(
+            leading: Icon(Icons.touch_app, color: colorScheme.primary),
+            title: const Text('操作提示'),
+            subtitle: Text(GameHints.settingsHint),
           ),
           // 日志目录
           if (_logDir.isNotEmpty)

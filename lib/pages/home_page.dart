@@ -4,6 +4,7 @@ import '../ai/ai_engine.dart';
 import '../models/game_state.dart';
 import '../providers/game_provider.dart';
 import '../utils/constants.dart';
+import '../utils/game_hints.dart';
 import 'game_page.dart';
 import 'records_page.dart';
 import 'settings_page.dart';
@@ -111,6 +112,14 @@ class HomePage extends StatelessWidget {
                       ? '棋盘: $boardSize×$boardSize  |  难度: ${aiDifficulty.label}'
                       : '棋盘: $boardSize×$boardSize',
                   style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  GameHints.homeHint,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                 ),
               ],
             ),

@@ -57,6 +57,11 @@ class _ReplayPageState extends State<ReplayPage> {
   }
 
   void _applyMovesUpTo(int step) {
+    // 回放推进依赖 update()，若主循环曾被暂停则先恢复。
+    final game = _game;
+    if (game != null && game.paused) {
+      game.resumeEngine();
+    }
     _view.seek(step, record.moves);
 
     if (_view.status == GameStatus.playing &&

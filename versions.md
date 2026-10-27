@@ -33,7 +33,12 @@
 | Java (source/target)                      | 21                                 |
 | 目标平台                                  | Android (arm64-v8a)、Windows (x64) |
 
-发布产物：Android APK（`android-arm64`）与 Windows ZIP（`windows-x86_64`），由 GitHub Actions 与 Gitea Actions 双流水线构建。
+发布产物：Android APK（`android-arm64`）、Windows ZIP（`windows-x86_64`）与 Web ZIP
+（`web`），由 GitHub Actions 与 Gitea Actions 双流水线构建。
+
+> Web 端自 2026-10-27 起纳入构建：GitHub 侧额外发布到 gh-pages 多版本站点
+> <https://g-ai-002.github.io/flutter-gomoku/>，Gitea 侧只产出 `-web.zip` 并附到
+> Release。
 
 ---
 
@@ -93,3 +98,17 @@ python .build/query_all_versions.py
 - Android Gradle Plugin / desugar_jdk_libs：[Google Maven](https://dl.google.com/dl/android/maven2/) 的 `maven-metadata.xml`
 - Kotlin：[Maven Central](https://repo1.maven.org/maven2/) 的 `maven-metadata.xml`
 - Gradle：`https://services.gradle.org/versions/all`
+
+---
+
+## 本轮任务记录（2026-10-27）
+
+- 平台：目标平台新增 Web（浏览器），发布产物新增 `-web.zip`；本轮不涉及 Flutter
+  依赖版本变化，`pubspec.yaml` 与 `lib/utils/constants.dart` 的版本号保持 `0.4.1`
+- 平台适配：`log_service`、`file_system_service`、`game_record_service`、
+  `logging_init`、`window_setup` 改为条件导入（`*_io.dart` / `*_web.dart`），
+  `lib/` 下除 `*_io.dart` 外不再直接 `import 'dart:io'`
+- 站点：GitHub Actions 新增 build-web，tag 发布到 `v<version>/`、其余发布到
+  `debug/`，并生成版本索引页与 `versions.json`；Gitea Actions 只产出 `-web.zip`
+- 渲染：棋盘静态层（棋盘底、网格线、星位、外边框）烘焙为 `ui.Picture` 缓存
+- 主循环：对局结束遮罩出现后暂停，重开 / 悔棋 / 回放时恢复

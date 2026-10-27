@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/game_provider.dart';
+import '../utils/game_hints.dart';
 import '../widgets/board_widget.dart';
 import '../widgets/status_bar.dart';
 
@@ -52,18 +53,33 @@ class GamePage extends StatelessWidget {
           top: BorderSide(color: theme.dividerColor, width: 0.5),
         ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          OutlinedButton.icon(
-            onPressed: game.canUndo && !game.aiThinking ? () => game.undo() : null,
-            icon: const Icon(Icons.undo, size: 18),
-            label: const Text('悔棋'),
+          Text(
+            GameHints.gameHint,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
-          ElevatedButton.icon(
-            onPressed: game.aiThinking ? null : () => _confirmRestart(context, game),
-            icon: const Icon(Icons.refresh, size: 18),
-            label: const Text('重新开始'),
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              OutlinedButton.icon(
+                onPressed:
+                    game.canUndo && !game.aiThinking ? () => game.undo() : null,
+                icon: const Icon(Icons.undo, size: 18),
+                label: const Text('悔棋'),
+              ),
+              ElevatedButton.icon(
+                onPressed:
+                    game.aiThinking ? null : () => _confirmRestart(context, game),
+                icon: const Icon(Icons.refresh, size: 18),
+                label: const Text('重新开始'),
+              ),
+            ],
           ),
         ],
       ),

@@ -1,6 +1,11 @@
 # 五子棋 (Gomoku)
 
-跨 Android + Windows 双平台的五子棋游戏，支持双人本地对弈与人机对弈。
+跨 Android + Windows + Web 三端的五子棋游戏，支持双人本地对弈与人机对弈。
+
+## 在线试玩
+
+- 🌐 浏览器直接开玩：<https://g-ai-002.github.io/flutter-gomoku/>
+- 每个发布 tag 对应一个可独立试玩的 Web 版本，站点首页可查看全部历史版本
 
 ## 功能
 
@@ -15,6 +20,7 @@
 - ✨ 落子缩放动画
 - 🖥️ Windows 窗口自适应
 - 📱 Android 手机/折叠屏/平板自适应
+- 🌐 Web 平台：平台自适应操作提示，对局记录存浏览器本地存储，日志仅保留内存
 
 ## 下载
 
@@ -22,6 +28,7 @@
 |------|------|
 | Android | [v0.4.1 APK](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.4.1) |
 | Windows | [v0.4.1 ZIP](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.4.1) |
+| Web | [在线试玩](https://g-ai-002.github.io/flutter-gomoku/) · [Web ZIP](https://github.com/g-ai-002/flutter-gomoku/releases/tag/v0.4.1) |
 
 ## 开发
 
@@ -34,7 +41,19 @@ flutter test
 
 # 运行应用
 flutter run
+
+# 构建 Web（产物在 build/web）
+flutter build web --release
+
+# 构建指定 base href 的 Web 站点
+flutter build web --release --base-href "/flutter-gomoku/debug/"
 ```
+
+Web 端说明：
+
+- 日志只在内存环形缓冲里，设置页可查看但无法打开目录
+- 对局记录写入浏览器 localStorage（SharedPreferences）
+- 桌面窗口相关逻辑只在 `*_io.dart` 中引入，Web 构建不会拉入 `dart:io`
 
 ## 技术栈
 

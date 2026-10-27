@@ -84,6 +84,22 @@ class GomokuGame extends FlameGame<GomokuWorld> with KeyboardEvents {
 
     if (controller != null) {
       _lastHistory = controller!.history.length;
+      controller!.addListener(_handleControllerChange);
+    }
+  }
+
+  @override
+  void onRemove() {
+    controller?.removeListener(_handleControllerChange);
+    super.onRemove();
+  }
+
+  /// 对局状态变化：从结束态回到进行中（重开 / 悔棋 / 换棋盘）时恢复主循环。
+  void _handleControllerChange() {
+    final game = controller;
+    if (game == null) return;
+    if (!game.isGameOver && paused) {
+      resumeEngine();
     }
   }
 
@@ -167,9 +183,17 @@ class GomokuGame extends FlameGame<GomokuWorld> with KeyboardEvents {
     if (visible && !_activeOverlays.contains(gameOverOverlayId)) {
       overlays.add(gameOverOverlayId, priority: 20);
       _activeOverlays.add(gameOverOverlayId);
+      // 只在对局页（有 controller）且非回放自动播放时暂停主循环，
+      // 回放推进依赖 update() 驱动，不能被停掉。
+      if (!autoPlay && !paused) {
+        pauseEngine();
+      }
     } else if (!visible && _activeOverlays.contains(gameOverOverlayId)) {
       overlays.remove(gameOverOverlayId);
       _activeOverlays.remove(gameOverOverlayId);
+      if (paused) {
+        resumeEngine();
+      }
     }
   }
 }

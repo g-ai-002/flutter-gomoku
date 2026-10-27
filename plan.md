@@ -22,6 +22,30 @@
 
 ## 版本历史
 
+### 2026-10-27 Web 平台与多版本站点改造（未发版）
+
+- **状态**: 进行中 🚧
+- **目标**: 让同一份代码在浏览器跑起来，并为 GitHub Pages 提供多版本在线试玩站点
+- **说明**: 本轮不升版本号，等 Web 站点验证通过后再按 MINOR 发版
+- **任务**:
+  - [x] 日志服务拆条件导出 + `log_service_io.dart` / `log_service_web.dart`，
+        Web 端只保留内存环形缓冲
+  - [x] 文件系统服务拆 `_io` / `_web`，公开 API 统一为 `getLogRootPath()` /
+        `getUserRootPath()` / `openDirectory()`
+  - [x] 新增 `logging_init`、`window_setup` 条件导入封装，`main.dart` 不再直接
+        依赖 `dart:io` 与 `window_manager`
+  - [x] 对局记录服务拆 `_io` / `_web`，Web 端以 SharedPreferences 保存 JSON
+  - [x] 设置页改用 `isDesktopPlatform` 与 `getLogRootPath()`，Web 端隐藏“打开目录”
+  - [x] 新增 `utils/game_hints.dart`，首页 / 游戏页 / 设置页按平台展示操作提示
+  - [x] 棋盘底、网格线、星位与外边框烘焙为 `ui.Picture` 缓存，按尺寸 / 棋盘大小 /
+        配色失效重建
+  - [x] 对局结束遮罩出现后暂停主循环，重开 / 悔棋 / 回放时恢复
+  - [x] GitHub Actions 增加 build-web：tag 发 `v<version>/`，其余发 `debug/`，
+        写 gh-pages 并生成版本索引页与 `versions.json`
+  - [x] 新增 `.github/pages/index.template.html`
+  - [x] Gitea Actions 增加 build-web，只产出 `-web.zip` 并附加到 Release
+  - [x] 更新 README
+
 ### v0.4.1 (PATCH)
 - **状态**: 已发布 ✅
 - **目标**: 回放性能优化，拖动手感更顺

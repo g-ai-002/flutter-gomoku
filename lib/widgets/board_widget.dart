@@ -76,6 +76,8 @@ class _BoardWidgetState extends State<BoardWidget> {
                 moves: provider.history.length,
                 onRestart: () {
                   provider.restart();
+                  // 结束浮层出现时主循环已暂停，重开需显式恢复。
+                  game.resumeEngine();
                   _focusNode.requestFocus();
                 },
               ),
