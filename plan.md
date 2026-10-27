@@ -1,7 +1,7 @@
 # 五子棋 — 项目规划
 
 ## 长期目标
-- 跨 Android + Windows 双平台的五子棋游戏
+- 跨 Android + Windows + Web 三平台的五子棋游戏
 - 支持人机对弈、双人对弈
 - 精美克制的界面，操作与主流棋类 App 一致
 - 持续可演进：每个版本可独立交付，可观测、可回滚
@@ -45,6 +45,21 @@
   - [x] 新增 `.github/pages/index.template.html`
   - [x] Gitea Actions 增加 build-web，只产出 `-web.zip` 并附加到 Release
   - [x] 更新 README
+
+### v0.5.0 (MINOR)
+
+- **状态**: 已发布 ✅
+- **目标**: 支持 Web 平台并新增 GitHub Pages 多版本在线试玩
+- **任务**:
+  - [x] Web 平台条件导入：日志、文件系统、窗口初始化拆分 `_io` / `_web`
+  - [x] Web 端日志回退到内存，设置页仍可查看
+  - [x] 静态网格/地形烘焙为 `ui.Picture`
+  - [x] 暂停/结算时暂停 Flame 主循环，恢复时重启
+  - [x] 平台自适应操作提示
+  - [x] GitHub Pages 多版本站点与 Gitea Web ZIP 产物
+  - [x] 对局记录服务 Web 端退回 SharedPreferences
+  - [x] 版本号 0.4.1 → 0.5.0
+  - [x] 更新 README/plan/versions
 
 ### v0.4.1 (PATCH)
 - **状态**: 已发布 ✅
