@@ -57,7 +57,7 @@ Web 端说明：
 
 ## 技术栈
 
-- Flutter 3.47.7
+- Flutter 3.47.8
 - Provider 状态管理
 - Material 3 设计
 - SharedPreferences 本地存储
