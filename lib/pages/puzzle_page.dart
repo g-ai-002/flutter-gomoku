@@ -4,19 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../flame/gomoku_game.dart';
-import '../game/engine/rules.dart';
 import '../game/puzzle_controller.dart';
 import '../game/puzzles.dart';
 import '../providers/settings_provider.dart';
 import '../services/log_service.dart';
+import '../services/move_feedback_tracker.dart';
 import '../services/puzzle_progress_service.dart';
 import '../services/sound_service.dart';
-import 'widgets/action_button.dart';
+import 'widgets/board_actions.dart';
 import 'widgets/board_page_scaffold.dart';
 import 'widgets/board_stage.dart';
 import 'widgets/game_dialogs.dart';
-import 'widgets/move_list.dart';
 import 'widgets/move_panel.dart';
+import 'widgets/move_sheet.dart';
 import 'widgets/play_layout.dart';
 import 'widgets/puzzle_status_bar.dart';
 
@@ -33,14 +33,15 @@ class PuzzlePage extends StatefulWidget {
 class _PuzzlePageState extends State<PuzzlePage> {
   late final PuzzleController _controller;
   late final GomokuGame _game;
+  late final MoveFeedbackTracker _feedback;
   bool _resultShown = false;
-  int _seenMoves = 0;
 
   @override
   void initState() {
     super.initState();
     _controller = PuzzleController(puzzle: widget.puzzle);
     _game = GomokuGame(view: _controller);
+    _feedback = MoveFeedbackTracker(_controller);
     _controller.addListener(_onChanged);
     LogService.info('进入残局: ${widget.puzzle.id} ${widget.puzzle.title}');
   }
@@ -53,7 +54,7 @@ class _PuzzlePageState extends State<PuzzlePage> {
 
   void _onChanged() {
     if (!mounted) return;
-    _syncMoveFeedback();
+    _feedback.sync();
     final status = _controller.status;
     if (status == PuzzleStatus.playing) {
       _resultShown = false;
@@ -67,24 +68,6 @@ class _PuzzlePageState extends State<PuzzlePage> {
       unawaited(PuzzleProgressService.instance.markSolved(widget.puzzle.id));
     }
     WidgetsBinding.instance.addPostFrameCallback((_) => _showResult(solved));
-  }
-
-  void _syncMoveFeedback() {
-    final history = _controller.history;
-    if (history.length <= _seenMoves) {
-      _seenMoves = history.length;
-      return;
-    }
-    for (var i = _seenMoves; i < history.length; i++) {
-      final record = history[i];
-      final threat = GomokuRules.makesOpenFour(
-        _controller.board.cells,
-        record.index,
-        record.side,
-      );
-      SoundService.play(threat ? MoveFeedback.threat : MoveFeedback.place);
-    }
-    _seenMoves = history.length;
   }
 
   Future<void> _showResult(bool solved) async {
@@ -106,7 +89,7 @@ class _PuzzlePageState extends State<PuzzlePage> {
     switch (action) {
       case PuzzleResultAction.retry:
         _resultShown = false;
-        _seenMoves = 0;
+        _feedback.reset();
         _controller.restart();
       case PuzzleResultAction.next:
         final next = kGomokuPuzzles[index + 1];
@@ -148,24 +131,11 @@ class _PuzzlePageState extends State<PuzzlePage> {
     );
   }
 
-  void _showMoveSheet() {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      builder: (sheetContext) => SizedBox(
-        height: MediaQuery.of(sheetContext).size.height * 0.55,
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, _) => MoveList(
-            history: _controller.history,
-            padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
-          ),
-        ),
-      ),
-    );
-  }
+  void _showMoveSheet() => showMoveSheet(
+    context,
+    listenable: _controller,
+    moves: _controller.history,
+  );
 
   @override
   void dispose() {
@@ -224,34 +194,14 @@ class _PuzzlePageState extends State<PuzzlePage> {
   }
 
   Widget _buildActions({required bool showMoves}) {
-    return Wrap(
-      alignment: WrapAlignment.center,
-      spacing: 2,
-      children: [
-        BoardActionButton(
-          icon: Icons.undo_rounded,
-          label: '悔棋',
-          onPressed: _controller.canUndo ? _controller.undo : null,
-        ),
-        BoardActionButton(
-          icon: Icons.refresh_rounded,
-          label: '重开',
-          onPressed: _controller.restart,
-        ),
-        if (showMoves)
-          BoardActionButton(
-            icon: Icons.format_list_bulleted_rounded,
-            label: '棋谱',
-            onPressed: _showMoveSheet,
-          ),
-        BoardActionButton(
-          icon: Icons.lightbulb_outline,
-          label: _controller.hintLoading ? '思考中' : '提示',
-          onPressed: _controller.canInteract && !_controller.hintLoading
-              ? _controller.requestHint
-              : null,
-        ),
-      ],
+    return BoardActions(
+      canUndo: _controller.canUndo,
+      onUndo: _controller.undo,
+      onRestart: _controller.restart,
+      onMoves: showMoves ? _showMoveSheet : null,
+      onHint: _controller.requestHint,
+      hintEnabled: _controller.canInteract,
+      hintLoading: _controller.hintLoading,
     );
   }
 }

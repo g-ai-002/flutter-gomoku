@@ -36,13 +36,12 @@ class BoardComponent extends PositionComponent
   int? _hoverIndex;
 
   final Map<String, TextPainter> _coordPainters = {};
-  ui.Picture? _boardLayer;
-  ui.Picture? _stoneLayer;
-  String _boardLayerKey = '';
-  String _stoneLayerKey = '';
+  final _PictureLayer _boardLayer = _PictureLayer();
+  final _PictureLayer _stoneLayer = _PictureLayer();
 
   @override
   Future<void> onLoad() async {
+    await super.onLoad();
     skin.addListener(_clearCaches);
   }
 
@@ -58,12 +57,8 @@ class BoardComponent extends PositionComponent
   }
 
   void _clearCaches() {
-    _boardLayer?.dispose();
-    _stoneLayer?.dispose();
-    _boardLayer = null;
-    _stoneLayer = null;
-    _boardLayerKey = '';
-    _stoneLayerKey = '';
+    _boardLayer.clear();
+    _stoneLayer.clear();
     for (final painter in _coordPainters.values) {
       painter.dispose();
     }
@@ -102,15 +97,19 @@ class BoardComponent extends PositionComponent
     _invalidateStones();
   }
 
-  void _invalidateStones() {
-    _stoneLayer?.dispose();
-    _stoneLayer = null;
-    _stoneLayerKey = '';
-  }
+  void _invalidateStones() => _stoneLayer.clear();
 
   void _layout(double width, double height) {
     final hasCoords = view.showCoordinates;
-    _cell = math.min(width, height) / (hasCoords ? 16.4 : 15.4);
+    final cell = math.min(width, height) / (hasCoords ? 16.4 : 15.4);
+    // 窗口缩放时同步丢弃坐标文字缓存，避免按尺寸累积 TextPainter。
+    if ((cell - _cell).abs() > 0.01) {
+      for (final painter in _coordPainters.values) {
+        painter.dispose();
+      }
+      _coordPainters.clear();
+    }
+    _cell = cell;
     _originX = width / 2 - _cell * 7;
     _originY = height / 2 - _cell * 7;
   }
@@ -171,42 +170,33 @@ class BoardComponent extends PositionComponent
   ui.Picture _boardPicture() {
     final key =
         '${_cell.toStringAsFixed(2)}|${_skin.id}|${view.showCoordinates}';
-    final cached = _boardLayer;
-    if (cached != null && _boardLayerKey == key) return cached;
-    _boardLayer?.dispose();
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder);
+    return _boardLayer.paint(key, (canvas) {
+      canvas.drawRect(
+        Rect.fromLTWH(0, 0, size.x, size.y),
+        Paint()
+          ..shader = _skin.gradient.createShader(
+            Rect.fromLTWH(0, 0, size.x, size.y),
+          ),
+      );
+      _drawGrain(canvas);
 
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, size.x, size.y),
-      Paint()
-        ..shader = _skin.gradient.createShader(
-          Rect.fromLTWH(0, 0, size.x, size.y),
-        ),
-    );
-    _drawGrain(canvas);
-
-    final Paint linePaint = Paint()
-      ..color = _skin.line.withValues(alpha: 0.72)
-      ..strokeWidth = math.max(0.7, _cell * 0.035)
-      ..style = PaintingStyle.stroke;
-    paintBoardGrid(
-      canvas,
-      topLeft: Offset(_originX, _originY),
-      cell: _cell,
-      linePaint: linePaint,
-      starPaint: Paint()..color = _skin.line.withValues(alpha: 0.85),
-      borderPaint: Paint()
-        ..color = _skin.line.withValues(alpha: 0.9)
-        ..strokeWidth = math.max(1.1, _cell * 0.07)
-        ..style = PaintingStyle.stroke,
-    );
-    if (view.showCoordinates) _drawCoords(canvas);
-
-    final picture = recorder.endRecording();
-    _boardLayer = picture;
-    _boardLayerKey = key;
-    return picture;
+      final Paint linePaint = Paint()
+        ..color = _skin.line.withValues(alpha: 0.72)
+        ..strokeWidth = math.max(0.7, _cell * 0.035)
+        ..style = PaintingStyle.stroke;
+      paintBoardGrid(
+        canvas,
+        topLeft: Offset(_originX, _originY),
+        cell: _cell,
+        linePaint: linePaint,
+        starPaint: Paint()..color = _skin.line.withValues(alpha: 0.85),
+        borderPaint: Paint()
+          ..color = _skin.line.withValues(alpha: 0.9)
+          ..strokeWidth = math.max(1.1, _cell * 0.07)
+          ..style = PaintingStyle.stroke,
+      );
+      if (view.showCoordinates) _drawCoords(canvas);
+    });
   }
 
   void _drawGrain(Canvas canvas) {
@@ -274,27 +264,20 @@ class BoardComponent extends PositionComponent
     final key =
         '${_cell.toStringAsFixed(2)}|${_skin.id}|'
         '${view.history.length}|${view.lastIndex}|$animating';
-    final cached = _stoneLayer;
-    if (cached != null && _stoneLayerKey == key) return cached;
-    _stoneLayer?.dispose();
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder);
-    final radius = _cell * 0.46;
-    for (var index = 0; index < cellCount; index++) {
-      final side = view.cells[index];
-      if (side == empty) continue;
-      if (index == animating) continue;
-      paintStoneDisc(
-        canvas,
-        center: _centerOf(index),
-        radius: radius,
-        face: _skin.faceOf(side),
-      );
-    }
-    final picture = recorder.endRecording();
-    _stoneLayer = picture;
-    _stoneLayerKey = key;
-    return picture;
+    return _stoneLayer.paint(key, (canvas) {
+      final radius = _cell * 0.46;
+      for (var index = 0; index < cellCount; index++) {
+        final side = view.cells[index];
+        if (side == empty) continue;
+        if (index == animating) continue;
+        paintStoneDisc(
+          canvas,
+          center: _centerOf(index),
+          radius: radius,
+          face: _skin.faceOf(side),
+        );
+      }
+    });
   }
 
   void _drawAnim(Canvas canvas) {
@@ -407,4 +390,28 @@ class _StoneAnim {
   final int index;
   final int side;
   double elapsed = 0;
+}
+
+/// 按 key 缓存的录制图层，key 变化时释放旧图片并重新录制。
+class _PictureLayer {
+  ui.Picture? _picture;
+  String _key = '';
+
+  ui.Picture paint(String key, void Function(Canvas canvas) draw) {
+    final cached = _picture;
+    if (cached != null && _key == key) return cached;
+    _picture?.dispose();
+    final recorder = ui.PictureRecorder();
+    draw(Canvas(recorder));
+    final picture = recorder.endRecording();
+    _picture = picture;
+    _key = key;
+    return picture;
+  }
+
+  void clear() {
+    _picture?.dispose();
+    _picture = null;
+    _key = '';
+  }
 }
