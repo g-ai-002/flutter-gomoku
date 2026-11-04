@@ -41,7 +41,7 @@
 
 ### v0.1.0 (MINOR) — 2026-11-04
 
-- **状态**: 开发完成 ✅
+- **状态**: 已发布 ✅（[Gitea Release](http://192.168.31.120:3020/GTech/flutter-gomoku/releases/tag/v0.1.0)）
 - **目标**: 首个可玩版本：完整五子棋规则、三档 AI、双人对弈、棋谱与三端发布。
 - **任务**:
   - [x] 15×15 棋盘、四方向五连判胜、满盘判和，最后一手高亮与胜利连线
@@ -56,3 +56,4 @@
   - [x] 日志按天写入用户目录，设置页可查看最近日志
   - [x] Gitea / GitHub Actions 构建 Android、Windows、Web 并发布 Release
   - [x] 单元与组件测试覆盖规则、AI、记谱、棋钟、存储、复盘与页面
+  - [x] Gitea Actions 测试与三端构建全部通过，Release 附 Android / Windows / Web 产物并发布 tea-pages 站点
