@@ -26,16 +26,17 @@
 
 ## 下载
 
-v0.2.0（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-gomoku/releases/tag/v0.2.0)
+v0.2.1（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-gomoku/releases/tag/v0.2.1)
 
 | 平台 | 产物 |
 | --- | --- |
-| Android (arm64) | `flutter-gomoku-0.2.0-android-aarch64.apk` |
-| Windows (x64, Win10+) | `flutter-gomoku-0.2.0-windows-x86_64.zip` |
-| Web | `flutter-gomoku-0.2.0-web.zip`（解压后起静态服务器） |
+| Android (arm64) | `flutter-gomoku-0.2.1-android-aarch64.apk` |
+| Windows (x64, Win10+) | `flutter-gomoku-0.2.1-windows-x86_64.zip` |
+| Web | `flutter-gomoku-0.2.1-web.zip`（解压后起静态服务器） |
 
 | 版本 | 说明 |
 | --- | --- |
+| v0.2.1 | 重构提示、落子反馈与页面操作代码，修复缓存与音频重试问题 |
 | v0.2.0 | 新增残局挑战、开局库与开局提示，补齐单人练习路径 |
 | v0.1.1 | 重构存量代码，候选点生成约快 3.5 倍，修复 AI 兜底错过成五 |
 | v0.1.0 | 首个可玩版本：完整规则、三档 AI、棋谱复盘与三端发布 |
@@ -67,13 +68,14 @@ lib/
 ├── game/
 │   ├── engine/     # 棋型评估、Alpha-Beta 搜索与五连规则
 │   ├── board_state.dart / game_controller.dart
+│   ├── hint_session.dart      # 提示加载态与请求竞态
 │   ├── match_clock.dart / replay_controller.dart / game_archive.dart
 │   ├── opening_book.dart      # 六条开局棋谱与匹配
 │   └── puzzle_controller.dart / puzzles.dart  # 残局数据与挑战流程
 ├── models/         # 对局、着法与棋谱存档模型
 ├── pages/          # 首页、对局、残局、开局库、设置、棋谱库与复盘
 ├── providers/      # 用户偏好
-├── services/       # 日志、存储、音频、棋谱库与残局进度
+├── services/       # 日志、存储、音频、棋谱库、落子反馈与残局进度
 ├── theme/          # 主题、棋盘皮肤与棋子绘制
 └── utils/          # 常量、格式化与平台工具
 ```
