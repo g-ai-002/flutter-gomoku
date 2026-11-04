@@ -11,6 +11,7 @@ import 'board_state.dart';
 import 'board_view.dart';
 import 'engine/board_utils.dart';
 import 'engine/rules.dart';
+import 'hint_session.dart';
 import 'match_clock.dart';
 import 'notation.dart';
 import 'opening_book.dart';
@@ -64,13 +65,14 @@ class GameController extends ChangeNotifier implements BoardView {
   /// 最近一次 AI 搜索摘要，供界面展示引擎层数与用时。
   AiInsight? aiInsight;
 
+  late final HintSession _hint = HintSession(_notify);
+
   @override
-  int? hintIndex;
-  bool hintLoading = false;
+  int? get hintIndex => _hint.index;
+
+  bool get hintLoading => _hint.loading;
 
   int _serial = 0;
-  int _hintSerial = 0;
-  Timer? _hintTimer;
   bool _disposed = false;
 
   @override
@@ -172,6 +174,7 @@ class GameController extends ChangeNotifier implements BoardView {
         board.history.isNotEmpty &&
         board.sideToMove != humanSide);
     result = null;
+    aiInsight = null;
     _tracker?.rewind(keepMoves: board.history.length, side: board.sideToMove);
     LogService.info('悔棋，当前轮到${sideName(board.sideToMove)}');
     _notify();
@@ -204,26 +207,18 @@ class GameController extends ChangeNotifier implements BoardView {
     if (!canInteractive || hintLoading) return;
     final bookMove = _bookMove();
     if (bookMove != null) {
-      hintIndex = bookMove;
-      _hintTimer?.cancel();
-      _hintTimer = Timer(const Duration(seconds: 6), clearHint);
+      _hint.show(bookMove);
       LogService.info(
         '开局提示: ${openingMatch?.line.name ?? ''} '
         '${MoveNotation.describe(bookMove)}',
       );
-      _notify();
       return;
     }
-    final serial = ++_hintSerial;
+    final serial = _hint.begin();
     final side = board.sideToMove;
-    hintLoading = true;
-    hintIndex = null;
-    _hintTimer?.cancel();
-    _hintTimer = null;
-    _notify();
     // Web 端搜索与界面同线程，先让「正在寻找提示」完成一帧绘制。
     if (kIsWeb) await Future<void>.delayed(Duration.zero);
-    if (_disposed || serial != _hintSerial) return;
+    if (!_hint.isCurrent(serial)) return;
 
     int? move;
     try {
@@ -231,31 +226,23 @@ class GameController extends ChangeNotifier implements BoardView {
     } catch (error, stack) {
       LogService.error('提示搜索失败', error, stack);
     }
-    if (_disposed || serial != _hintSerial) return;
+    if (!_hint.isCurrent(serial)) return;
 
-    hintLoading = false;
     if (move != null &&
         move >= 0 &&
         move < cellCount &&
         board.cells[move] == empty &&
         side == board.sideToMove &&
         canInteractive) {
-      hintIndex = move;
-      _hintTimer = Timer(const Duration(seconds: 6), clearHint);
+      _hint.show(move);
       LogService.info('走子提示: ${MoveNotation.describe(move)}');
+    } else {
+      _hint.finish();
     }
-    _notify();
   }
 
   /// 清除提示并取消尚未返回的提示搜索。
-  void clearHint({bool notify = true}) {
-    _hintSerial++;
-    _hintTimer?.cancel();
-    _hintTimer = null;
-    hintLoading = false;
-    hintIndex = null;
-    if (notify) _notify();
-  }
+  void clearHint({bool notify = true}) => _hint.clear(notify: notify);
 
   void _play(int index) {
     tickClock();
@@ -365,11 +352,8 @@ class GameController extends ChangeNotifier implements BoardView {
 
   /// 兜底：优先自己成五，其次封堵对手成五，最后取离中心最近的空点。
   int? _fallbackMove() {
-    final side = board.sideToMove;
-    final win = GomokuRules.immediateWin(board.cells, side);
-    if (win != null) return win;
-    final block = GomokuRules.immediateWin(board.cells, opponentOf(side));
-    if (block != null) return block;
+    final tactical = GomokuRules.tacticalMove(board.cells, board.sideToMove);
+    if (tactical != null) return tactical;
     int? nearest;
     var nearestDistance = 1 << 30;
     for (var index = 0; index < cellCount; index++) {
@@ -393,9 +377,7 @@ class GameController extends ChangeNotifier implements BoardView {
   void dispose() {
     _disposed = true;
     _serial++;
-    _hintSerial++;
-    _hintTimer?.cancel();
-    _hintTimer = null;
+    _hint.dispose();
     super.dispose();
   }
 }

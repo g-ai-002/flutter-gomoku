@@ -11,6 +11,7 @@ import 'board_state.dart';
 import 'board_view.dart';
 import 'engine/board_utils.dart';
 import 'engine/rules.dart';
+import 'hint_session.dart';
 import 'notation.dart';
 import 'puzzles.dart';
 
@@ -40,13 +41,14 @@ class PuzzleController extends ChangeNotifier implements BoardView {
   int playerMoves = 0;
   bool thinking = false;
 
+  late final HintSession _hint = HintSession(_notify);
+
   @override
-  int? hintIndex;
-  bool hintLoading = false;
+  int? get hintIndex => _hint.index;
+
+  bool get hintLoading => _hint.loading;
 
   int _serial = 0;
-  int _hintSerial = 0;
-  Timer? _hintTimer;
   bool _disposed = false;
 
   @override
@@ -120,14 +122,9 @@ class PuzzleController extends ChangeNotifier implements BoardView {
 
   Future<void> requestHint() async {
     if (!canInteract || hintLoading) return;
-    final serial = ++_hintSerial;
-    hintLoading = true;
-    hintIndex = null;
-    _hintTimer?.cancel();
-    _hintTimer = null;
-    _notify();
+    final serial = _hint.begin();
     if (kIsWeb) await Future<void>.delayed(Duration.zero);
-    if (_disposed || serial != _hintSerial) return;
+    if (!_hint.isCurrent(serial)) return;
 
     int? move;
     try {
@@ -135,29 +132,21 @@ class PuzzleController extends ChangeNotifier implements BoardView {
     } catch (error, stack) {
       LogService.error('残局提示搜索失败', error, stack);
     }
-    if (_disposed || serial != _hintSerial) return;
+    if (!_hint.isCurrent(serial)) return;
 
-    hintLoading = false;
     if (move != null &&
         move >= 0 &&
         move < cellCount &&
         board.cells[move] == empty &&
         canInteract) {
-      hintIndex = move;
-      _hintTimer = Timer(const Duration(seconds: 6), clearHint);
+      _hint.show(move);
       LogService.info('残局提示: ${MoveNotation.describe(move)}');
+    } else {
+      _hint.finish();
     }
-    _notify();
   }
 
-  void clearHint({bool notify = true}) {
-    _hintSerial++;
-    _hintTimer?.cancel();
-    _hintTimer = null;
-    hintLoading = false;
-    hintIndex = null;
-    if (notify) _notify();
-  }
+  void clearHint({bool notify = true}) => _hint.clear(notify: notify);
 
   void _play(int index) {
     clearHint(notify: false);
@@ -229,10 +218,8 @@ class PuzzleController extends ChangeNotifier implements BoardView {
 
   /// 兜底应手：白棋先成五，其次封堵黑棋成五，最后取任意候选点。
   int? _fallbackDefense() {
-    final win = GomokuRules.immediateWin(board.cells, white);
-    if (win != null) return win;
-    final block = GomokuRules.immediateWin(board.cells, black);
-    if (block != null) return block;
+    final tactical = GomokuRules.tacticalMove(board.cells, white);
+    if (tactical != null) return tactical;
     final candidates = GomokuRules.candidateMoves(board.cells);
     return candidates.isEmpty ? null : candidates.first;
   }
@@ -262,9 +249,7 @@ class PuzzleController extends ChangeNotifier implements BoardView {
   void dispose() {
     _disposed = true;
     _serial++;
-    _hintSerial++;
-    _hintTimer?.cancel();
-    _hintTimer = null;
+    _hint.dispose();
     super.dispose();
   }
 }
