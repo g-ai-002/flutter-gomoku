@@ -76,6 +76,10 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('switch-sound')));
     await tester.pumpAndSettle();
     expect(settings.soundEnabled, isFalse);
+
+    await tester.tap(find.byKey(const ValueKey('switch-opening')));
+    await tester.pumpAndSettle();
+    expect(settings.openingHints, isFalse);
   });
 
   testWidgets('查看日志弹窗可打开', (tester) async {

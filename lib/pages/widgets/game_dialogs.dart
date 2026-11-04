@@ -33,6 +33,63 @@ Future<void> showGameResultDialog(
   );
 }
 
+/// 残局结果弹窗的操作：再练一次、进入下一关或返回列表。
+enum PuzzleResultAction { retry, next, close }
+
+/// 残局通关或失败后的结果弹窗。
+Future<PuzzleResultAction?> showPuzzleResultDialog(
+  BuildContext context, {
+  required bool solved,
+  required String message,
+  required String note,
+  required bool hasNext,
+}) {
+  return showDialog<PuzzleResultAction>(
+    context: context,
+    barrierDismissible: false,
+    builder: (dialogContext) {
+      final theme = Theme.of(dialogContext);
+      void choose(PuzzleResultAction action) =>
+          Navigator.of(dialogContext).pop(action);
+      return PopScope(
+        canPop: false,
+        child: AlertDialog(
+          icon: Icon(
+            solved ? Icons.emoji_events_outlined : Icons.flag_outlined,
+            size: 36,
+            color: theme.colorScheme.primary,
+          ),
+          title: Text(solved ? '通关！' : '挑战失败'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(message),
+              const SizedBox(height: 6),
+              Text(note, style: theme.textTheme.bodySmall),
+            ],
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+          actions: [
+            TextButton(
+              onPressed: () => choose(PuzzleResultAction.close),
+              child: const Text('返回列表'),
+            ),
+            OutlinedButton(
+              onPressed: () => choose(PuzzleResultAction.retry),
+              child: const Text('再练一次'),
+            ),
+            if (solved && hasNext)
+              FilledButton(
+                onPressed: () => choose(PuzzleResultAction.next),
+                child: const Text('下一关'),
+              ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
 /// 通用二次确认弹窗，返回 true 表示确认。
 Future<bool> showConfirmDialog(
   BuildContext context, {

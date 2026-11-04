@@ -14,7 +14,7 @@ class AppConstants {
   AppConstants._();
 
   static const String appName = '五子棋';
-  static const String version = '0.1.1';
+  static const String version = '0.2.0';
 
   static const String prefKeyDarkMode = 'dark_mode';
   static const String prefKeyDifficulty = 'difficulty';
@@ -26,4 +26,6 @@ class AppConstants {
   static const String prefKeyHaptics = 'haptics_enabled';
   static const String prefKeyTimeControl = 'time_control';
   static const String prefKeyGameHistory = 'game_history';
+  static const String prefKeyOpeningHints = 'opening_hints';
+  static const String prefKeyPuzzleProgress = 'puzzle_progress';
 }

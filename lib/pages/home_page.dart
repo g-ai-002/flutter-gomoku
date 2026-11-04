@@ -11,6 +11,8 @@ import '../theme/board_painting.dart';
 import '../utils/constants.dart';
 import 'game_history_page.dart';
 import 'game_page.dart';
+import 'opening_book_page.dart';
+import 'puzzle_library_page.dart';
 import 'settings_page.dart';
 import 'widgets/board_preview.dart';
 import 'widgets/entry_tile.dart';
@@ -85,6 +87,15 @@ class HomePage extends StatelessWidget {
                               ],
                             ),
                           const SizedBox(height: 24),
+                          OutlinedButton.icon(
+                            onPressed: () => _openOpeningBook(context),
+                            icon: const Icon(
+                              Icons.menu_book_outlined,
+                              size: 18,
+                            ),
+                            label: const Text('开局库 · 6 种开局参考'),
+                          ),
+                          const SizedBox(height: 18),
                           Text(
                             'v${AppConstants.version} · 本地运行，无需联网',
                             style: theme.textTheme.bodySmall?.copyWith(
@@ -126,7 +137,20 @@ class HomePage extends StatelessWidget {
         .push(MaterialPageRoute<void>(builder: (_) => const GameHistoryPage()));
   }
 
-  /// 首页三个模式入口，宽屏两列、窄屏堆叠都复用同一份定义。
+  /// 残局挑战：十道内置杀法，按难度分组。
+  void _openPuzzles(BuildContext context) {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const PuzzleLibraryPage()));
+  }
+
+  /// 开局库：浏览内置开局并进入开局练习。
+  void _openOpeningBook(BuildContext context) {
+    Navigator.of(context)
+        .push(MaterialPageRoute<void>(builder: (_) => const OpeningBookPage()));
+  }
+
+  /// 首页模式入口，宽屏两列、窄屏堆叠都复用同一份定义。
   List<Widget> _modeCards(
     BuildContext context,
     SettingsProvider settings,
@@ -149,6 +173,12 @@ class HomePage extends StatelessWidget {
       title: GameMode.twoPlayers.label,
       subtitle: '同屏轮流落子 · 面对面手谈',
       onTap: () => _startGame(context, settings, GameMode.twoPlayers),
+    ),
+    EntryTile(
+      leading: EntryBadge(icon: Icons.flag_outlined, accent: colors.secondary),
+      title: '残局挑战',
+      subtitle: '10 道杀法 · 一步成五到双三',
+      onTap: () => _openPuzzles(context),
     ),
     EntryTile(
       leading: const EntryBadge(

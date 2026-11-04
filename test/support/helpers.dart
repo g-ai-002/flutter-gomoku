@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gomoku/providers/settings_provider.dart';
 import 'package:gomoku/services/game_history_service.dart';
+import 'package:gomoku/services/puzzle_progress_service.dart';
 import 'package:gomoku/services/storage_service.dart';
 import 'package:gomoku/theme/app_theme.dart';
 import 'package:provider/provider.dart';
@@ -14,6 +15,7 @@ Future<SettingsProvider> createSettings({
   SharedPreferences.setMockInitialValues(values);
   StorageService.resetForTests();
   GameHistoryService.instance.resetForTest();
+  PuzzleProgressService.instance.resetForTest();
   final storage = await StorageService.instance;
   return SettingsProvider(storage);
 }

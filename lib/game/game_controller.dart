@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 
@@ -12,6 +13,7 @@ import 'engine/board_utils.dart';
 import 'engine/rules.dart';
 import 'match_clock.dart';
 import 'notation.dart';
+import 'opening_book.dart';
 
 /// 对局控制器：落子、AI 回合、悔棋、棋钟与终局判定。
 class GameController extends ChangeNotifier implements BoardView {
@@ -24,9 +26,12 @@ class GameController extends ChangeNotifier implements BoardView {
     GomokuBoard? board,
     this.showCoordinates = true,
     this.timeControl = TimeControl.none,
+    this.openingBook,
+    math.Random? openingRandom,
   }) : board = board ?? GomokuBoard(),
        _aiMove = aiMove ?? AiPlayer.chooseMove,
-       _hintMove = hintMove ?? AiPlayer.hintMove;
+       _hintMove = hintMove ?? AiPlayer.hintMove,
+       _openingRandom = openingRandom ?? math.Random();
 
   final GameMode mode;
   final Difficulty difficulty;
@@ -40,6 +45,11 @@ class GameController extends ChangeNotifier implements BoardView {
   final GomokuBoard board;
   final AiMoveProvider _aiMove;
   final HintMoveProvider _hintMove;
+
+  /// 内置开局库，为空时全部由搜索引擎给出着法。
+  final OpeningBook? openingBook;
+  final math.Random _openingRandom;
+  OpeningLine? _bookLine;
 
   late final ClockTracker? _tracker = timeControl.isTimed
       ? ClockTracker(timeControl)
@@ -92,6 +102,40 @@ class GameController extends ChangeNotifier implements BoardView {
   /// 最后一手的行棋方，空盘时为 null。
   int? get lastSide => history.isEmpty ? null : history.last.side;
 
+  /// 当前棋谱命中的开局，未使用开局库或已脱谱时为 null。
+  OpeningMatch? get openingMatch {
+    final book = openingBook;
+    if (book == null) return null;
+    return book.match([
+      for (final record in board.history) record.index,
+    ], preferred: _bookLine);
+  }
+
+  /// 前三手定型后的开局名，供界面展示；脱谱后自动消失。
+  String? get openingName => openingMatch?.name;
+
+  /// 开局库的下一手：先在前几手中挑选一条候选线，再取其对应着法。
+  int? _bookMove() {
+    final book = openingBook;
+    if (book == null) return null;
+    final moves = [for (final record in board.history) record.index];
+    final candidates = book.candidates(moves);
+    if (candidates.isEmpty) {
+      _bookLine = null;
+      return null;
+    }
+    final current = _bookLine;
+    if (current == null || !candidates.contains(current)) {
+      _bookLine = candidates[_openingRandom.nextInt(candidates.length)];
+    }
+    final line = _bookLine!;
+    if (moves.length >= line.moves.length) return null;
+    final side = moves.length.isEven ? black : white;
+    if (side != board.sideToMove) return null;
+    final move = line.moves[moves.length];
+    return board.cells[move] == empty ? move : null;
+  }
+
   /// 页面挂载后调用；人类执白时由 AI 先行。
   void start() {
     _syncClock();
@@ -140,6 +184,7 @@ class GameController extends ChangeNotifier implements BoardView {
     thinking = false;
     result = null;
     aiInsight = null;
+    _bookLine = null;
     _tracker?.restart(black);
     LogService.info('重新开始对局');
     _notify();
@@ -157,6 +202,18 @@ class GameController extends ChangeNotifier implements BoardView {
   /// 为当前行棋方请求一条走子提示，结果在棋盘上展示 6 秒。
   Future<void> requestHint() async {
     if (!canInteractive || hintLoading) return;
+    final bookMove = _bookMove();
+    if (bookMove != null) {
+      hintIndex = bookMove;
+      _hintTimer?.cancel();
+      _hintTimer = Timer(const Duration(seconds: 6), clearHint);
+      LogService.info(
+        '开局提示: ${openingMatch?.line.name ?? ''} '
+        '${MoveNotation.describe(bookMove)}',
+      );
+      _notify();
+      return;
+    }
     final serial = ++_hintSerial;
     final side = board.sideToMove;
     hintLoading = true;
@@ -254,6 +311,21 @@ class GameController extends ChangeNotifier implements BoardView {
     final serial = ++_serial;
     final side = board.sideToMove;
     _notify();
+
+    // 开局前几手优先走内置棋谱，略作停顿让落子动画衔接。
+    final bookMove = _bookMove();
+    if (bookMove != null) {
+      await Future<void>.delayed(const Duration(milliseconds: 260));
+      if (_disposed || serial != _serial) return;
+      thinking = false;
+      LogService.info(
+        '开局应手: ${openingMatch?.line.name ?? ''} '
+        '${MoveNotation.describe(bookMove)}',
+      );
+      _play(bookMove);
+      return;
+    }
+
     // Web 端搜索与界面同线程，先让「AI 思考中」完成一帧绘制。
     if (kIsWeb) await Future<void>.delayed(Duration.zero);
     if (_disposed || serial != _serial) return;

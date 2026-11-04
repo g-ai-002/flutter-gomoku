@@ -68,6 +68,11 @@ class StorageService {
   Future<void> setTimeControl(TimeControl value) =>
       _write((p) => p.setString(AppConstants.prefKeyTimeControl, value.name));
 
+  /// 人机对战执黑时是否使用内置开局库。
+  bool get openingHints => _p.getBool(AppConstants.prefKeyOpeningHints) ?? true;
+  Future<void> setOpeningHints(bool value) =>
+      _write((p) => p.setBool(AppConstants.prefKeyOpeningHints, value));
+
   /// AI 难度，未设置或未知值回退到默认难度（高手）。
   Difficulty get difficulty =>
       Difficulty.byName(_p.getString(AppConstants.prefKeyDifficulty));

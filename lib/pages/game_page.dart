@@ -7,6 +7,7 @@ import '../flame/gomoku_game.dart';
 import '../game/engine/board_utils.dart';
 import '../game/engine/rules.dart';
 import '../game/game_controller.dart';
+import '../game/opening_book.dart';
 import '../models/game_models.dart';
 import '../models/saved_game.dart';
 import '../providers/settings_provider.dart';
@@ -14,6 +15,7 @@ import '../services/game_history_service.dart';
 import '../services/log_service.dart';
 import '../services/sound_service.dart';
 import 'review_page.dart';
+import 'widgets/action_button.dart';
 import 'widgets/board_page_scaffold.dart';
 import 'widgets/board_stage.dart';
 import 'widgets/clock_bar.dart';
@@ -29,11 +31,15 @@ class GamePage extends StatefulWidget {
     required this.mode,
     required this.difficulty,
     required this.humanSide,
+    this.opening,
   });
 
   final GameMode mode;
   final Difficulty difficulty;
   final int humanSide;
+
+  /// 开局练习选定的棋谱；为空时人机执黑可自动启用内置开局库。
+  final OpeningLine? opening;
 
   @override
   State<GamePage> createState() => _GamePageState();
@@ -52,20 +58,30 @@ class _GamePageState extends State<GamePage> {
     super.initState();
     _resetGameIdentity();
     final settings = context.read<SettingsProvider>();
+    final opening = widget.opening;
+    final useBook =
+        opening != null ||
+        (widget.mode == GameMode.vsAi &&
+            widget.humanSide == black &&
+            settings.openingHints);
     _controller = GameController(
       mode: widget.mode,
       difficulty: widget.difficulty,
       humanSide: widget.humanSide,
       showCoordinates: settings.showCoordinates,
       timeControl: settings.timeControl,
+      openingBook: useBook
+          ? (opening == null ? OpeningBook.standard : OpeningBook([opening]))
+          : null,
     );
     _game = GomokuGame(view: _controller, skin: settings.boardSkin);
     _controller.addListener(_onControllerChanged);
     final clock = _controller.timeControl;
     final clockText = clock.isTimed ? '，棋钟 ${clock.label}' : '';
+    final openingText = opening == null ? '' : '，开局练习 ${opening.name}';
     LogService.info(
       '开始对局: ${widget.mode.label}, 难度 ${widget.difficulty.label}, '
-      '执${widget.humanSide == black ? '黑' : '白'}$clockText',
+      '执${widget.humanSide == black ? '黑' : '白'}$clockText$openingText',
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _controller.start();
@@ -203,6 +219,8 @@ class _GamePageState extends State<GamePage> {
   }
 
   String get _subtitle {
+    final opening = widget.opening;
+    if (opening != null) return '开局练习 · ${opening.name}';
     if (widget.mode == GameMode.vsAi) {
       final side = widget.humanSide == black ? '执黑' : '执白';
       return '${widget.difficulty.label} · $side$_clockSuffix';
@@ -256,10 +274,22 @@ class _GamePageState extends State<GamePage> {
   }
 
   Widget _buildStatus() {
+    final opening = _controller.openingName;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         GameStatusBar(controller: _controller, humanSide: widget.humanSide),
+        if (opening != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 5),
+            child: Text(
+              '开局 · $opening',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+                letterSpacing: 0.6,
+              ),
+            ),
+          ),
         if (_controller.clock != null) ...[
           const SizedBox(height: 8),
           ClockBar(controller: _controller),
@@ -278,24 +308,24 @@ class _GamePageState extends State<GamePage> {
       alignment: WrapAlignment.center,
       spacing: 2,
       children: [
-        _ActionButton(
+        BoardActionButton(
           icon: Icons.undo_rounded,
           label: '悔棋',
           onPressed: _controller.canUndo ? _controller.undo : null,
         ),
-        _ActionButton(
+        BoardActionButton(
           icon: Icons.refresh_rounded,
           label: '重开',
           onPressed: _restart,
         ),
         if (showMoves)
-          _ActionButton(
+          BoardActionButton(
             icon: Icons.format_list_bulleted_rounded,
             label: '棋谱',
             onPressed: _showMoveSheet,
           ),
         if (isAi)
-          _ActionButton(
+          BoardActionButton(
             icon: Icons.lightbulb_outline,
             label: _controller.hintLoading ? '思考中' : '提示',
             onPressed: _controller.canInteractive && !_controller.hintLoading
@@ -303,7 +333,7 @@ class _GamePageState extends State<GamePage> {
                 : null,
           ),
         if (isAi)
-          _ActionButton(
+          BoardActionButton(
             icon: Icons.flag_outlined,
             label: '认输',
             onPressed: _controller.result == null ? _confirmResign : null,
@@ -314,44 +344,4 @@ class _GamePageState extends State<GamePage> {
 
   Widget _buildSidePanel() =>
       MovePanel(history: _controller.history, footer: '提示：点击交叉点直接落子，圆点标记最后一手。');
-}
-
-class _ActionButton extends StatelessWidget {
-  const _ActionButton({
-    required this.icon,
-    required this.label,
-    required this.onPressed,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-    final enabled = onPressed != null;
-    return TextButton(
-      onPressed: onPressed,
-      style: TextButton.styleFrom(
-        minimumSize: const Size(64, 52),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        foregroundColor: enabled ? colors.onSurface : colors.onSurfaceVariant,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 21),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: enabled ? colors.onSurface : colors.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

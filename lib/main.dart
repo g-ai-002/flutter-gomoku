@@ -8,6 +8,7 @@ import 'services/game_history_service.dart';
 import 'services/log_service.dart';
 import 'services/logging_init.dart';
 import 'services/music_service.dart';
+import 'services/puzzle_progress_service.dart';
 import 'services/sound_service.dart';
 import 'services/storage_service.dart';
 import 'utils/constants.dart';
@@ -30,6 +31,7 @@ Future<void> main() async {
 
   final storage = await StorageService.instance;
   await GameHistoryService.instance.load();
+  await PuzzleProgressService.instance.load();
   LogService.info('应用启动: ${AppConstants.appName} v${AppConstants.version}');
   unawaited(SoundService.init());
   MusicService.enabled = storage.musicEnabled;

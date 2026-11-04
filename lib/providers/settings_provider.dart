@@ -59,6 +59,11 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> setTimeControl(TimeControl value) =>
       _update(() => _storage.setTimeControl(value));
 
+  /// 开局提示开关：人机对战执黑时是否参考内置开局库。
+  bool get openingHints => _storage.openingHints;
+  Future<void> setOpeningHints(bool value) =>
+      _update(() => _storage.setOpeningHints(value));
+
   void _syncFeedback() =>
       SoundService.configure(sound: soundEnabled, haptics: hapticsEnabled);
 
