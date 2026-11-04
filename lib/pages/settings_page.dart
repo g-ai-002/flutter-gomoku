@@ -3,9 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../providers/settings_provider.dart';
 import '../services/file_system_service.dart';
-import '../services/log_service.dart';
 import '../utils/constants.dart';
 import '../utils/platform_info.dart';
+import 'widgets/log_dialog.dart';
 import 'widgets/preference_pickers.dart';
 import 'widgets/section_card.dart';
 import 'widgets/skin_picker.dart';
@@ -122,7 +122,7 @@ class SettingsPage extends StatelessWidget {
                       runSpacing: 8,
                       children: [
                         OutlinedButton.icon(
-                          onPressed: () => _showLogs(context),
+                          onPressed: () => showLogDialog(context),
                           icon: const Icon(Icons.article_outlined, size: 17),
                           label: const Text('查看日志'),
                         ),
@@ -176,66 +176,6 @@ class SettingsPage extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showLogs(BuildContext context) {
-    final lines = LogService.getRecentLogs(300);
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => Dialog(
-        child: SizedBox(
-          width: 680,
-          height: 480,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(18, 14, 10, 10),
-                child: Row(
-                  children: [
-                    Text(
-                      '最近日志',
-                      style: Theme.of(dialogContext).textTheme.titleSmall,
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      onPressed: () => Navigator.of(dialogContext).pop(),
-                      icon: const Icon(Icons.close, size: 20),
-                      tooltip: '关闭',
-                    ),
-                  ],
-                ),
-              ),
-              Divider(
-                color: Theme.of(dialogContext).colorScheme.outline
-                    .withValues(alpha: 0.5),
-              ),
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  color: Theme.of(dialogContext)
-                      .colorScheme
-                      .surfaceContainerHighest
-                      .withValues(alpha: 0.5),
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(14),
-                    child: SelectableText(
-                      lines.isEmpty ? '暂无日志' : lines.join('\n'),
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        height: 1.55,
-                        color: Theme.of(dialogContext).colorScheme.onSurface,
-                        fontFamily: 'Consolas',
-                        fontFamilyFallback: const ['Menlo', 'monospace'],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
           ),
         ),
       ),

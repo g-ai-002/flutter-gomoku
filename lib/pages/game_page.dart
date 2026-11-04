@@ -14,6 +14,7 @@ import '../services/game_history_service.dart';
 import '../services/log_service.dart';
 import '../services/sound_service.dart';
 import 'review_page.dart';
+import 'widgets/board_page_scaffold.dart';
 import 'widgets/board_stage.dart';
 import 'widgets/clock_bar.dart';
 import 'widgets/game_dialogs.dart';
@@ -218,54 +219,37 @@ class _GamePageState extends State<GamePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 58,
-        title: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(widget.mode.label),
-            Text(
-              _subtitle,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontSize: 11,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
+    return BoardPageScaffold(
+      title: widget.mode.label,
+      caption: _subtitle,
+      actions: [
+        IconButton(
+          tooltip: '行棋规则',
+          onPressed: _showRules,
+          icon: const Icon(Icons.help_outline, size: 21),
         ),
-        actions: [
-          IconButton(
-            tooltip: '行棋规则',
-            onPressed: _showRules,
-            icon: const Icon(Icons.help_outline, size: 21),
+      ],
+      body: PlayLayout(
+        // 只重建状态与操作区，棋盘与 Flame 画布保持稳定，避免浮层变化推动棋盘。
+        status: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) => _buildStatus(),
+        ),
+        board: _buildBoard(),
+        actions: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) => _buildActions(showMoves: false),
+        ),
+        compactBottom: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) => Padding(
+            padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
+            child: _buildActions(showMoves: true),
           ),
-          const SizedBox(width: 4),
-        ],
-      ),
-      body: SafeArea(
-        child: PlayLayout(
-          // 只重建状态与操作区，棋盘与 Flame 画布保持稳定，避免浮层变化推动棋盘。
-          status: AnimatedBuilder(
-            animation: _controller,
-            builder: (context, _) => _buildStatus(),
-          ),
-          board: _buildBoard(),
-          actions: AnimatedBuilder(
-            animation: _controller,
-            builder: (context, _) => _buildActions(showMoves: false),
-          ),
-          compactBottom: AnimatedBuilder(
-            animation: _controller,
-            builder: (context, _) => Padding(
-              padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
-              child: _buildActions(showMoves: true),
-            ),
-          ),
-          sidePanel: AnimatedBuilder(
-            animation: _controller,
-            builder: (context, _) => _buildSidePanel(),
-          ),
+        ),
+        sidePanel: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) => _buildSidePanel(),
         ),
       ),
     );

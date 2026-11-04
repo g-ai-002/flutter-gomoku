@@ -1,4 +1,5 @@
 import '../models/move_record.dart';
+import '../utils/formatters.dart';
 import 'board_state.dart';
 import 'notation.dart';
 
@@ -37,7 +38,7 @@ class GameArchive {
       buffer.writeln('结果：$result');
     }
     if (date != null) {
-      buffer.writeln('日期：${_formatDate(date)}');
+      buffer.writeln('日期：${formatDateTime(date)}');
     }
     buffer
       ..writeln('先手：黑')
@@ -108,11 +109,5 @@ class GameArchive {
       if (board.apply(move) == null) return null;
     }
     return ArchivedGame(title: title, moves: moves, result: result, date: date);
-  }
-
-  static String _formatDate(DateTime date) {
-    String two(int value) => value.toString().padLeft(2, '0');
-    return '${date.year}-${two(date.month)}-${two(date.day)} '
-        '${two(date.hour)}:${two(date.minute)}';
   }
 }

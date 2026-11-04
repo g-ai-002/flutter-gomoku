@@ -7,6 +7,7 @@ import '../../game/game_controller.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/formatters.dart';
 import 'status_chip.dart';
+import 'stone_dot.dart';
 
 /// 棋钟条：并列展示双方剩余时间，当前行棋方高亮，不足一分钟转为警示色。
 class ClockBar extends StatefulWidget {
@@ -85,18 +86,7 @@ class _ClockChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: side == black ? colors.onSurface : colors.surface,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: side == black ? colors.onSurface : colors.outline,
-                width: 1.2,
-              ),
-            ),
-          ),
+          StoneDot(side: side, size: 8),
           const SizedBox(width: 6),
           Text(
             side == black ? '黑' : '白',

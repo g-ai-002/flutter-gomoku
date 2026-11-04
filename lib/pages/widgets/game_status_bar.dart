@@ -5,6 +5,7 @@ import '../../game/game_controller.dart';
 import '../../models/game_models.dart';
 import '../../theme/app_theme.dart';
 import 'status_chip.dart';
+import 'stone_dot.dart';
 
 /// 对局状态条：行棋方、AI 思考中、最后一手与执子信息。
 class GameStatusBar extends StatelessWidget {
@@ -35,20 +36,7 @@ class GameStatusBar extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 9,
-                  height: 9,
-                  decoration: BoxDecoration(
-                    color: side == black ? colors.onSurface : colors.surface,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: side == black
-                          ? colors.onSurface
-                          : colors.onSurfaceVariant,
-                      width: 1.2,
-                    ),
-                  ),
-                ),
+                StoneDot(side: side),
                 const SizedBox(width: 7),
                 Text(
                   '${sideName(side)}行棋',

@@ -178,9 +178,3 @@ ThemeData _buildBase({
     splashFactory: InkSparkle.splashFactory,
   );
 }
-
-/// 对局页的强调色（提示、胜利连线），跟随棋盘的强调色。
-Color hintColorOf(BuildContext context) =>
-    Theme.of(context).brightness == Brightness.dark
-    ? const Color(0xFFE7B25C)
-    : const Color(0xFF8C5A0F);

@@ -24,17 +24,21 @@ class FileSystemService {
     return getApplicationDocumentsDirectory();
   }
 
+  /// 应用私有目录下的子目录，不存在时自动创建。
+  Future<Directory> _appSubdir(String name) async {
+    final base = await _baseDir();
+    final dir = Directory(
+      '${base.path}${Platform.pathSeparator}$appDirName'
+      '${Platform.pathSeparator}$name',
+    );
+    if (!await dir.exists()) await dir.create(recursive: true);
+    return dir;
+  }
+
   /// 日志根目录：`<用户目录>/FlutterGomoku/logs`。
   Future<Directory> getLogRoot() async {
-    if (_logRoot != null) return _logRoot!;
-    final base = await _baseDir();
-    final logDir = Directory(
-      '${base.path}${Platform.pathSeparator}$appDirName'
-      '${Platform.pathSeparator}logs',
-    );
-    if (!await logDir.exists()) await logDir.create(recursive: true);
-    _logRoot = logDir;
-    return logDir;
+    _logRoot ??= await _appSubdir('logs');
+    return _logRoot!;
   }
 
   Future<String> getLogRootPath() async => (await getLogRoot()).path;
@@ -84,15 +88,7 @@ class FileSystemService {
     }
   }
 
-  Future<Directory> _recordsDir() async {
-    final base = await _baseDir();
-    final dir = Directory(
-      '${base.path}${Platform.pathSeparator}$appDirName'
-      '${Platform.pathSeparator}records',
-    );
-    if (!await dir.exists()) await dir.create(recursive: true);
-    return dir;
-  }
+  Future<Directory> _recordsDir() => _appSubdir('records');
 
   /// 打开系统文件管理器定位到目录，失败返回 false。
   Future<bool> openDirectory(String path) async {

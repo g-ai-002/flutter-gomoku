@@ -33,27 +33,42 @@ Future<void> showGameResultDialog(
   );
 }
 
-/// 认输二次确认，返回 true 表示确认认输。
-Future<bool> confirmResign(BuildContext context) async {
+/// 通用二次确认弹窗，返回 true 表示确认。
+Future<bool> showConfirmDialog(
+  BuildContext context, {
+  required String title,
+  required String message,
+  required String confirmLabel,
+  String cancelLabel = '取消',
+}) async {
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: const Text('认输'),
-      content: const Text('确认认输并结束本局吗？'),
+      title: Text(title),
+      content: Text(message),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: const Text('继续对局'),
+          child: Text(cancelLabel),
         ),
         FilledButton(
           onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: const Text('认输'),
+          child: Text(confirmLabel),
         ),
       ],
     ),
   );
   return confirmed == true;
 }
+
+/// 认输二次确认，返回 true 表示确认认输。
+Future<bool> confirmResign(BuildContext context) => showConfirmDialog(
+  context,
+  title: '认输',
+  message: '确认认输并结束本局吗？',
+  confirmLabel: '认输',
+  cancelLabel: '继续对局',
+);
 
 enum _ActionStyle { text, outlined, filled }
 
