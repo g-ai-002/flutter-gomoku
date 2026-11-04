@@ -73,6 +73,12 @@ class StorageService {
   Future<void> setOpeningHints(bool value) =>
       _write((p) => p.setBool(AppConstants.prefKeyOpeningHints, value));
 
+  /// 是否启用黑棋禁手（长连、四四、三三），默认关闭。
+  bool get forbiddenRule =>
+      _p.getBool(AppConstants.prefKeyForbiddenRule) ?? false;
+  Future<void> setForbiddenRule(bool value) =>
+      _write((p) => p.setBool(AppConstants.prefKeyForbiddenRule, value));
+
   /// AI 难度，未设置或未知值回退到默认难度（高手）。
   Difficulty get difficulty =>
       Difficulty.byName(_p.getString(AppConstants.prefKeyDifficulty));

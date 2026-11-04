@@ -102,6 +102,26 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
+  testWidgets('开启禁手规则后对局标题标注禁手', (tester) async {
+    _useDesktopView(tester);
+    final settings = await createSettings(values: {'forbidden_rule': true});
+    await tester.pumpWidget(
+      wrapPage(
+        const GamePage(
+          mode: GameMode.twoPlayers,
+          difficulty: Difficulty.expert,
+          humanSide: 1,
+        ),
+        settings,
+      ),
+    );
+    await _pumpGame(tester);
+
+    expect(settings.forbiddenRule, isTrue);
+    expect(find.textContaining('同屏对弈 · 禁手'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   testWidgets('手机窄屏对局页无溢出且显示棋谱入口', (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1.0;

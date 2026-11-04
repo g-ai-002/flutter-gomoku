@@ -208,8 +208,10 @@ void showRulesDialog(BuildContext context) {
           mainAxisSize: MainAxisSize.min,
           children: [
             _RuleLine('黑棋先行，双方轮流在交叉点落下一枚棋子。'),
-            _RuleLine('横、竖、斜任意方向先连成五子者获胜，本作采用无禁手规则。'),
-            _RuleLine('长连（六子及以上）同样计为胜。'),
+            _RuleLine('横、竖、斜任意方向先连成五子者获胜，五连优先于四四与三三。'),
+            _RuleLine('默认无禁手，长连（六子及以上）同样计为胜。'),
+            _RuleLine('开启禁手规则后黑棋受限：长连、四四、三三均为禁手，禁手点以红圈标记。'),
+            _RuleLine('禁手规则下白棋不受限制，白棋长连仍计为胜。'),
             _RuleLine('棋盘下满仍无五连时判和。'),
             _RuleLine('点击棋盘交叉点直接落子，最后一手以圆点标记。'),
             _RuleLine('悔棋会撤回最近一手；人机对战会同时撤回双方各一手。'),

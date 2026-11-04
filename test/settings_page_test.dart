@@ -80,6 +80,10 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('switch-opening')));
     await tester.pumpAndSettle();
     expect(settings.openingHints, isFalse);
+
+    await tester.tap(find.byKey(const ValueKey('switch-forbidden')));
+    await tester.pumpAndSettle();
+    expect(settings.forbiddenRule, isTrue);
   });
 
   testWidgets('查看日志弹窗可打开', (tester) async {

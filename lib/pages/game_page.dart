@@ -53,6 +53,7 @@ class _GamePageState extends State<GamePage> {
   late String _gameId;
   DateTime? _endedAt;
   bool _resultShown = false;
+  int _seenViolations = 0;
 
   @override
   void initState() {
@@ -71,6 +72,7 @@ class _GamePageState extends State<GamePage> {
       humanSide: widget.humanSide,
       showCoordinates: settings.showCoordinates,
       timeControl: settings.timeControl,
+      forbidBlack: settings.forbiddenRule,
       openingBook: useBook
           ? (opening == null ? OpeningBook.standard : OpeningBook([opening]))
           : null,
@@ -99,6 +101,13 @@ class _GamePageState extends State<GamePage> {
   void _onControllerChanged() {
     if (!mounted) return;
     _feedback.sync();
+    if (_controller.violationCount > _seenViolations) {
+      _seenViolations = _controller.violationCount;
+      final violation = _controller.lastViolation;
+      if (violation != null) {
+        _showViolation(violation.label, violation.description);
+      }
+    }
     final result = _controller.result;
     if (result == null) {
       // 悔棋或重开后回到对局中，下一次终局仍需弹出结果。
@@ -137,6 +146,18 @@ class _GamePageState extends State<GamePage> {
     _startedAt = DateTime.now();
     _gameId = 'game_${_startedAt.microsecondsSinceEpoch}';
     _endedAt = null;
+  }
+
+  /// 禁手提示：短暂浮层说明不可落子的原因，不打断对局。
+  void _showViolation(String label, String description) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text('$label · $description'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   String get _gameTitle => widget.mode == GameMode.twoPlayers
@@ -191,14 +212,16 @@ class _GamePageState extends State<GamePage> {
     return control.isTimed ? ' · ${control.label}' : '';
   }
 
+  String get _ruleSuffix => _controller.forbidBlack ? ' · 禁手' : '';
+
   String get _subtitle {
     final opening = widget.opening;
-    if (opening != null) return '开局练习 · ${opening.name}';
+    if (opening != null) return '开局练习 · ${opening.name}$_ruleSuffix';
     if (widget.mode == GameMode.vsAi) {
       final side = widget.humanSide == black ? '执黑' : '执白';
-      return '${widget.difficulty.label} · $side$_clockSuffix';
+      return '${widget.difficulty.label} · $side$_clockSuffix$_ruleSuffix';
     }
-    return '同屏对弈$_clockSuffix';
+    return '同屏对弈$_clockSuffix$_ruleSuffix';
   }
 
   @override
@@ -267,6 +290,16 @@ class _GamePageState extends State<GamePage> {
           const SizedBox(height: 8),
           ClockBar(controller: _controller),
         ],
+        if (_controller.forbiddenPoints.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 5),
+            child: Text(
+              '红圈为黑棋禁手点',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
       ],
     );
   }

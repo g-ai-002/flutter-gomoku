@@ -64,6 +64,11 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> setOpeningHints(bool value) =>
       _update(() => _storage.setOpeningHints(value));
 
+  /// 禁手规则开关：开启后黑棋不可长连、四四与三三。
+  bool get forbiddenRule => _storage.forbiddenRule;
+  Future<void> setForbiddenRule(bool value) =>
+      _update(() => _storage.setForbiddenRule(value));
+
   void _syncFeedback() =>
       SoundService.configure(sound: soundEnabled, haptics: hapticsEnabled);
 

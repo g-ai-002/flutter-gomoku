@@ -44,6 +44,14 @@ class SettingsPage extends StatelessWidget {
                       onChanged: settings.setOpeningHints,
                       switchKey: const ValueKey('switch-opening'),
                     ),
+                    const SizedBox(height: 10),
+                    _SwitchRow(
+                      title: '禁手规则',
+                      subtitle: '黑棋不可长连、四四与三三，白棋不受限制',
+                      value: settings.forbiddenRule,
+                      onChanged: settings.setForbiddenRule,
+                      switchKey: const ValueKey('switch-forbidden'),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -173,7 +181,8 @@ class SettingsPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      '采用无禁手规则，黑白轮流落子，先连成五子者胜。'
+                      '默认采用无禁手规则，黑白轮流落子，先连成五子者胜。'
+                      '开启禁手后黑棋不可长连、四四与三三，禁手点会以红圈标记。'
                       '人机对战由本地棋型评估与 Alpha-Beta 搜索驱动，无需联网。',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: colors.onSurfaceVariant,
