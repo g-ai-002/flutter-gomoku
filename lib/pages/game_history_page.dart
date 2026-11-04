@@ -6,8 +6,10 @@ import '../services/game_history_service.dart';
 import '../services/log_service.dart';
 import '../utils/formatters.dart';
 import 'review_page.dart';
+import 'widgets/app_snack.dart';
 import 'widgets/game_dialogs.dart';
 import 'widgets/import_game_dialog.dart';
+import 'widgets/page_list.dart';
 
 /// 棋谱库：最近 20 局回放，可导入、导出、删除或进入复盘。
 class GameHistoryPage extends StatelessWidget {
@@ -37,8 +39,7 @@ class GameHistoryPage extends StatelessWidget {
     final archive = GameArchive.decode(text);
     if (!context.mounted) return;
     if (archive == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('棋谱无法解析，请检查文本是否完整')));
+      showSnack(context, '棋谱无法解析，请检查文本是否完整');
       return;
     }
     final game = SavedGame.fromArchive(archive);
@@ -58,8 +59,7 @@ class GameHistoryPage extends StatelessWidget {
     if (!confirmed) return;
     await GameHistoryService.instance.remove(game.id);
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('棋谱已删除')));
+    showSnack(context, '棋谱已删除');
   }
 
   Future<void> _clear(BuildContext context) async {
@@ -72,8 +72,7 @@ class GameHistoryPage extends StatelessWidget {
     if (!confirmed) return;
     await GameHistoryService.instance.clear();
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('棋谱已清空')));
+    showSnack(context, '棋谱已清空');
   }
 
   @override
@@ -107,23 +106,18 @@ class GameHistoryPage extends StatelessWidget {
             if (records.isEmpty) {
               return _EmptyState(onImport: () => _import(context));
             }
-            return Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 760),
-                child: ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                  itemCount: records.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 10),
-                  itemBuilder: (context, index) {
-                    final game = records[index];
-                    return _SavedGameTile(
-                      game: game,
-                      onTap: () => _openReview(context, game),
-                      onDelete: () => _delete(context, game),
-                    );
-                  },
-                ),
-              ),
+            return PageList(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              children: [
+                for (final game in records) ...[
+                  _SavedGameTile(
+                    game: game,
+                    onTap: () => _openReview(context, game),
+                    onDelete: () => _delete(context, game),
+                  ),
+                  const SizedBox(height: 10),
+                ],
+              ],
             );
           },
         ),

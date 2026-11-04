@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import '../game/puzzles.dart';
 import '../services/puzzle_progress_service.dart';
 import 'puzzle_page.dart';
+import 'widgets/app_snack.dart';
 import 'widgets/entry_tile.dart';
 import 'widgets/game_dialogs.dart';
+import 'widgets/highlight_panel.dart';
+import 'widgets/page_list.dart';
 
 /// 残局列表：按难度分组展示十道内置杀局与通关进度。
 class PuzzleLibraryPage extends StatefulWidget {
@@ -39,8 +42,35 @@ class _PuzzleLibraryPageState extends State<PuzzleLibraryPage> {
     if (!confirmed) return;
     await _progress.clear();
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('残局进度已清空')));
+    showSnack(context, '残局进度已清空');
+  }
+
+  /// 按难度分组，避免在布局中反复过滤内置残局。
+  List<(PuzzleTier, List<GomokuPuzzle>)> _groups() => [
+    for (final tier in PuzzleTier.values)
+      (
+        tier,
+        [
+          for (final puzzle in kGomokuPuzzles)
+            if (puzzle.tier == tier) puzzle,
+        ],
+      ),
+  ];
+
+  Widget _puzzleTile(GomokuPuzzle puzzle) {
+    final colors = Theme.of(context).colorScheme;
+    final solved = _progress.isSolved(puzzle.id);
+    return EntryTile(
+      leading: EntryBadge(
+        accent: solved ? colors.tertiary : colors.primary,
+        icon: solved ? Icons.check_rounded : Icons.flag_outlined,
+      ),
+      title: puzzle.title,
+      subtitle: '${puzzle.moveLimit} 手内成五 · ${puzzle.tip}',
+      trailing: solved ? _SolvedTag(color: colors.tertiary) : null,
+      onTap: () => _open(puzzle),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    );
   }
 
   @override
@@ -66,65 +96,30 @@ class _PuzzleLibraryPageState extends State<PuzzleLibraryPage> {
           builder: (context, _) {
             final solved = _progress.solvedCount;
             final total = kGomokuPuzzles.length;
-            return Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 760),
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
-                  children: [
-                    _ProgressHeader(
-                      solved: solved,
-                      total: total,
-                      onStart: () => _open(kGomokuPuzzles.first),
-                    ),
-                    const SizedBox(height: 18),
-                    for (final tier in PuzzleTier.values) ...[
-                      _TierHeader(
-                        tier: tier,
-                        solved: kGomokuPuzzles
-                            .where(
-                              (puzzle) =>
-                                  puzzle.tier == tier &&
-                                  _progress.isSolved(puzzle.id),
-                            )
-                            .length,
-                        total: kGomokuPuzzles
-                            .where((puzzle) => puzzle.tier == tier)
-                            .length,
-                      ),
-                      const SizedBox(height: 8),
-                      for (final puzzle in kGomokuPuzzles.where(
-                        (puzzle) => puzzle.tier == tier,
-                      )) ...[
-                        EntryTile(
-                          leading: EntryBadge(
-                            accent: _progress.isSolved(puzzle.id)
-                                ? Theme.of(context).colorScheme.tertiary
-                                : Theme.of(context).colorScheme.primary,
-                            icon: _progress.isSolved(puzzle.id)
-                                ? Icons.check_rounded
-                                : Icons.flag_outlined,
-                          ),
-                          title: puzzle.title,
-                          subtitle: '${puzzle.moveLimit} 手内成五 · ${puzzle.tip}',
-                          trailing: _progress.isSolved(puzzle.id)
-                              ? _SolvedTag(
-                                  color: Theme.of(context).colorScheme.tertiary,
-                                )
-                              : null,
-                          onTap: () => _open(puzzle),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-                      const SizedBox(height: 8),
-                    ],
-                  ],
+            return PageList(
+              children: [
+                _ProgressHeader(
+                  solved: solved,
+                  total: total,
+                  onStart: () => _open(kGomokuPuzzles.first),
                 ),
-              ),
+                const SizedBox(height: 18),
+                for (final (tier, puzzles) in _groups()) ...[
+                  _TierHeader(
+                    tier: tier,
+                    solved: puzzles
+                        .where((puzzle) => _progress.isSolved(puzzle.id))
+                        .length,
+                    total: puzzles.length,
+                  ),
+                  const SizedBox(height: 8),
+                  for (final puzzle in puzzles) ...[
+                    _puzzleTile(puzzle),
+                    const SizedBox(height: 8),
+                  ],
+                  const SizedBox(height: 8),
+                ],
+              ],
             );
           },
         ),
@@ -149,13 +144,7 @@ class _ProgressHeader extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final ratio = total == 0 ? 0.0 : solved / total;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-      decoration: BoxDecoration(
-        color: colors.primary.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: colors.primary.withValues(alpha: 0.25)),
-      ),
+    return HighlightPanel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

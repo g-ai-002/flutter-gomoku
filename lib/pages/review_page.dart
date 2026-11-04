@@ -14,6 +14,7 @@ import '../providers/settings_provider.dart';
 import '../services/file_system_service.dart';
 import '../services/log_service.dart';
 import '../utils/formatters.dart';
+import 'widgets/app_snack.dart';
 import 'widgets/board_page_scaffold.dart';
 import 'widgets/board_stage.dart';
 import 'widgets/move_list.dart';
@@ -91,16 +92,11 @@ class _ReviewPageState extends State<ReviewPage> {
     if (mounted) setState(() {});
   }
 
-  void _snack(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
-  }
-
   Future<void> _copyArchive() async {
     await Clipboard.setData(ClipboardData(text: _archiveText()));
     if (!mounted) return;
     LogService.info('导出棋谱: 复制到剪贴板, 共 ${widget.moves.length} 手');
-    _snack('棋谱已复制到剪贴板');
+    showSnack(context, '棋谱已复制到剪贴板');
   }
 
   Future<void> _saveArchive() async {
@@ -114,11 +110,11 @@ class _ReviewPageState extends State<ReviewPage> {
     );
     if (!mounted) return;
     if (path == null) {
-      _snack('棋谱保存失败');
+      showSnack(context, '棋谱保存失败');
       return;
     }
     LogService.info('导出棋谱: 已保存到 $path');
-    _snack('棋谱已保存到 $path');
+    showSnack(context, '棋谱已保存到 $path');
   }
 
   String _archiveText() => GameArchive.encode(

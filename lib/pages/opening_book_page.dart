@@ -7,7 +7,9 @@ import '../models/game_models.dart';
 import '../providers/settings_provider.dart';
 import '../theme/board_skin.dart';
 import 'game_page.dart';
+import 'widgets/highlight_panel.dart';
 import 'widgets/opening_preview.dart';
+import 'widgets/page_list.dart';
 
 /// 开局库：浏览内置开局、查看前六手棋形，并直接进入开局练习。
 class OpeningBookPage extends StatelessWidget {
@@ -35,59 +37,47 @@ class OpeningBookPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('开局库')),
       body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 820),
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
-              children: [
-                Container(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-                  decoration: BoxDecoration(
-                    color: colors.primary.withValues(alpha: 0.07),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: colors.primary.withValues(alpha: 0.25),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+        child: PageList(
+          maxWidth: 820,
+          children: [
+            HighlightPanel(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.menu_book_outlined,
-                            size: 18,
-                            color: colors.primary,
-                          ),
-                          const SizedBox(width: 8),
-                          Text('前六手参考', style: theme.textTheme.titleSmall),
-                        ],
+                      Icon(
+                        Icons.menu_book_outlined,
+                        size: 18,
+                        color: colors.primary,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '开局库覆盖直指与斜指两类起手。人机对战执黑时自动生效，'
-                        '「提示」按钮会优先给出棋谱着法；脱谱后立即交回本地引擎。',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colors.onSurfaceVariant,
-                          height: 1.6,
-                        ),
-                      ),
+                      const SizedBox(width: 8),
+                      Text('前六手参考', style: theme.textTheme.titleSmall),
                     ],
                   ),
-                ),
-                const SizedBox(height: 14),
-                for (final line in kOpeningLines) ...[
-                  _OpeningCard(
-                    line: line,
-                    skin: skin,
-                    onPractice: () => _practice(context, line),
+                  const SizedBox(height: 8),
+                  Text(
+                    '开局库覆盖直指与斜指两类起手。人机对战执黑时自动生效，'
+                    '「提示」按钮会优先给出棋谱着法；脱谱后立即交回本地引擎。',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                      height: 1.6,
+                    ),
                   ),
-                  const SizedBox(height: 10),
                 ],
-              ],
+              ),
             ),
-          ),
+            const SizedBox(height: 14),
+            for (final line in kOpeningLines) ...[
+              _OpeningCard(
+                line: line,
+                skin: skin,
+                onPractice: () => _practice(context, line),
+              ),
+              const SizedBox(height: 10),
+            ],
+          ],
         ),
       ),
     );
