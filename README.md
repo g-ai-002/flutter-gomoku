@@ -7,6 +7,9 @@
 - 🎯 完整规则：横、竖、斜任意方向五连判胜，长连计胜，满盘判和
 - 🤖 人机对战：入门 / 普通 / 高手三档（默认高手），本地棋型评估 + Alpha-Beta 搜索，可选执黑或执白
 - 💡 走子提示：人机对战中一键请求推荐着法，棋盘高亮 6 秒
+- 🧩 残局挑战：十道内置杀局，分入门 / 进阶 / 挑战三档，限手数通关并记录进度
+- 📖 开局库：直指 / 斜指六条参考棋谱，棋形缩略图、开局讲解与一键练习
+- 🀄 开局提示：人机执黑时 AI 走棋谱应手，提示优先给出开局着法，可在设置中关闭
 - 👥 双人同屏对弈，适合面对面手谈
 - ⏱️ 限时对局：可选 5 / 10 / 20 分钟棋钟，超时判负，AI 思考计入本方用时
 - ↩️ 悔棋、重开、认输，人机对战悔棋同时撤回双方各一手
@@ -23,16 +26,17 @@
 
 ## 下载
 
-v0.1.1（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-gomoku/releases/tag/v0.1.1)
+v0.2.0（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-gomoku/releases/tag/v0.2.0)
 
 | 平台 | 产物 |
 | --- | --- |
-| Android (arm64) | `flutter-gomoku-0.1.1-android-aarch64.apk` |
-| Windows (x64, Win10+) | `flutter-gomoku-0.1.1-windows-x86_64.zip` |
-| Web | `flutter-gomoku-0.1.1-web.zip`（解压后起静态服务器） |
+| Android (arm64) | `flutter-gomoku-0.2.0-android-aarch64.apk` |
+| Windows (x64, Win10+) | `flutter-gomoku-0.2.0-windows-x86_64.zip` |
+| Web | `flutter-gomoku-0.2.0-web.zip`（解压后起静态服务器） |
 
 | 版本 | 说明 |
 | --- | --- |
+| v0.2.0 | 新增残局挑战、开局库与开局提示，补齐单人练习路径 |
 | v0.1.1 | 重构存量代码，候选点生成约快 3.5 倍，修复 AI 兜底错过成五 |
 | v0.1.0 | 首个可玩版本：完整规则、三档 AI、棋谱复盘与三端发布 |
 
@@ -63,11 +67,13 @@ lib/
 ├── game/
 │   ├── engine/     # 棋型评估、Alpha-Beta 搜索与五连规则
 │   ├── board_state.dart / game_controller.dart
-│   └── match_clock.dart / replay_controller.dart / game_archive.dart
+│   ├── match_clock.dart / replay_controller.dart / game_archive.dart
+│   ├── opening_book.dart      # 六条开局棋谱与匹配
+│   └── puzzle_controller.dart / puzzles.dart  # 残局数据与挑战流程
 ├── models/         # 对局、着法与棋谱存档模型
-├── pages/          # 首页、对局、设置、棋谱库与复盘
+├── pages/          # 首页、对局、残局、开局库、设置、棋谱库与复盘
 ├── providers/      # 用户偏好
-├── services/       # 日志、存储、音频、棋谱库
+├── services/       # 日志、存储、音频、棋谱库与残局进度
 ├── theme/          # 主题、棋盘皮肤与棋子绘制
 └── utils/          # 常量、格式化与平台工具
 ```
