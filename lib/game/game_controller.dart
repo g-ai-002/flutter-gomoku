@@ -89,9 +89,6 @@ class GameController extends ChangeNotifier implements BoardView {
     return board.history.any((record) => record.side == humanSide);
   }
 
-  /// AI 是否正在为己方行棋。
-  bool get isAiThinking => thinking;
-
   /// 最后一手的行棋方，空盘时为 null。
   int? get lastSide => history.isEmpty ? null : history.last.side;
 
@@ -294,10 +291,12 @@ class GameController extends ChangeNotifier implements BoardView {
     _play(move);
   }
 
-  /// 兜底：优先封堵对手成五，否则取离中心最近的空点。
+  /// 兜底：优先自己成五，其次封堵对手成五，最后取离中心最近的空点。
   int? _fallbackMove() {
-    final opponent = opponentOf(board.sideToMove);
-    final block = GomokuRules.immediateWin(board.cells, opponent);
+    final side = board.sideToMove;
+    final win = GomokuRules.immediateWin(board.cells, side);
+    if (win != null) return win;
+    final block = GomokuRules.immediateWin(board.cells, opponentOf(side));
     if (block != null) return block;
     int? nearest;
     var nearestDistance = 1 << 30;

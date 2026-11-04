@@ -10,6 +10,12 @@ import 'package:gomoku/models/game_models.dart';
 
 const _aiMove = 15; // A2，与人类首手 H8 不冲突
 
+void _placeRow(Uint8List cells, int side, int row, int from, int to) {
+  for (var col = from; col <= to; col++) {
+    cells[indexOf(row, col)] = side;
+  }
+}
+
 GameController _controller({
   GameMode mode = GameMode.vsAi,
   int humanSide = black,
@@ -163,6 +169,27 @@ void main() {
       await pumpEventQueue();
       expect(controller.history, isEmpty);
       expect(controller.thinking, isFalse);
+    });
+
+    test('AI 返回非法着法时兜底优先自己成五', () async {
+      final cells = emptyCells();
+      _placeRow(cells, white, 2, 3, 6);
+      _placeRow(cells, black, 10, 3, 6);
+      final controller = _controller(
+        board: GomokuBoard.fromCells(cells),
+        aiMove: (cells, side, difficulty) async =>
+            const SearchResult(move: -1, score: 0, depth: 0, nodes: 0),
+      );
+      controller.start();
+      controller.tapCell(indexOf(12, 12));
+      await pumpEventQueue();
+
+      expect(controller.result?.winner, white);
+      expect(controller.result?.reason, '五连');
+      expect(
+        controller.history.last.index,
+        anyOf(indexOf(2, 2), indexOf(2, 7)),
+      );
     });
 
     test('空盘提示与悔棋按钮状态', () {
