@@ -125,28 +125,17 @@ class PuzzleController extends ChangeNotifier implements BoardView {
 
   Future<void> requestHint() async {
     if (!canInteract || hintLoading) return;
-    final serial = _hint.begin();
-    if (kIsWeb) await Future<void>.delayed(Duration.zero);
-    if (!_hint.isCurrent(serial)) return;
-
-    int? move;
-    try {
-      move = await _hintMove(Uint8List.fromList(board.cells), black);
-    } catch (error, stack) {
-      LogService.error('残局提示搜索失败', error, stack);
-    }
-    if (!_hint.isCurrent(serial)) return;
-
-    if (move != null &&
-        move >= 0 &&
-        move < cellCount &&
-        board.cells[move] == empty &&
-        canInteract) {
-      _hint.show(move);
-      LogService.info('残局提示: ${MoveNotation.describe(move)}');
-    } else {
-      _hint.finish();
-    }
+    final move = await _hint.request(
+      () => _hintMove(Uint8List.fromList(board.cells), black),
+      isValid: (move) =>
+          move >= 0 &&
+          move < cellCount &&
+          board.cells[move] == empty &&
+          canInteract,
+      onError: (error, stack) => LogService.error('残局提示搜索失败', error, stack),
+    );
+    if (move == null) return;
+    LogService.info('残局提示: ${MoveNotation.describe(move)}');
   }
 
   void clearHint({bool notify = true}) => _hint.clear(notify: notify);

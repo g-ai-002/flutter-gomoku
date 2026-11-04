@@ -13,11 +13,11 @@ import '../services/puzzle_progress_service.dart';
 import '../services/sound_service.dart';
 import 'widgets/board_actions.dart';
 import 'widgets/board_page_scaffold.dart';
+import 'widgets/board_play_layout.dart';
 import 'widgets/board_stage.dart';
 import 'widgets/game_dialogs.dart';
 import 'widgets/move_panel.dart';
 import 'widgets/move_sheet.dart';
-import 'widgets/play_layout.dart';
 import 'widgets/puzzle_status_bar.dart';
 
 /// 残局挑战页：黑先杀局，白棋由本地 AI 应对，并记录通关进度。
@@ -158,36 +158,16 @@ class _PuzzlePageState extends State<PuzzlePage> {
           icon: const Icon(Icons.help_outline, size: 21),
         ),
       ],
-      body: PlayLayout(
-        status: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, _) => PuzzleStatusBar(controller: _controller),
-        ),
-        board: RepaintBoundary(
-          child: BoardStage(
-            game: _game,
-            gameKey: const ValueKey('puzzle-board'),
-          ),
-        ),
-        actions: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, _) => _buildActions(showMoves: false),
-        ),
-        compactBottom: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, _) => Padding(
-            padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
-            child: _buildActions(showMoves: true),
-          ),
-        ),
-        sidePanel: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, _) => MovePanel(
-            history: _controller.history,
-            footer:
-                '${widget.puzzle.tier.goal} · '
-                '白棋由本地 AI 应对，点击交叉点落子。',
-          ),
+      body: BoardPlayLayout(
+        controller: _controller,
+        status: (_) => PuzzleStatusBar(controller: _controller),
+        board: BoardStage(game: _game, gameKey: const ValueKey('puzzle-board')),
+        actions: (_, showMoves) => _buildActions(showMoves: showMoves),
+        sidePanel: (_) => MovePanel(
+          history: _controller.history,
+          footer:
+              '${widget.puzzle.tier.goal} · '
+              '白棋由本地 AI 应对，点击交叉点落子。',
         ),
       ),
     );

@@ -49,16 +49,17 @@ class BoardComponent extends PositionComponent
   void onRemove() {
     skin.removeListener(_clearCaches);
     _clearCaches();
-    for (final painter in _coordPainters.values) {
-      painter.dispose();
-    }
-    _coordPainters.clear();
     super.onRemove();
   }
 
   void _clearCaches() {
     _boardLayer.clear();
     _stoneLayer.clear();
+    _disposeCoordPainters();
+  }
+
+  /// 坐标文字按尺寸缓存，缩放或换肤后须整体释放，避免按尺寸累积。
+  void _disposeCoordPainters() {
     for (final painter in _coordPainters.values) {
       painter.dispose();
     }
@@ -103,16 +104,16 @@ class BoardComponent extends PositionComponent
     final hasCoords = view.showCoordinates;
     final cell = math.min(width, height) / (hasCoords ? 16.4 : 15.4);
     // 窗口缩放时同步丢弃坐标文字缓存，避免按尺寸累积 TextPainter。
-    if ((cell - _cell).abs() > 0.01) {
-      for (final painter in _coordPainters.values) {
-        painter.dispose();
-      }
-      _coordPainters.clear();
-    }
+    if ((cell - _cell).abs() > 0.01) _disposeCoordPainters();
     _cell = cell;
     _originX = width / 2 - _cell * 7;
     _originY = height / 2 - _cell * 7;
   }
+
+  /// 录制图层的缓存键：尺寸、格距与皮肤共同决定棋盘与棋子的位置。
+  String get _layoutKey =>
+      '${size.x.toStringAsFixed(1)}x${size.y.toStringAsFixed(1)}|'
+      '${_cell.toStringAsFixed(2)}|${_skin.id}';
 
   Offset _centerOf(int index) =>
       Offset(_originX + colOf(index) * _cell, _originY + rowOf(index) * _cell);
@@ -169,8 +170,7 @@ class BoardComponent extends PositionComponent
   }
 
   ui.Picture _boardPicture() {
-    final key =
-        '${_cell.toStringAsFixed(2)}|${_skin.id}|${view.showCoordinates}';
+    final key = '$_layoutKey|${view.showCoordinates}';
     return _boardLayer.paint(key, (canvas) {
       canvas.drawRect(
         Rect.fromLTWH(0, 0, size.x, size.y),
@@ -263,8 +263,7 @@ class BoardComponent extends PositionComponent
   ui.Picture _stonePicture() {
     final animating = _anim?.index;
     final key =
-        '${_cell.toStringAsFixed(2)}|${_skin.id}|'
-        '${view.history.length}|${view.lastIndex}|$animating';
+        '$_layoutKey|${view.history.length}|${view.lastIndex}|$animating';
     return _stoneLayer.paint(key, (canvas) {
       final radius = _cell * 0.46;
       for (var index = 0; index < cellCount; index++) {

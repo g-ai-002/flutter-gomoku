@@ -15,15 +15,16 @@ import '../services/log_service.dart';
 import '../services/move_feedback_tracker.dart';
 import '../services/sound_service.dart';
 import 'review_page.dart';
+import 'widgets/app_snack.dart';
 import 'widgets/board_actions.dart';
 import 'widgets/board_page_scaffold.dart';
+import 'widgets/board_play_layout.dart';
 import 'widgets/board_stage.dart';
 import 'widgets/clock_bar.dart';
 import 'widgets/game_dialogs.dart';
 import 'widgets/game_status_bar.dart';
 import 'widgets/move_panel.dart';
 import 'widgets/move_sheet.dart';
-import 'widgets/play_layout.dart';
 
 class GamePage extends StatefulWidget {
   const GamePage({
@@ -150,14 +151,7 @@ class _GamePageState extends State<GamePage> {
 
   /// 禁手提示：短暂浮层说明不可落子的原因，不打断对局。
   void _showViolation(String label, String description) {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text('$label · $description'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    showSnack(context, '$label · $description');
   }
 
   String get _gameTitle => widget.mode == GameMode.twoPlayers
@@ -243,28 +237,12 @@ class _GamePageState extends State<GamePage> {
           icon: const Icon(Icons.help_outline, size: 21),
         ),
       ],
-      body: PlayLayout(
-        // 只重建状态与操作区，棋盘与 Flame 画布保持稳定，避免浮层变化推动棋盘。
-        status: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, _) => _buildStatus(),
-        ),
+      body: BoardPlayLayout(
+        controller: _controller,
+        status: (_) => _buildStatus(),
         board: _buildBoard(),
-        actions: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, _) => _buildActions(showMoves: false),
-        ),
-        compactBottom: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, _) => Padding(
-            padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
-            child: _buildActions(showMoves: true),
-          ),
-        ),
-        sidePanel: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, _) => _buildSidePanel(),
-        ),
+        actions: (_, showMoves) => _buildActions(showMoves: showMoves),
+        sidePanel: (_) => _buildSidePanel(),
       ),
     );
   }
@@ -304,9 +282,8 @@ class _GamePageState extends State<GamePage> {
     );
   }
 
-  Widget _buildBoard() => RepaintBoundary(
-    child: BoardStage(game: _game, gameKey: const ValueKey('gomoku-board')),
-  );
+  Widget _buildBoard() =>
+      BoardStage(game: _game, gameKey: const ValueKey('gomoku-board'));
 
   Widget _buildActions({required bool showMoves}) {
     final isAi = widget.mode == GameMode.vsAi;

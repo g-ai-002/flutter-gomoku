@@ -251,36 +251,24 @@ class GameController extends ChangeNotifier implements BoardView {
       );
       return;
     }
-    final serial = _hint.begin();
     final side = board.sideToMove;
-    // Web 端搜索与界面同线程，先让「正在寻找提示」完成一帧绘制。
-    if (kIsWeb) await Future<void>.delayed(Duration.zero);
-    if (!_hint.isCurrent(serial)) return;
-
-    int? move;
-    try {
-      move = await _hintMove(
+    final move = await _hint.request(
+      () => _hintMove(
         Uint8List.fromList(board.cells),
         side,
         forbidBlack: forbidBlack,
-      );
-    } catch (error, stack) {
-      LogService.error('提示搜索失败', error, stack);
-    }
-    if (!_hint.isCurrent(serial)) return;
-
-    if (move != null &&
-        move >= 0 &&
-        move < cellCount &&
-        board.cells[move] == empty &&
-        side == board.sideToMove &&
-        board.forbiddenAt(move) == null &&
-        canInteractive) {
-      _hint.show(move);
-      LogService.info('走子提示: ${MoveNotation.describe(move)}');
-    } else {
-      _hint.finish();
-    }
+      ),
+      isValid: (move) =>
+          move >= 0 &&
+          move < cellCount &&
+          board.cells[move] == empty &&
+          side == board.sideToMove &&
+          board.forbiddenAt(move) == null &&
+          canInteractive,
+      onError: (error, stack) => LogService.error('提示搜索失败', error, stack),
+    );
+    if (move == null) return;
+    LogService.info('走子提示: ${MoveNotation.describe(move)}');
   }
 
   /// 清除提示并取消尚未返回的提示搜索。

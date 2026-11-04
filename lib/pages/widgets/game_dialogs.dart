@@ -10,26 +10,38 @@ Future<void> showGameResultDialog(
   required VoidCallback onRestart,
   VoidCallback? onReview,
 }) {
-  return _showResultDialog(
-    context,
-    icon: result.isDraw
-        ? Icons.handshake_outlined
-        : Icons.emoji_events_outlined,
-    title: result.title,
-    message: result.reason,
-    note: '共 $moveCount 手',
-    actions: [
-      _ResultAction(
-        label: '返回首页',
-        onPressed: () => Navigator.of(context).pop(),
-      ),
-      if (onReview != null) _ResultAction(label: '复盘', onPressed: onReview),
-      _ResultAction(
-        label: '再来一局',
-        style: _ActionStyle.filled,
-        onPressed: onRestart,
-      ),
-    ],
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (dialogContext) => _ResultDialog(
+      icon: result.isDraw
+          ? Icons.handshake_outlined
+          : Icons.emoji_events_outlined,
+      title: result.title,
+      message: result.reason,
+      note: '共 $moveCount 手',
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(),
+          child: const Text('返回首页'),
+        ),
+        if (onReview != null)
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              onReview();
+            },
+            child: const Text('复盘'),
+          ),
+        FilledButton(
+          onPressed: () {
+            Navigator.of(dialogContext).pop();
+            onRestart();
+          },
+          child: const Text('再来一局'),
+        ),
+      ],
+    ),
   );
 }
 
@@ -48,43 +60,28 @@ Future<PuzzleResultAction?> showPuzzleResultDialog(
     context: context,
     barrierDismissible: false,
     builder: (dialogContext) {
-      final theme = Theme.of(dialogContext);
       void choose(PuzzleResultAction action) =>
           Navigator.of(dialogContext).pop(action);
-      return PopScope(
-        canPop: false,
-        child: AlertDialog(
-          icon: Icon(
-            solved ? Icons.emoji_events_outlined : Icons.flag_outlined,
-            size: 36,
-            color: theme.colorScheme.primary,
+      return _ResultDialog(
+        icon: solved ? Icons.emoji_events_outlined : Icons.flag_outlined,
+        title: solved ? '通关！' : '挑战失败',
+        message: message,
+        note: note,
+        actions: [
+          TextButton(
+            onPressed: () => choose(PuzzleResultAction.close),
+            child: const Text('返回列表'),
           ),
-          title: Text(solved ? '通关！' : '挑战失败'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(message),
-              const SizedBox(height: 6),
-              Text(note, style: theme.textTheme.bodySmall),
-            ],
+          OutlinedButton(
+            onPressed: () => choose(PuzzleResultAction.retry),
+            child: const Text('再练一次'),
           ),
-          actionsAlignment: MainAxisAlignment.center,
-          actions: [
-            TextButton(
-              onPressed: () => choose(PuzzleResultAction.close),
-              child: const Text('返回列表'),
+          if (solved && hasNext)
+            FilledButton(
+              onPressed: () => choose(PuzzleResultAction.next),
+              child: const Text('下一关'),
             ),
-            OutlinedButton(
-              onPressed: () => choose(PuzzleResultAction.retry),
-              child: const Text('再练一次'),
-            ),
-            if (solved && hasNext)
-              FilledButton(
-                onPressed: () => choose(PuzzleResultAction.next),
-                child: const Text('下一关'),
-              ),
-          ],
-        ),
+        ],
       );
     },
   );
@@ -127,73 +124,45 @@ Future<bool> confirmResign(BuildContext context) => showConfirmDialog(
   cancelLabel: '继续对局',
 );
 
-enum _ActionStyle { text, outlined, filled }
-
-class _ResultAction {
-  const _ResultAction({
-    required this.label,
-    required this.onPressed,
-    this.style = _ActionStyle.text,
+/// 终局与残局共用的结果弹窗骨架：图标、标题、原因、备注与操作按钮。
+///
+/// 弹窗不可点击遮罩关闭，操作按钮由调用方决定顺序与语义。
+class _ResultDialog extends StatelessWidget {
+  const _ResultDialog({
+    required this.icon,
+    required this.title,
+    required this.message,
+    required this.note,
+    required this.actions,
   });
 
-  final String label;
-  final VoidCallback onPressed;
-  final _ActionStyle style;
-}
+  final IconData icon;
+  final String title;
+  final String message;
+  final String note;
+  final List<Widget> actions;
 
-Future<void> _showResultDialog(
-  BuildContext context, {
-  required IconData icon,
-  required String title,
-  required String message,
-  required String note,
-  required List<_ResultAction> actions,
-}) {
-  return showDialog<void>(
-    context: context,
-    barrierDismissible: false,
-    builder: (dialogContext) {
-      final theme = Theme.of(dialogContext);
-      void run(_ResultAction action) {
-        Navigator.of(dialogContext).pop();
-        action.onPressed();
-      }
-
-      return PopScope(
-        canPop: false,
-        child: AlertDialog(
-          icon: Icon(icon, size: 36, color: theme.colorScheme.primary),
-          title: Text(title),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(message),
-              const SizedBox(height: 6),
-              Text(note, style: theme.textTheme.bodySmall),
-            ],
-          ),
-          actionsAlignment: MainAxisAlignment.center,
-          actions: [
-            for (final action in actions)
-              switch (action.style) {
-                _ActionStyle.filled => FilledButton(
-                  onPressed: () => run(action),
-                  child: Text(action.label),
-                ),
-                _ActionStyle.outlined => OutlinedButton(
-                  onPressed: () => run(action),
-                  child: Text(action.label),
-                ),
-                _ActionStyle.text => TextButton(
-                  onPressed: () => run(action),
-                  child: Text(action.label),
-                ),
-              },
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return PopScope(
+      canPop: false,
+      child: AlertDialog(
+        icon: Icon(icon, size: 36, color: theme.colorScheme.primary),
+        title: Text(title),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(message),
+            const SizedBox(height: 6),
+            Text(note, style: theme.textTheme.bodySmall),
           ],
         ),
-      );
-    },
-  );
+        actionsAlignment: MainAxisAlignment.center,
+        actions: actions,
+      ),
+    );
+  }
 }
 
 /// 行棋规则说明。
