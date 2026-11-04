@@ -74,8 +74,6 @@ class GomokuBoard {
 
   bool get isFull => stoneCount(cells) >= cellCount;
 
-  int get stoneTotal => history.length;
-
   /// 供棋谱导入与复盘校验：当前局面是否仍有五连。
   void _adoptWinningLine() {
     for (var index = 0; index < cellCount; index++) {

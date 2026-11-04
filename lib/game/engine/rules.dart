@@ -11,91 +11,96 @@ class GomokuRules {
     if (index < 0 || index >= cellCount || cells[index] != side) {
       return const [];
     }
-    final row = rowOf(index);
-    final col = colOf(index);
     for (final (dr, dc) in kDirections) {
-      final line = <int>[index];
-      var r = row - dr;
-      var c = col - dc;
-      while (inBoard(r, c) && cells[indexOf(r, c)] == side) {
-        line.insert(0, indexOf(r, c));
-        r -= dr;
-        c -= dc;
-      }
-      r = row + dr;
-      c = col + dc;
-      while (inBoard(r, c) && cells[indexOf(r, c)] == side) {
-        line.add(indexOf(r, c));
-        r += dr;
-        c += dc;
-      }
-      if (line.length >= 5) return line;
+      final (:startRow, :startCol, :length) = _runAt(
+        cells,
+        index,
+        side,
+        dr,
+        dc,
+      );
+      if (length < 5) continue;
+      return [
+        for (var step = 0; step < length; step++)
+          indexOf(startRow + dr * step, startCol + dc * step),
+      ];
     }
     return const [];
   }
 
   /// 只判断是否五连，不构造连线，供搜索高频调用。
   static bool hasFive(Uint8List cells, int index, int side) {
-    final row = rowOf(index);
-    final col = colOf(index);
     for (final (dr, dc) in kDirections) {
-      var count = 1;
-      var r = row - dr;
-      var c = col - dc;
-      while (inBoard(r, c) && cells[indexOf(r, c)] == side) {
-        count++;
-        r -= dr;
-        c -= dc;
-      }
-      r = row + dr;
-      c = col + dc;
-      while (inBoard(r, c) && cells[indexOf(r, c)] == side) {
-        count++;
-        r += dr;
-        c += dc;
-      }
-      if (count >= 5) return true;
+      if (_runAt(cells, index, side, dr, dc).length >= 5) return true;
     }
     return false;
   }
 
-  /// 该点四周 [radius] 格内是否有棋子，用于限定候选范围。
-  static bool _hasNeighbor(Uint8List cells, int index, int radius) {
-    final row = rowOf(index);
-    final col = colOf(index);
-    final minRow = row - radius < 0 ? 0 : row - radius;
-    final maxRow = row + radius >= boardSize ? boardSize - 1 : row + radius;
-    final minCol = col - radius < 0 ? 0 : col - radius;
-    final maxCol = col + radius >= boardSize ? boardSize - 1 : col + radius;
-    for (var r = minRow; r <= maxRow; r++) {
-      for (var c = minCol; c <= maxCol; c++) {
-        if (cells[indexOf(r, c)] != empty) return true;
-      }
+  /// 从 [index] 沿 (dr, dc) 向两端延伸，返回连续同色棋子的起点与长度。
+  static ({int startRow, int startCol, int length}) _runAt(
+    Uint8List cells,
+    int index,
+    int side,
+    int dr,
+    int dc,
+  ) {
+    var startRow = rowOf(index);
+    var startCol = colOf(index);
+    var row = startRow - dr;
+    var col = startCol - dc;
+    while (inBoard(row, col) && cells[indexOf(row, col)] == side) {
+      startRow = row;
+      startCol = col;
+      row -= dr;
+      col -= dc;
     }
-    return false;
+    var length = 0;
+    row = startRow;
+    col = startCol;
+    while (inBoard(row, col) && cells[indexOf(row, col)] == side) {
+      length++;
+      row += dr;
+      col += dc;
+    }
+    return (startRow: startRow, startCol: startCol, length: length);
   }
 
   /// 空盘返回中心点，其余返回棋子附近 [radius] 格内的空点。
+  ///
+  /// 以棋子为中心向外标记，避免逐个空点重复检查邻域。
   static List<int> candidateMoves(Uint8List cells, {int radius = 2}) {
+    final near = Uint8List(cellCount);
+    var hasStone = false;
+    for (var index = 0; index < cellCount; index++) {
+      if (cells[index] == empty) continue;
+      hasStone = true;
+      final row = rowOf(index);
+      final col = colOf(index);
+      final minRow = row > radius ? row - radius : 0;
+      final maxRow = row + radius < boardSize ? row + radius : boardSize - 1;
+      final minCol = col > radius ? col - radius : 0;
+      final maxCol = col + radius < boardSize ? col + radius : boardSize - 1;
+      for (var r = minRow; r <= maxRow; r++) {
+        final base = r * boardSize;
+        for (var c = minCol; c <= maxCol; c++) {
+          if (cells[base + c] == empty) near[base + c] = 1;
+        }
+      }
+    }
+    if (!hasStone) {
+      return cells[centerIndex] == empty ? [centerIndex] : const [];
+    }
     final moves = <int>[];
     for (var index = 0; index < cellCount; index++) {
-      if (cells[index] != empty) continue;
-      if (_hasNeighbor(cells, index, radius)) moves.add(index);
+      if (near[index] == 1) moves.add(index);
     }
-    if (moves.isEmpty && cells[centerIndex] == empty) return [centerIndex];
     return moves;
   }
 
   /// 当前局面下 [side] 的立即获胜点，没有则为 null。
   static int? immediateWin(Uint8List cells, int side) {
-    for (final index in candidateMoves(cells)) {
-      if (cells[index] != empty) continue;
-      cells[index] = side;
-      final win = hasFive(cells, index, side);
-      cells[index] = empty;
-      if (win) return index;
-    }
-    return null;
+    final wins = immediateWins(cells, side);
+    return wins.isEmpty ? null : wins.first;
   }
 
   /// 当前局面下 [side] 的全部立即获胜点，用于识别双杀。
@@ -113,37 +118,25 @@ class GomokuRules {
 
   /// 落子后是否形成活四（两端皆空），供 AI 威胁判断。
   static bool makesOpenFour(Uint8List cells, int index, int side) {
-    final row = rowOf(index);
-    final col = colOf(index);
+    if (index < 0 || index >= cellCount || cells[index] != side) return false;
     for (final (dr, dc) in kDirections) {
-      var left = index;
-      var right = index;
-      var r = row - dr;
-      var c = col - dc;
-      while (inBoard(r, c) && cells[indexOf(r, c)] == side) {
-        left = indexOf(r, c);
-        r -= dr;
-        c -= dc;
-      }
-      r = row + dr;
-      c = col + dc;
-      while (inBoard(r, c) && cells[indexOf(r, c)] == side) {
-        right = indexOf(r, c);
-        r += dr;
-        c += dc;
-      }
-      final length =
-          (rowOf(right) - rowOf(left)).abs() +
-          (colOf(right) - colOf(left)).abs() +
-          1;
+      final (:startRow, :startCol, :length) = _runAt(
+        cells,
+        index,
+        side,
+        dr,
+        dc,
+      );
       if (length != 4) continue;
-      final leftOpen =
-          inBoard(rowOf(left) - dr, colOf(left) - dc) &&
-          cells[indexOf(rowOf(left) - dr, colOf(left) - dc)] == empty;
-      final rightOpen =
-          inBoard(rowOf(right) + dr, colOf(right) + dc) &&
-          cells[indexOf(rowOf(right) + dr, colOf(right) + dc)] == empty;
-      if (leftOpen && rightOpen) return true;
+      final endRow = startRow + dr * 3;
+      final endCol = startCol + dc * 3;
+      final beforeOpen =
+          inBoard(startRow - dr, startCol - dc) &&
+          cells[indexOf(startRow - dr, startCol - dc)] == empty;
+      final afterOpen =
+          inBoard(endRow + dr, endCol + dc) &&
+          cells[indexOf(endRow + dr, endCol + dc)] == empty;
+      if (beforeOpen && afterOpen) return true;
     }
     return false;
   }

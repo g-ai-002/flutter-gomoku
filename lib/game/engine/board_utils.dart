@@ -27,8 +27,6 @@ int opponentOf(int side) => side == black ? white : black;
 
 String sideName(int side) => side == black ? '黑方' : '白方';
 
-String stoneName(int side) => side == black ? '黑棋' : '白棋';
-
 /// 中心点，空盘时的第一手。
 const int centerIndex = (boardSize ~/ 2) * boardSize + boardSize ~/ 2;
 
@@ -43,5 +41,3 @@ int stoneCount(Uint8List cells) {
   }
   return count;
 }
-
-bool isBoardFull(Uint8List cells) => stoneCount(cells) >= cellCount;

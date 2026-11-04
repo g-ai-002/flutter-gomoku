@@ -104,6 +104,26 @@ void main() {
       expect(moves, isNot(contains(indexOf(4, 4))));
     });
 
+    test('角落棋子的候选点不会越界', () {
+      final cells = emptyCells();
+      cells[indexOf(0, 0)] = black;
+      final moves = GomokuRules.candidateMoves(cells);
+      expect(moves.length, 8);
+      for (final index in moves) {
+        expect(index, inInclusiveRange(0, indexOf(2, 2)));
+        expect(rowOf(index), lessThan(3));
+        expect(colOf(index), lessThan(3));
+      }
+    });
+
+    test('贴边四连不算活四', () {
+      final cells = emptyCells();
+      _place(cells, black, [(0, 4), (1, 4), (2, 4), (3, 4)]);
+      expect(GomokuRules.makesOpenFour(cells, indexOf(3, 4), black), isFalse);
+      expect(GomokuRules.hasFive(cells, indexOf(3, 4), black), isFalse);
+      expect(GomokuRules.winningLineAt(cells, indexOf(3, 4), black), isEmpty);
+    });
+
     test('四子两端皆空时为活四', () {
       final cells = emptyCells();
       _place(cells, black, [(7, 3), (7, 4), (7, 5)]);
