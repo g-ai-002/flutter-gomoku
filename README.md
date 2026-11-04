@@ -27,21 +27,27 @@
 
 ## 下载
 
-v0.3.0（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-gomoku/releases/tag/v0.3.0)
+v0.3.1（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-gomoku/releases/tag/v0.3.1)
 
 | 平台 | 产物 |
 | --- | --- |
-| Android (arm64) | `flutter-gomoku-0.3.0-android-aarch64.apk` |
-| Windows (x64, Win10+) | `flutter-gomoku-0.3.0-windows-x86_64.zip` |
-| Web | `flutter-gomoku-0.3.0-web.zip`（解压后起静态服务器） |
+| Android (arm64) | `flutter-gomoku-0.3.1-android-aarch64.apk` |
+| Windows (x64, Win10+) | `flutter-gomoku-0.3.1-windows-x86_64.zip` |
+| Web | `flutter-gomoku-0.3.1-web.zip`（解压后起静态服务器） |
 
 | 版本 | 说明 |
 | --- | --- |
+| v0.3.1 | 重构页面骨架、棋盘布局与提示流程，收敛重复实现并补齐测试 |
 | v0.3.0 | 新增禁手规则，黑棋长连 / 四四 / 三三禁手与棋盘标记，AI 同步遵守 |
 | v0.2.1 | 重构提示、落子反馈与页面操作代码，修复缓存与音频重试问题 |
 | v0.2.0 | 新增残局挑战、开局库与开局提示，补齐单人练习路径 |
 | v0.1.1 | 重构存量代码，候选点生成约快 3.5 倍，修复 AI 兜底错过成五 |
-| v0.1.0 | 首个可玩版本：完整规则、三档 AI、棋谱复盘与三端发布 |
+
+### 更早版本
+
+| 版本 | 说明 |
+| --- | --- |
+| v0.1.0 | 首个可玩版本：完整规则、三档 AI、双人同屏、棋谱复盘与三端发布 |
 
 ## 开发
 
