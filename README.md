@@ -23,13 +23,18 @@
 
 ## 下载
 
-v0.1.0（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-gomoku/releases/tag/v0.1.0)
+v0.1.1（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-gomoku/releases/tag/v0.1.1)
 
 | 平台 | 产物 |
 | --- | --- |
-| Android (arm64) | `flutter-gomoku-0.1.0-android-aarch64.apk` |
-| Windows (x64, Win10+) | `flutter-gomoku-0.1.0-windows-x86_64.zip` |
-| Web | `flutter-gomoku-0.1.0-web.zip`（解压后起静态服务器） |
+| Android (arm64) | `flutter-gomoku-0.1.1-android-aarch64.apk` |
+| Windows (x64, Win10+) | `flutter-gomoku-0.1.1-windows-x86_64.zip` |
+| Web | `flutter-gomoku-0.1.1-web.zip`（解压后起静态服务器） |
+
+| 版本 | 说明 |
+| --- | --- |
+| v0.1.1 | 重构存量代码，候选点生成约快 3.5 倍，修复 AI 兜底错过成五 |
+| v0.1.0 | 首个可玩版本：完整规则、三档 AI、棋谱复盘与三端发布 |
 
 ## 开发
 
