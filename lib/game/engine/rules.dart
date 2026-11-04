@@ -98,22 +98,42 @@ class GomokuRules {
   }
 
   /// 当前局面下 [side] 的立即获胜点，没有则为 null。
-  static int? immediateWin(Uint8List cells, int side) {
-    final wins = immediateWins(cells, side);
-    return wins.isEmpty ? null : wins.first;
+  static int? immediateWin(Uint8List cells, int side, {List<int>? candidates}) {
+    for (final index in candidates ?? candidateMoves(cells)) {
+      if (_isWinningMove(cells, index, side)) return index;
+    }
+    return null;
   }
 
   /// 当前局面下 [side] 的全部立即获胜点，用于识别双杀。
-  static List<int> immediateWins(Uint8List cells, int side) {
+  ///
+  /// 传入 [candidates] 可复用已生成的候选点，避免重复扫描棋盘。
+  static List<int> immediateWins(
+    Uint8List cells,
+    int side, {
+    List<int>? candidates,
+  }) {
     final wins = <int>[];
-    for (final index in candidateMoves(cells)) {
-      if (cells[index] != empty) continue;
-      cells[index] = side;
-      final win = hasFive(cells, index, side);
-      cells[index] = empty;
-      if (win) wins.add(index);
+    for (final index in candidates ?? candidateMoves(cells)) {
+      if (_isWinningMove(cells, index, side)) wins.add(index);
     }
     return wins;
+  }
+
+  static bool _isWinningMove(Uint8List cells, int index, int side) {
+    if (cells[index] != empty) return false;
+    cells[index] = side;
+    final win = hasFive(cells, index, side);
+    cells[index] = empty;
+    return win;
+  }
+
+  /// 战术兜底：优先自己立即成五，其次封堵对手的成五点。
+  static int? tacticalMove(Uint8List cells, int side) {
+    final candidates = candidateMoves(cells);
+    final win = immediateWin(cells, side, candidates: candidates);
+    if (win != null) return win;
+    return immediateWin(cells, opponentOf(side), candidates: candidates);
   }
 
   /// 落子后是否形成活四（两端皆空），供 AI 威胁判断。

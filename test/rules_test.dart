@@ -89,6 +89,44 @@ void main() {
       expect(GomokuRules.immediateWin(cells, black), isNull);
     });
 
+    test('战术兜底优先自己成五，其次封堵对手', () {
+      final cells = emptyCells();
+      _place(cells, black, [(7, 3), (7, 4), (7, 5), (7, 6)]);
+      _place(cells, white, [(9, 3), (9, 4), (9, 5), (9, 6)]);
+      expect(
+        GomokuRules.tacticalMove(cells, black),
+        anyOf(indexOf(7, 2), indexOf(7, 7)),
+      );
+      expect(
+        GomokuRules.tacticalMove(cells, white),
+        anyOf(indexOf(9, 2), indexOf(9, 7)),
+      );
+    });
+
+    test('自己无胜点时封堵对手成五', () {
+      final cells = emptyCells();
+      _place(cells, black, [(7, 3), (7, 4), (7, 5)]);
+      _place(cells, white, [(9, 3), (9, 4), (9, 5), (9, 6)]);
+      expect(
+        GomokuRules.tacticalMove(cells, black),
+        anyOf(indexOf(9, 2), indexOf(9, 7)),
+      );
+    });
+
+    test('复用候选点不改变棋盘', () {
+      final cells = emptyCells();
+      _place(cells, black, [(7, 3), (7, 4), (7, 5), (7, 6)]);
+      final before = Uint8List.fromList(cells);
+      final candidates = GomokuRules.candidateMoves(cells);
+      final wins = GomokuRules.immediateWins(
+        cells,
+        black,
+        candidates: candidates,
+      );
+      expect(wins, hasLength(2));
+      expect(cells, before);
+    });
+
     test('空盘的候选点是天元', () {
       final cells = emptyCells();
       expect(GomokuRules.candidateMoves(cells), [centerIndex]);

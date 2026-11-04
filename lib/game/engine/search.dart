@@ -46,7 +46,11 @@ class GomokuSearch {
     final board = Uint8List.fromList(cells);
     final searcher = _Searcher(board, math.max(100, timeLimitMillis));
 
-    final wins = GomokuRules.immediateWins(board, side);
+    final candidates = GomokuRules.candidateMoves(board);
+    if (candidates.isEmpty) {
+      return const SearchResult(move: -1, score: 0, depth: 0, nodes: 0);
+    }
+    final wins = GomokuRules.immediateWins(board, side, candidates: candidates);
     if (wins.isNotEmpty) {
       return SearchResult(
         move: wins.first,
@@ -56,11 +60,11 @@ class GomokuSearch {
       );
     }
     final opponent = opponentOf(side);
-    final blocks = GomokuRules.immediateWins(board, opponent);
-    final candidates = GomokuRules.candidateMoves(board);
-    if (candidates.isEmpty) {
-      return const SearchResult(move: -1, score: 0, depth: 0, nodes: 0);
-    }
+    final blocks = GomokuRules.immediateWins(
+      board,
+      opponent,
+      candidates: candidates,
+    );
     final roots = searcher.ordered(
       blocks.isNotEmpty ? blocks : candidates,
       side,
