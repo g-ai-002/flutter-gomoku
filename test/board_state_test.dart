@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gomoku/game/board_state.dart';
 import 'package:gomoku/game/engine/board_utils.dart';
+import 'package:gomoku/game/engine/forbidden.dart';
 
 GomokuBoard _boardWith(List<(int, int, int)> stones) {
   final board = GomokuBoard();
@@ -101,6 +102,35 @@ void main() {
       expect(board.sideToMove, black);
       expect(board.lastIndex, isNull);
       expect(board.winner, isNull);
+    });
+
+    test('启用禁手后黑棋长连被拒绝', () {
+      final source = emptyCells();
+      for (final col in [3, 4, 5, 7, 8]) {
+        source[indexOf(7, col)] = black;
+      }
+      final board = GomokuBoard.fromCells(source, forbidBlack: true);
+      expect(board.forbiddenAt(indexOf(7, 6)), ForbiddenReason.overline);
+      expect(board.apply(indexOf(7, 6)), isNull);
+      expect(board.history, isEmpty);
+      expect(board.sideToMove, black);
+    });
+
+    test('禁手规则不限制白棋长连', () {
+      final source = emptyCells();
+      for (final col in [3, 4, 5, 7, 8]) {
+        source[indexOf(7, col)] = white;
+      }
+      final board = GomokuBoard.fromCells(
+        source,
+        sideToMove: white,
+        forbidBlack: true,
+      );
+      expect(board.forbiddenAt(indexOf(7, 6)), isNull);
+      final record = board.apply(indexOf(7, 6));
+      expect(record, isNotNull);
+      expect(board.winner, white);
+      expect(board.winningLine.length, 6);
     });
   });
 }

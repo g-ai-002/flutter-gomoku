@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gomoku/game/board_state.dart';
 import 'package:gomoku/game/engine/board_utils.dart';
+import 'package:gomoku/game/engine/forbidden.dart';
 import 'package:gomoku/game/engine/search.dart';
 import 'package:gomoku/game/game_controller.dart';
 import 'package:gomoku/models/game_models.dart';
@@ -21,8 +22,15 @@ GameController _controller({
   int humanSide = black,
   GomokuBoard? board,
   TimeControl timeControl = TimeControl.none,
-  Future<SearchResult> Function(Uint8List, int, Difficulty)? aiMove,
-  Future<int?> Function(Uint8List, int)? hintMove,
+  Future<SearchResult> Function(
+    Uint8List,
+    int,
+    Difficulty, {
+    bool? forbidBlack,
+  })?
+  aiMove,
+  Future<int?> Function(Uint8List, int, {bool? forbidBlack})? hintMove,
+  bool forbidBlack = false,
 }) {
   final controller = GameController(
     mode: mode,
@@ -30,11 +38,13 @@ GameController _controller({
     humanSide: humanSide,
     board: board,
     timeControl: timeControl,
+    forbidBlack: forbidBlack,
     aiMove:
         aiMove ??
-        (cells, side, difficulty) async =>
+        (cells, side, difficulty, {bool? forbidBlack}) async =>
             const SearchResult(move: _aiMove, score: 1, depth: 1, nodes: 1),
-    hintMove: hintMove ?? (cells, side) async => indexOf(9, 9),
+    hintMove:
+        hintMove ?? (cells, side, {bool? forbidBlack}) async => indexOf(9, 9),
   );
   addTearDown(controller.dispose);
   return controller;
@@ -157,7 +167,8 @@ void main() {
     test('AI 思考中重开不会落子', () async {
       final completer = Completer<SearchResult>();
       final controller = _controller(
-        aiMove: (cells, side, difficulty) => completer.future,
+        aiMove: (cells, side, difficulty, {bool? forbidBlack}) =>
+            completer.future,
       );
       controller.start();
       controller.tapCell(centerIndex);
@@ -177,7 +188,7 @@ void main() {
       _placeRow(cells, black, 10, 3, 6);
       final controller = _controller(
         board: GomokuBoard.fromCells(cells),
-        aiMove: (cells, side, difficulty) async =>
+        aiMove: (cells, side, difficulty, {bool? forbidBlack}) async =>
             const SearchResult(move: -1, score: 0, depth: 0, nodes: 0),
       );
       controller.start();
@@ -190,6 +201,64 @@ void main() {
         controller.history.last.index,
         anyOf(indexOf(2, 2), indexOf(2, 7)),
       );
+    });
+
+    test('启用禁手时人类禁手落子被拒绝并记录原因', () {
+      final source = emptyCells();
+      for (final col in [3, 4, 5, 7, 8]) {
+        source[indexOf(7, col)] = black;
+      }
+      final controller = _controller(
+        mode: GameMode.twoPlayers,
+        board: GomokuBoard.fromCells(source),
+        forbidBlack: true,
+      );
+      controller.start();
+      expect(controller.forbiddenPoints, contains(indexOf(7, 6)));
+
+      controller.tapCell(indexOf(7, 6));
+      expect(controller.history, isEmpty);
+      expect(controller.violationCount, 1);
+      expect(controller.lastViolation, ForbiddenReason.overline);
+
+      controller.tapCell(indexOf(0, 0));
+      expect(controller.history.length, 1);
+      expect(controller.lastViolation, isNull);
+      expect(controller.forbiddenPoints, isEmpty);
+    });
+
+    test('AI 返回黑棋禁手着法时改用合法兜底', () async {
+      final source = emptyCells();
+      for (final col in [3, 4, 5, 7, 8]) {
+        source[indexOf(7, col)] = black;
+      }
+      final controller = _controller(
+        humanSide: white,
+        board: GomokuBoard.fromCells(source),
+        forbidBlack: true,
+        aiMove: (cells, side, difficulty, {bool? forbidBlack}) async =>
+            SearchResult(move: indexOf(7, 6), score: 1, depth: 1, nodes: 1),
+      );
+      controller.start();
+      await pumpEventQueue();
+      expect(controller.history.length, 1);
+      expect(controller.history.single.index, isNot(indexOf(7, 6)));
+    });
+
+    test('提示不会给出禁手点', () async {
+      final source = emptyCells();
+      for (final col in [3, 4, 5, 7, 8]) {
+        source[indexOf(7, col)] = black;
+      }
+      final controller = _controller(
+        mode: GameMode.twoPlayers,
+        board: GomokuBoard.fromCells(source),
+        forbidBlack: true,
+        hintMove: (cells, side, {bool? forbidBlack}) async => indexOf(7, 6),
+      );
+      controller.start();
+      await controller.requestHint();
+      expect(controller.hintIndex, isNull);
     });
 
     test('空盘提示与悔棋按钮状态', () {

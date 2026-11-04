@@ -16,12 +16,21 @@ SearchResult _defendAt(int index) =>
 PuzzleController _controller(
   GomokuPuzzle puzzle, {
   int defend = 0,
-  Future<SearchResult> Function(Uint8List, int, Difficulty)? aiMove,
+  Future<SearchResult> Function(
+    Uint8List,
+    int,
+    Difficulty, {
+    bool? forbidBlack,
+  })?
+  aiMove,
 }) {
   final controller = PuzzleController(
     puzzle: puzzle,
-    aiMove: aiMove ?? (cells, side, difficulty) async => _defendAt(defend),
-    hintMove: (cells, side) async => indexOf(7, 9),
+    aiMove:
+        aiMove ??
+        (cells, side, difficulty, {bool? forbidBlack}) async =>
+            _defendAt(defend),
+    hintMove: (cells, side, {bool? forbidBlack}) async => indexOf(7, 9),
   );
   addTearDown(controller.dispose);
   return controller;
@@ -230,7 +239,8 @@ void main() {
       );
       final controller = _controller(
         puzzle,
-        aiMove: (cells, side, difficulty) async => _defendAt(indexOf(5, 9)),
+        aiMove: (cells, side, difficulty, {bool? forbidBlack}) async =>
+            _defendAt(indexOf(5, 9)),
       );
       controller.tapCell(indexOf(1, 1));
       await pumpEventQueue();

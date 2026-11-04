@@ -10,6 +10,7 @@ import 'ai_player.dart';
 import 'board_state.dart';
 import 'board_view.dart';
 import 'engine/board_utils.dart';
+import 'engine/forbidden.dart';
 import 'engine/rules.dart';
 import 'hint_session.dart';
 import 'match_clock.dart';
@@ -27,18 +28,24 @@ class GameController extends ChangeNotifier implements BoardView {
     GomokuBoard? board,
     this.showCoordinates = true,
     this.timeControl = TimeControl.none,
+    this.forbidBlack = false,
     this.openingBook,
     math.Random? openingRandom,
-  }) : board = board ?? GomokuBoard(),
+  }) : board = board ?? GomokuBoard(forbidBlack: forbidBlack),
        _aiMove = aiMove ?? AiPlayer.chooseMove,
        _hintMove = hintMove ?? AiPlayer.hintMove,
-       _openingRandom = openingRandom ?? math.Random();
+       _openingRandom = openingRandom ?? math.Random() {
+    this.board.forbidBlack = forbidBlack;
+  }
 
   final GameMode mode;
   final Difficulty difficulty;
   final int humanSide;
   @override
   final bool showCoordinates;
+
+  /// 是否启用黑棋禁手（长连、四四、三三）。
+  final bool forbidBlack;
 
   @override
   Uint8List get cells => board.cells;
@@ -62,6 +69,12 @@ class GameController extends ChangeNotifier implements BoardView {
   bool thinking = false;
   GameResult? result;
 
+  /// 最近一次禁手尝试，供界面提示；合法落子后清空。
+  ForbiddenReason? lastViolation;
+  int violationCount = 0;
+
+  Set<int>? _forbiddenCache;
+
   /// 最近一次 AI 搜索摘要，供界面展示引擎层数与用时。
   AiInsight? aiInsight;
 
@@ -83,6 +96,15 @@ class GameController extends ChangeNotifier implements BoardView {
 
   @override
   List<int> get winningLine => board.winningLine;
+
+  /// 当前黑棋的禁手点，仅在人类可以落子时计算并缓存。
+  @override
+  Set<int> get forbiddenPoints {
+    if (!forbidBlack || !canInteractive || board.sideToMove != black) {
+      return const {};
+    }
+    return _forbiddenCache ??= GomokuForbidden.points(board.cells);
+  }
 
   bool get isHumanTurn =>
       mode == GameMode.twoPlayers || board.sideToMove == humanSide;
@@ -160,6 +182,17 @@ class GameController extends ChangeNotifier implements BoardView {
     if (index < 0 || index >= cellCount || board.cells[index] != empty) {
       return;
     }
+    final forbidden = board.forbiddenAt(index);
+    if (forbidden != null) {
+      lastViolation = forbidden;
+      violationCount++;
+      LogService.warning(
+        '禁手: ${sideName(board.sideToMove)} '
+        '${MoveNotation.describe(index)} ${forbidden.label}',
+      );
+      _notify();
+      return;
+    }
     _play(index);
   }
 
@@ -175,6 +208,8 @@ class GameController extends ChangeNotifier implements BoardView {
         board.sideToMove != humanSide);
     result = null;
     aiInsight = null;
+    lastViolation = null;
+    _forbiddenCache = null;
     _tracker?.rewind(keepMoves: board.history.length, side: board.sideToMove);
     LogService.info('悔棋，当前轮到${sideName(board.sideToMove)}');
     _notify();
@@ -187,6 +222,8 @@ class GameController extends ChangeNotifier implements BoardView {
     thinking = false;
     result = null;
     aiInsight = null;
+    lastViolation = null;
+    _forbiddenCache = null;
     _bookLine = null;
     _tracker?.restart(black);
     LogService.info('重新开始对局');
@@ -222,7 +259,11 @@ class GameController extends ChangeNotifier implements BoardView {
 
     int? move;
     try {
-      move = await _hintMove(Uint8List.fromList(board.cells), side);
+      move = await _hintMove(
+        Uint8List.fromList(board.cells),
+        side,
+        forbidBlack: forbidBlack,
+      );
     } catch (error, stack) {
       LogService.error('提示搜索失败', error, stack);
     }
@@ -233,6 +274,7 @@ class GameController extends ChangeNotifier implements BoardView {
         move < cellCount &&
         board.cells[move] == empty &&
         side == board.sideToMove &&
+        board.forbiddenAt(move) == null &&
         canInteractive) {
       _hint.show(move);
       LogService.info('走子提示: ${MoveNotation.describe(move)}');
@@ -249,7 +291,12 @@ class GameController extends ChangeNotifier implements BoardView {
     if (result != null) return;
     clearHint(notify: false);
     final record = board.apply(index);
-    if (record == null) return;
+    if (record == null) {
+      LogService.warning('落子被拒绝: ${MoveNotation.describe(index)}');
+      return;
+    }
+    lastViolation = null;
+    _forbiddenCache = null;
     _tracker?.mark();
     LogService.info(
       '落子 ${sideName(record.side)} ${record.notation}'
@@ -320,7 +367,12 @@ class GameController extends ChangeNotifier implements BoardView {
     final stopwatch = Stopwatch()..start();
     AiReply? reply;
     try {
-      reply = await _aiMove(Uint8List.fromList(board.cells), side, difficulty);
+      reply = await _aiMove(
+        Uint8List.fromList(board.cells),
+        side,
+        difficulty,
+        forbidBlack: forbidBlack,
+      );
     } catch (error, stack) {
       LogService.error('AI 搜索失败', error, stack);
     }
@@ -337,7 +389,10 @@ class GameController extends ChangeNotifier implements BoardView {
     }
 
     final move = reply?.move ?? -1;
-    if (move < 0 || move >= cellCount || board.cells[move] != empty) {
+    if (move < 0 ||
+        move >= cellCount ||
+        board.cells[move] != empty ||
+        board.forbiddenAt(move) != null) {
       final fallback = _fallbackMove();
       if (fallback == null) {
         _afterMove();
@@ -352,12 +407,15 @@ class GameController extends ChangeNotifier implements BoardView {
 
   /// 兜底：优先自己成五，其次封堵对手成五，最后取离中心最近的空点。
   int? _fallbackMove() {
+    final forbidden = forbidBlack && board.sideToMove == black
+        ? GomokuForbidden.points(board.cells)
+        : const <int>{};
     final tactical = GomokuRules.tacticalMove(board.cells, board.sideToMove);
-    if (tactical != null) return tactical;
+    if (tactical != null && !forbidden.contains(tactical)) return tactical;
     int? nearest;
     var nearestDistance = 1 << 30;
     for (var index = 0; index < cellCount; index++) {
-      if (board.cells[index] != empty) continue;
+      if (board.cells[index] != empty || forbidden.contains(index)) continue;
       final row = rowOf(index) - boardSize ~/ 2;
       final col = colOf(index) - boardSize ~/ 2;
       final distance = row.abs() + col.abs();

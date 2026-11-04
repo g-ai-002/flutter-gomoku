@@ -12,13 +12,7 @@ class GomokuRules {
       return const [];
     }
     for (final (dr, dc) in kDirections) {
-      final (:startRow, :startCol, :length) = _runAt(
-        cells,
-        index,
-        side,
-        dr,
-        dc,
-      );
+      final (:startRow, :startCol, :length) = runAt(cells, index, side, dr, dc);
       if (length < 5) continue;
       return [
         for (var step = 0; step < length; step++)
@@ -31,13 +25,13 @@ class GomokuRules {
   /// 只判断是否五连，不构造连线，供搜索高频调用。
   static bool hasFive(Uint8List cells, int index, int side) {
     for (final (dr, dc) in kDirections) {
-      if (_runAt(cells, index, side, dr, dc).length >= 5) return true;
+      if (runAt(cells, index, side, dr, dc).length >= 5) return true;
     }
     return false;
   }
 
   /// 从 [index] 沿 (dr, dc) 向两端延伸，返回连续同色棋子的起点与长度。
-  static ({int startRow, int startCol, int length}) _runAt(
+  static ({int startRow, int startCol, int length}) runAt(
     Uint8List cells,
     int index,
     int side,
@@ -140,13 +134,7 @@ class GomokuRules {
   static bool makesOpenFour(Uint8List cells, int index, int side) {
     if (index < 0 || index >= cellCount || cells[index] != side) return false;
     for (final (dr, dc) in kDirections) {
-      final (:startRow, :startCol, :length) = _runAt(
-        cells,
-        index,
-        side,
-        dr,
-        dc,
-      );
+      final (:startRow, :startCol, :length) = runAt(cells, index, side, dr, dc);
       if (length != 4) continue;
       final endRow = startRow + dr * 3;
       final endCol = startCol + dc * 3;

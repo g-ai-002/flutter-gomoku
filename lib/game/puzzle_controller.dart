@@ -67,6 +67,9 @@ class PuzzleController extends ChangeNotifier implements BoardView {
   bool get showCoordinates => true;
 
   @override
+  Set<int> get forbiddenPoints => const {};
+
+  @override
   int get sideToMove => board.sideToMove;
 
   @override

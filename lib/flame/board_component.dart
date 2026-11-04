@@ -160,6 +160,7 @@ class BoardComponent extends PositionComponent
     canvas.drawPicture(_boardPicture());
     canvas.drawPicture(_stonePicture());
     _drawHint(canvas);
+    _drawForbidden(canvas);
     _drawHover(canvas);
     _drawWinningLine(canvas);
     _drawAnim(canvas);
@@ -335,6 +336,28 @@ class BoardComponent extends PositionComponent
       radius * 0.22,
       Paint()..color = color.withValues(alpha: 0.7),
     );
+  }
+
+  /// 禁手点：细红圈加斜杠，与提示圆环区分。
+  void _drawForbidden(Canvas canvas) {
+    final points = view.forbiddenPoints;
+    if (points.isEmpty) return;
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1.1, _cell * 0.042)
+      ..strokeCap = StrokeCap.round
+      ..color = const Color(0xFFB23A2B).withValues(alpha: 0.62);
+    for (final index in points) {
+      final center = _centerOf(index);
+      final radius = _cell * 0.30;
+      canvas.drawCircle(center, radius, paint);
+      final offset = radius * 0.68;
+      canvas.drawLine(
+        center + Offset(-offset, -offset),
+        center + Offset(offset, offset),
+        paint,
+      );
+    }
   }
 
   void _drawHover(Canvas canvas) {

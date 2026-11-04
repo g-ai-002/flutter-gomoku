@@ -14,7 +14,13 @@ Future<void> _waitBook() =>
 
 GameController _controller({
   OpeningBook? book,
-  Future<SearchResult> Function(Uint8List, int, Difficulty)? aiMove,
+  Future<SearchResult> Function(
+    Uint8List,
+    int,
+    Difficulty, {
+    bool? forbidBlack,
+  })?
+  aiMove,
 }) {
   final controller = GameController(
     mode: GameMode.vsAi,
@@ -23,10 +29,10 @@ GameController _controller({
     openingBook: book,
     aiMove:
         aiMove ??
-        (cells, side, difficulty) async {
+        (cells, side, difficulty, {bool? forbidBlack}) async {
           fail('开局库阶段不应调用搜索引擎');
         },
-    hintMove: (cells, side) async => indexOf(0, 0),
+    hintMove: (cells, side, {bool? forbidBlack}) async => indexOf(0, 0),
   );
   addTearDown(controller.dispose);
   return controller;
@@ -109,7 +115,7 @@ void main() {
       var searched = 0;
       final controller = _controller(
         book: OpeningBook([line]),
-        aiMove: (cells, side, difficulty) async {
+        aiMove: (cells, side, difficulty, {bool? forbidBlack}) async {
           searched++;
           return _fallback;
         },
@@ -134,7 +140,7 @@ void main() {
       var searched = 0;
       final controller = _controller(
         book: OpeningBook([line]),
-        aiMove: (cells, side, difficulty) async {
+        aiMove: (cells, side, difficulty, {bool? forbidBlack}) async {
           searched++;
           return const SearchResult(move: 0, score: 0, depth: 1, nodes: 1);
         },

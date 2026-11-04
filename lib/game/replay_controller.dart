@@ -52,6 +52,9 @@ class ReplayController extends ChangeNotifier implements BoardView {
   bool get showCoordinates => true;
 
   @override
+  Set<int> get forbiddenPoints => const {};
+
+  @override
   bool get canInteract => false;
 
   @override

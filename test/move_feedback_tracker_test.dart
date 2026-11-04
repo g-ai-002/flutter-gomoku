@@ -29,6 +29,9 @@ class _FakeView implements BoardView {
   bool get showCoordinates => true;
 
   @override
+  Set<int> get forbiddenPoints => const {};
+
+  @override
   bool get canInteract => true;
 
   @override

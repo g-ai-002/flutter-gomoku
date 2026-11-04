@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'board_utils.dart';
 import 'evaluation.dart';
+import 'forbidden.dart';
 import 'rules.dart';
 
 /// 搜索回包：最佳着法、评分、实际完成层数与节点数。
@@ -42,11 +43,20 @@ class GomokuSearch {
     int randomness = 0,
     int timeLimitMillis = 4000,
     math.Random? random,
+    bool forbidBlack = false,
   }) {
     final board = Uint8List.fromList(cells);
     final searcher = _Searcher(board, math.max(100, timeLimitMillis));
 
-    final candidates = GomokuRules.candidateMoves(board);
+    // 只在根节点过滤黑棋禁手：保证最终着法合法，深层仍按无禁手估值，
+    // 避免每个节点都做禁手判定拖慢搜索。
+    final candidates = forbidBlack
+        ? GomokuForbidden.legalMoves(
+            board,
+            side,
+            GomokuRules.candidateMoves(board),
+          )
+        : GomokuRules.candidateMoves(board);
     if (candidates.isEmpty) {
       return const SearchResult(move: -1, score: 0, depth: 0, nodes: 0);
     }

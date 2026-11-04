@@ -24,5 +24,8 @@ abstract class BoardView {
   /// 当前行棋方，用于悬停预览的棋子颜色。
   int get sideToMove;
 
+  /// 黑棋禁手点，供棋盘标记；未启用禁手时为空。
+  Set<int> get forbiddenPoints => const {};
+
   void tapCell(int index);
 }
