@@ -5,6 +5,7 @@
 ## 功能
 
 - 🎯 完整规则：横、竖、斜任意方向五连判胜，长连计胜，满盘判和
+- ⚖️ 禁手规则：可选黑棋长连 / 四四 / 三三禁手，棋盘红圈标记禁手点，AI 与提示自动遵守
 - 🤖 人机对战：入门 / 普通 / 高手三档（默认高手），本地棋型评估 + Alpha-Beta 搜索，可选执黑或执白
 - 💡 走子提示：人机对战中一键请求推荐着法，棋盘高亮 6 秒
 - 🧩 残局挑战：十道内置杀局，分入门 / 进阶 / 挑战三档，限手数通关并记录进度
@@ -26,16 +27,17 @@
 
 ## 下载
 
-v0.2.1（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-gomoku/releases/tag/v0.2.1)
+v0.3.0（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-gomoku/releases/tag/v0.3.0)
 
 | 平台 | 产物 |
 | --- | --- |
-| Android (arm64) | `flutter-gomoku-0.2.1-android-aarch64.apk` |
-| Windows (x64, Win10+) | `flutter-gomoku-0.2.1-windows-x86_64.zip` |
-| Web | `flutter-gomoku-0.2.1-web.zip`（解压后起静态服务器） |
+| Android (arm64) | `flutter-gomoku-0.3.0-android-aarch64.apk` |
+| Windows (x64, Win10+) | `flutter-gomoku-0.3.0-windows-x86_64.zip` |
+| Web | `flutter-gomoku-0.3.0-web.zip`（解压后起静态服务器） |
 
 | 版本 | 说明 |
 | --- | --- |
+| v0.3.0 | 新增禁手规则，黑棋长连 / 四四 / 三三禁手与棋盘标记，AI 同步遵守 |
 | v0.2.1 | 重构提示、落子反馈与页面操作代码，修复缓存与音频重试问题 |
 | v0.2.0 | 新增残局挑战、开局库与开局提示，补齐单人练习路径 |
 | v0.1.1 | 重构存量代码，候选点生成约快 3.5 倍，修复 AI 兜底错过成五 |
@@ -66,7 +68,7 @@ flutter test
 lib/
 ├── flame/          # Flame 棋盘渲染、落子动画与点击/悬停交互
 ├── game/
-│   ├── engine/     # 棋型评估、Alpha-Beta 搜索与五连规则
+│   ├── engine/     # 棋型评估、Alpha-Beta 搜索、五连规则与禁手判定
 │   ├── board_state.dart / game_controller.dart
 │   ├── hint_session.dart      # 提示加载态与请求竞态
 │   ├── match_clock.dart / replay_controller.dart / game_archive.dart
