@@ -27,9 +27,9 @@ class MusicService {
   static bool _failed = false;
   static bool _suspended = false;
 
-  /// 启动背景音乐；未启用、已暂停或正在播放时直接返回。
+  /// 启动背景音乐；未启用、已暂停、加载失败或正在播放时直接返回。
   static Future<void> start() async {
-    if (!enabled || _suspended) return;
+    if (!enabled || _suspended || _failed) return;
     final target = sink;
     if (target != null) {
       target(true);
