@@ -222,6 +222,22 @@ void main() {
       expect(controller.hintLoading, isFalse);
     });
 
+    test('白棋搜索抛错时兜底封堵玩家成五', () async {
+      final puzzle = kGomokuPuzzles.firstWhere((p) => p.id == 'p05');
+      final controller = _controller(
+        puzzle,
+        aiMove: (cells, side, difficulty, {bool? forbidBlack}) async =>
+            throw StateError('搜索失败'),
+      );
+      controller.tapCell(indexOf(7, 8));
+      await pumpEventQueue();
+
+      expect(controller.thinking, isFalse);
+      expect(controller.history.last.side, white);
+      expect(controller.history.last.index, indexOf(7, 4));
+      expect(controller.canInteract, isTrue);
+    });
+
     test('白棋先行成五时判失败', () async {
       final puzzle = GomokuPuzzle(
         id: 'test-white-win',

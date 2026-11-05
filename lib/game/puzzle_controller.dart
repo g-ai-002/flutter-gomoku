@@ -38,7 +38,6 @@ class PuzzleController extends BoardSession {
 
   /// 玩家已走的手数，白棋的应手不计入。
   int playerMoves = 0;
-  bool thinking = false;
 
   @override
   Uint8List get cells => board.cells;
@@ -94,7 +93,7 @@ class PuzzleController extends BoardSession {
     if (!canUndo) return;
     cancelPending();
     clearHint(notify: false);
-    thinking = false;
+    endThinking();
     if (board.history.isNotEmpty && board.history.last.side == white) {
       board.undoLast();
     }
@@ -113,7 +112,7 @@ class PuzzleController extends BoardSession {
     playerMoves = 0;
     status = PuzzleStatus.playing;
     failureReason = null;
-    thinking = false;
+    endThinking();
     LogService.info('残局重开: ${puzzle.title}');
     notifyBoard();
   }
@@ -168,32 +167,26 @@ class PuzzleController extends BoardSession {
 
   Future<void> _defend() async {
     if (thinking) return;
-    thinking = true;
-    final serial = beginSerial();
-    notifyBoard();
-    if (kIsWeb) await Future<void>.delayed(Duration.zero);
-    if (!isCurrent(serial)) return;
-
-    AiReply? reply;
-    try {
-      reply = await _aiMove(
+    final serial = beginThinking();
+    final reply = await searchAi(
+      serial: serial,
+      search: () => _aiMove(
         Uint8List.fromList(board.cells),
         white,
         Difficulty.normal,
-      );
-    } catch (error, stack) {
-      LogService.error('残局 AI 应手失败', error, stack);
-    }
+      ),
+      label: '残局 AI 应手',
+    );
     if (!isCurrent(serial)) return;
 
-    thinking = false;
+    endThinking();
     final candidate = reply?.move ?? -1;
     final move =
         candidate >= 0 &&
             candidate < cellCount &&
             board.cells[candidate] == empty
         ? candidate
-        : _fallbackDefense();
+        : GomokuRules.fallbackMove(board.cells, white);
     if (move == null) {
       _fail('白棋已无子可下');
       return;
@@ -201,17 +194,9 @@ class PuzzleController extends BoardSession {
     _play(move);
   }
 
-  /// 兜底应手：白棋先成五，其次封堵黑棋成五，最后取任意候选点。
-  int? _fallbackDefense() {
-    final tactical = GomokuRules.tacticalMove(board.cells, white);
-    if (tactical != null) return tactical;
-    final candidates = GomokuRules.candidateMoves(board.cells);
-    return candidates.isEmpty ? null : candidates.first;
-  }
-
   void _finish() {
     status = PuzzleStatus.solved;
-    thinking = false;
+    endThinking();
     clearHint(notify: false);
     LogService.info('残局通关: ${puzzle.id} ${puzzle.title}, $playerMoves 手');
     notifyBoard();
@@ -220,7 +205,7 @@ class PuzzleController extends BoardSession {
   void _fail(String reason) {
     status = PuzzleStatus.failed;
     failureReason = reason;
-    thinking = false;
+    endThinking();
     clearHint(notify: false);
     LogService.info('残局失败: ${puzzle.id} ${puzzle.title}（$reason）');
     notifyBoard();

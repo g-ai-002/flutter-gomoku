@@ -113,6 +113,28 @@ void main() {
       );
     });
 
+    test('兜底着法跳过禁手点并继续封堵对手', () {
+      final cells = emptyCells();
+      _place(cells, black, [(7, 3), (7, 4), (7, 5), (7, 6)]);
+      _place(cells, white, [(9, 3), (9, 4), (9, 5), (9, 6)]);
+      final move = GomokuRules.fallbackMove(
+        cells,
+        black,
+        forbidden: {indexOf(7, 2), indexOf(7, 7)},
+      );
+      expect(move, anyOf(indexOf(9, 2), indexOf(9, 7)));
+    });
+
+    test('兜底着法在空盘落在天元，满盘返回 null', () {
+      expect(GomokuRules.fallbackMove(emptyCells(), black), centerIndex);
+
+      final full = emptyCells();
+      for (var index = 0; index < cellCount; index++) {
+        full[index] = index.isEven ? black : white;
+      }
+      expect(GomokuRules.fallbackMove(full, black), isNull);
+    });
+
     test('复用候选点不改变棋盘', () {
       final cells = emptyCells();
       _place(cells, black, [(7, 3), (7, 4), (7, 5), (7, 6)]);

@@ -130,6 +130,43 @@ class GomokuRules {
     return immediateWin(cells, opponentOf(side), candidates: candidates);
   }
 
+  /// AI 搜索失败或返回非法着法时的兜底着法。
+  ///
+  /// 优先自己成五，其次封堵对手成五，最后取离中心最近的空点；
+  /// [forbidden] 中的黑棋禁手点会被跳过，避免兜底再次落入禁手。
+  static int? fallbackMove(
+    Uint8List cells,
+    int side, {
+    Set<int> forbidden = const {},
+  }) {
+    final candidates = [
+      for (final move in candidateMoves(cells))
+        if (!forbidden.contains(move)) move,
+    ];
+    for (final move in immediateWins(cells, side, candidates: candidates)) {
+      return move;
+    }
+    for (final move in immediateWins(
+      cells,
+      opponentOf(side),
+      candidates: candidates,
+    )) {
+      return move;
+    }
+    int? nearest;
+    var nearestDistance = 1 << 30;
+    for (final index in candidates) {
+      final distance =
+          (rowOf(index) - boardSize ~/ 2).abs() +
+          (colOf(index) - boardSize ~/ 2).abs();
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearest = index;
+      }
+    }
+    return nearest;
+  }
+
   /// 落子后是否形成活四（两端皆空），供 AI 威胁判断。
   static bool makesOpenFour(Uint8List cells, int index, int side) {
     if (index < 0 || index >= cellCount || cells[index] != side) return false;

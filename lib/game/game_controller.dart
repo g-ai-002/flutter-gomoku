@@ -65,7 +65,6 @@ class GameController extends BoardSession {
   /// 限时对局的棋钟，供界面展示双方剩余时间。
   MatchClock? get clock => _tracker?.clock;
 
-  bool thinking = false;
   GameResult? result;
 
   /// 最近一次禁手尝试，供界面提示；合法落子后清空。
@@ -195,7 +194,7 @@ class GameController extends BoardSession {
     if (!canUndo) return;
     cancelPending();
     clearHint(notify: false);
-    thinking = false;
+    endThinking();
     do {
       board.undoLast();
     } while (mode == GameMode.vsAi &&
@@ -214,7 +213,7 @@ class GameController extends BoardSession {
     cancelPending();
     clearHint(notify: false);
     board.reset();
-    thinking = false;
+    endThinking();
     result = null;
     aiInsight = null;
     lastViolation = null;
@@ -230,7 +229,7 @@ class GameController extends BoardSession {
     if (result != null) return;
     cancelPending();
     clearHint(notify: false);
-    thinking = false;
+    endThinking();
     _finish(GameResult(winner: opponentOf(humanSide), reason: '认输'));
   }
 
@@ -320,18 +319,15 @@ class GameController extends BoardSession {
 
   Future<void> _think() async {
     if (thinking || result != null) return;
-    clearHint(notify: false);
-    thinking = true;
-    final serial = beginSerial();
+    final serial = beginThinking();
     final side = board.sideToMove;
-    notifyBoard();
 
     // 开局前几手优先走内置棋谱，略作停顿让落子动画衔接。
     final bookMove = _bookMove();
     if (bookMove != null) {
       await Future<void>.delayed(const Duration(milliseconds: 260));
       if (!isCurrent(serial)) return;
-      thinking = false;
+      endThinking();
       LogService.info(
         '开局应手: ${openingMatch?.line.name ?? ''} '
         '${MoveNotation.describe(bookMove)}',
@@ -340,25 +336,20 @@ class GameController extends BoardSession {
       return;
     }
 
-    // Web 端搜索与界面同线程，先让「AI 思考中」完成一帧绘制。
-    if (kIsWeb) await Future<void>.delayed(Duration.zero);
-    if (!isCurrent(serial)) return;
-
     final stopwatch = Stopwatch()..start();
-    AiReply? reply;
-    try {
-      reply = await _aiMove(
+    final reply = await searchAi(
+      serial: serial,
+      search: () => _aiMove(
         Uint8List.fromList(board.cells),
         side,
         difficulty,
         forbidBlack: forbidBlack,
-      );
-    } catch (error, stack) {
-      LogService.error('AI 搜索失败', error, stack);
-    }
+      ),
+      label: 'AI 搜索',
+    );
     if (!isCurrent(serial)) return;
 
-    thinking = false;
+    endThinking();
     stopwatch.stop();
     if (reply != null) {
       aiInsight = AiInsight.of(reply, stopwatch.elapsed);
@@ -373,7 +364,14 @@ class GameController extends BoardSession {
         move >= cellCount ||
         board.cells[move] != empty ||
         board.forbiddenAt(move) != null) {
-      final fallback = _fallbackMove();
+      final forbidden = forbidBlack && board.sideToMove == black
+          ? GomokuForbidden.points(board.cells)
+          : const <int>{};
+      final fallback = GomokuRules.fallbackMove(
+        board.cells,
+        board.sideToMove,
+        forbidden: forbidden,
+      );
       if (fallback == null) {
         _afterMove();
         return;
@@ -383,27 +381,5 @@ class GameController extends BoardSession {
       return;
     }
     _play(move);
-  }
-
-  /// 兜底：优先自己成五，其次封堵对手成五，最后取离中心最近的空点。
-  int? _fallbackMove() {
-    final forbidden = forbidBlack && board.sideToMove == black
-        ? GomokuForbidden.points(board.cells)
-        : const <int>{};
-    final tactical = GomokuRules.tacticalMove(board.cells, board.sideToMove);
-    if (tactical != null && !forbidden.contains(tactical)) return tactical;
-    int? nearest;
-    var nearestDistance = 1 << 30;
-    for (var index = 0; index < cellCount; index++) {
-      if (board.cells[index] != empty || forbidden.contains(index)) continue;
-      final row = rowOf(index) - boardSize ~/ 2;
-      final col = colOf(index) - boardSize ~/ 2;
-      final distance = row.abs() + col.abs();
-      if (distance < nearestDistance) {
-        nearestDistance = distance;
-        nearest = index;
-      }
-    }
-    return nearest;
   }
 }

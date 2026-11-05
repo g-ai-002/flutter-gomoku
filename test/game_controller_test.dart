@@ -203,6 +203,30 @@ void main() {
       );
     });
 
+    test('AI 搜索抛错时兜底落子并恢复可交互', () async {
+      final cells = emptyCells();
+      _placeRow(cells, white, 2, 3, 6);
+      final controller = _controller(
+        board: GomokuBoard.fromCells(cells),
+        aiMove: (cells, side, difficulty, {bool? forbidBlack}) async =>
+            throw StateError('搜索失败'),
+      );
+      controller.start();
+      controller.tapCell(indexOf(12, 12));
+      await pumpEventQueue();
+
+      expect(controller.thinking, isFalse);
+      expect(controller.history.length, 2);
+      expect(controller.history.last.side, white);
+      expect(
+        controller.history.last.index,
+        anyOf(indexOf(2, 2), indexOf(2, 7)),
+      );
+      expect(controller.result?.winner, white);
+      expect(controller.result?.reason, '五连');
+      expect(controller.canInteractive, isFalse);
+    });
+
     test('启用禁手时人类禁手落子被拒绝并记录原因', () {
       final source = emptyCells();
       for (final col in [3, 4, 5, 7, 8]) {
