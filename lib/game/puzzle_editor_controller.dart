@@ -24,6 +24,13 @@ class PuzzleEditorController extends ChangeNotifier implements BoardView {
     for (final index in source.whiteStones) {
       cells[index] = white;
     }
+    for (final side in cells) {
+      if (side == black) {
+        _blackCount++;
+      } else if (side == white) {
+        _whiteCount++;
+      }
+    }
     _rebuildHistory();
   }
 
@@ -35,23 +42,36 @@ class PuzzleEditorController extends ChangeNotifier implements BoardView {
   int brush;
   int moveLimit;
   int _revision = 0;
+  int _blackCount = 0;
+  int _whiteCount = 0;
+  bool _invalidDirty = true;
+  String? _invalidReason;
 
   bool get isEditing => initial != null;
 
-  int get blackCount => _count(black);
+  int get blackCount => _blackCount;
 
-  int get whiteCount => _count(white);
+  int get whiteCount => _whiteCount;
 
   List<int> get blackStones => _indices(black);
 
   List<int> get whiteStones => _indices(white);
 
   /// 至少一枚黑棋，且局面中不能已经存在五连。
+  ///
+  /// 结果按修改版本缓存：面板每帧读取时不会重复扫描全盘。
   String? get invalidReason {
-    if (blackCount == 0) return '请至少摆放一枚黑棋';
+    if (!_invalidDirty) return _invalidReason;
+    _invalidDirty = false;
+    _invalidReason = _blackCount == 0 ? '请至少摆放一枚黑棋' : _findFive();
+    return _invalidReason;
+  }
+
+  String? _findFive() {
     for (var index = 0; index < cellCount; index++) {
       final side = cells[index];
-      if (side != empty && GomokuRules.hasFive(cells, index, side)) {
+      if (side == empty) continue;
+      if (GomokuRules.hasFive(cells, index, side)) {
         return '局面中已经有五连，请调整棋子';
       }
     }
@@ -104,30 +124,37 @@ class PuzzleEditorController extends ChangeNotifier implements BoardView {
   void clear() {
     cells.fillRange(0, cellCount, empty);
     _history.clear();
+    _blackCount = 0;
+    _whiteCount = 0;
     _revision++;
+    _invalidDirty = true;
     notifyListeners();
   }
 
   @override
   void tapCell(int index) {
     if (index < 0 || index >= cellCount) return;
-    if (cells[index] != empty) {
+    final current = cells[index];
+    if (current != empty) {
       cells[index] = empty;
+      if (current == black) {
+        _blackCount--;
+      } else {
+        _whiteCount--;
+      }
       _rebuildHistory();
     } else {
       cells[index] = brush;
+      if (brush == black) {
+        _blackCount++;
+      } else {
+        _whiteCount++;
+      }
       _history.add(_record(index, brush));
     }
     _revision++;
+    _invalidDirty = true;
     notifyListeners();
-  }
-
-  int _count(int side) {
-    var count = 0;
-    for (final value in cells) {
-      if (value == side) count++;
-    }
-    return count;
   }
 
   List<int> _indices(int side) => [

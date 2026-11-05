@@ -74,7 +74,11 @@ class _PuzzleEditorPageState extends State<PuzzleEditorPage> {
       ),
     );
     final title = result?.trim();
-    if (title == null || title.isEmpty || !mounted) return;
+    if (!mounted || title == null) return;
+    if (title.isEmpty) {
+      showSnack(context, '请输入残局名称');
+      return;
+    }
     final saved = await CustomPuzzleService.instance.save(
       id: widget.initial?.id,
       title: title,
@@ -130,14 +134,14 @@ class _PuzzleEditorPageState extends State<PuzzleEditorPage> {
           icon: const Icon(Icons.check_rounded, size: 22),
         ),
       ],
-      body: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, _) => PlayLayout(
-          board: BoardStage(
-            game: _game,
-            gameKey: const ValueKey('puzzle-editor-board'),
-          ),
-          sidePanel: Column(
+      body: PlayLayout(
+        board: BoardStage(
+          game: _game,
+          gameKey: const ValueKey('puzzle-editor-board'),
+        ),
+        sidePanel: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) => Column(
             children: [
               _panel(compact: false),
               const SizedBox(height: 12),
@@ -151,7 +155,10 @@ class _PuzzleEditorPageState extends State<PuzzleEditorPage> {
               ),
             ],
           ),
-          compactBottom: _panel(compact: true),
+        ),
+        compactBottom: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) => _panel(compact: true),
         ),
       ),
     );

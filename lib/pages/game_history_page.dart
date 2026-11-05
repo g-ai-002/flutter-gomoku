@@ -7,6 +7,7 @@ import '../services/log_service.dart';
 import '../utils/formatters.dart';
 import 'review_page.dart';
 import 'widgets/app_snack.dart';
+import 'widgets/entry_tile.dart';
 import 'widgets/game_dialogs.dart';
 import 'widgets/import_game_dialog.dart';
 import 'widgets/page_list.dart';
@@ -186,80 +187,32 @@ class _SavedGameTile extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final finished = game.result != null && game.result!.isNotEmpty;
-    return Material(
-      color: scheme.surface,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: scheme.outline),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: scheme.primary.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.menu_book_outlined,
-                  size: 20,
-                  color: scheme.primary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      game.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      '${formatDateTime(game.endedAt)} · ${game.moveCount} 手',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontSize: 11,
-                        color: scheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      game.resultLabel,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontSize: 11,
-                        color: finished
-                            ? scheme.primary
-                            : scheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                tooltip: '删除棋谱',
-                onPressed: onDelete,
-                icon: const Icon(Icons.delete_outline, size: 19),
-              ),
-              Icon(Icons.chevron_right, size: 18, color: scheme.outline),
-            ],
-          ),
+    return EntryTile(
+      leading: EntryBadge(
+        icon: Icons.menu_book_outlined,
+        accent: scheme.primary,
+        size: 38,
+      ),
+      title: game.title,
+      subtitle: '${formatDateTime(game.endedAt)} · ${game.moveCount} 手',
+      footer: Text(
+        game.resultLabel,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: theme.textTheme.bodySmall?.copyWith(
+          fontSize: 11,
+          color: finished ? scheme.primary : scheme.onSurfaceVariant,
         ),
       ),
+      trailing: IconButton(
+        tooltip: '删除棋谱',
+        onPressed: onDelete,
+        icon: const Icon(Icons.delete_outline, size: 19),
+      ),
+      onTap: onTap,
+      radius: 14,
+      gap: 12,
+      padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
     );
   }
 }

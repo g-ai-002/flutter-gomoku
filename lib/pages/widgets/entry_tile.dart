@@ -9,6 +9,7 @@ class EntryTile extends StatelessWidget {
     required this.subtitle,
     required this.onTap,
     this.trailing,
+    this.footer,
     this.radius = 16,
     this.padding = const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
     this.gap = 14,
@@ -23,6 +24,9 @@ class EntryTile extends StatelessWidget {
 
   /// 标题右侧的标签，例如残局的「红先 · 1 步杀」。
   final Widget? trailing;
+
+  /// 副标题下方的补充信息，为空时不占高度。
+  final Widget? footer;
 
   final double radius;
   final EdgeInsets padding;
@@ -83,6 +87,7 @@ class EntryTile extends StatelessWidget {
                         color: colors.onSurfaceVariant,
                       ),
                     ),
+                    if (footer != null) ...[const SizedBox(height: 2), footer!],
                   ],
                 ),
               ),

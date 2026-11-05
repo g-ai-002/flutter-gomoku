@@ -101,63 +101,31 @@ class _OpeningCard extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final wide = constraints.maxWidth >= 540;
-          final preview = OpeningPreview(line: line, size: wide ? 138 : 116);
-          final details = _details(context);
-          return wide
-              ? Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    preview,
-                    const SizedBox(width: 16),
-                    Expanded(child: details),
-                  ],
-                )
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        preview,
-                        const SizedBox(width: 14),
-                        Expanded(child: _heading(context)),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      line.idea,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colors.onSurfaceVariant,
-                        height: 1.6,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    _practiceButton(),
-                  ],
-                );
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  OpeningPreview(line: line, size: wide ? 138 : 116),
+                  const SizedBox(width: 14),
+                  Expanded(child: _heading(context)),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                line.idea,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  height: 1.6,
+                ),
+              ),
+              const SizedBox(height: 10),
+              _practiceButton(),
+            ],
+          );
         },
       ),
-    );
-  }
-
-  Widget _details(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _heading(context),
-        const SizedBox(height: 8),
-        Text(
-          line.idea,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: colors.onSurfaceVariant,
-            height: 1.6,
-          ),
-        ),
-        const SizedBox(height: 10),
-        _practiceButton(),
-      ],
     );
   }
 

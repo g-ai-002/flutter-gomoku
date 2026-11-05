@@ -28,7 +28,7 @@ class BoardHintOverlay extends StatelessWidget {
           accent: colors.primary,
         ),
       if (showForbiddenLegend)
-        _HintChip(
+        const _HintChip(
           icon: Icons.block_outlined,
           text: '红圈为黑棋禁手点',
           accent: _forbiddenAccent,

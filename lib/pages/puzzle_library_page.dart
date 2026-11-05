@@ -59,8 +59,8 @@ class _PuzzleLibraryPageState extends State<PuzzleLibraryPage> {
     showSnack(context, '残局进度已清空');
   }
 
-  /// 按难度分组，避免在布局中反复过滤内置残局。
-  List<(PuzzleTier, List<GomokuPuzzle>)> _groups() => [
+  /// 内置残局按难度分组，静态缓存，避免每次构建重复过滤。
+  static final List<(PuzzleTier, List<GomokuPuzzle>)> _grouped = [
     for (final tier in PuzzleTier.values)
       (
         tier,
@@ -71,56 +71,72 @@ class _PuzzleLibraryPageState extends State<PuzzleLibraryPage> {
       ),
   ];
 
-  Widget _puzzleTile(GomokuPuzzle puzzle) {
+  /// 内置与自定义关卡共用的入口卡片。
+  Widget _puzzleTile({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color accent,
+    required bool solved,
+    required VoidCallback onTap,
+    Widget? trailing,
+  }) {
     final colors = Theme.of(context).colorScheme;
-    final solved = _progress.isSolved(puzzle.id);
     return EntryTile(
       leading: EntryBadge(
-        accent: solved ? colors.tertiary : colors.primary,
-        icon: solved ? Icons.check_rounded : Icons.flag_outlined,
+        accent: solved ? colors.tertiary : accent,
+        icon: solved ? Icons.check_rounded : icon,
       ),
-      title: puzzle.title,
-      subtitle: '${puzzle.moveLimit} 手内成五 · ${puzzle.tip}',
-      trailing: solved
-          ? StatusChip(
-              accent: colors.tertiary,
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-              child: Text(
-                '已通关',
-                style: Theme.of(context).textTheme.labelSmall
-                    ?.copyWith(color: colors.tertiary),
-              ),
-            )
-          : null,
-      onTap: () => _open(puzzle),
+      title: title,
+      subtitle: subtitle,
+      trailing:
+          trailing ??
+          (solved
+              ? StatusChip(
+                  accent: colors.tertiary,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 2,
+                  ),
+                  child: Text(
+                    '已通关',
+                    style: Theme.of(context).textTheme.labelSmall
+                        ?.copyWith(color: colors.tertiary),
+                  ),
+                )
+              : null),
+      onTap: onTap,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
 
-  Widget _customTile(CustomPuzzle puzzle) {
-    final colors = Theme.of(context).colorScheme;
-    final solved = _progress.isSolved(puzzle.id);
-    return EntryTile(
-      leading: EntryBadge(
-        accent: solved ? colors.tertiary : colors.secondary,
-        icon: solved ? Icons.check_rounded : Icons.extension_outlined,
+  Widget _builtinTile(GomokuPuzzle puzzle) => _puzzleTile(
+    title: puzzle.title,
+    subtitle: '${puzzle.moveLimit} 手内成五 · ${puzzle.tip}',
+    icon: Icons.flag_outlined,
+    accent: Theme.of(context).colorScheme.primary,
+    solved: _progress.isSolved(puzzle.id),
+    onTap: () => _open(puzzle),
+  );
+
+  Widget _customTile(CustomPuzzle puzzle) => _puzzleTile(
+    title: puzzle.title,
+    subtitle:
+        '${puzzle.moveLimit} 手内成五 · '
+        '黑 ${puzzle.blackStones.length} 子 / 白 ${puzzle.whiteStones.length} 子',
+    icon: Icons.extension_outlined,
+    accent: Theme.of(context).colorScheme.secondary,
+    solved: _progress.isSolved(puzzle.id),
+    onTap: () => _open(puzzle.toPuzzle()),
+    trailing: TextButton(
+      onPressed: () => _openEditor(puzzle),
+      style: TextButton.styleFrom(
+        visualDensity: VisualDensity.compact,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
       ),
-      title: puzzle.title,
-      subtitle:
-          '${puzzle.moveLimit} 手内成五 · '
-          '黑 ${puzzle.blackStones.length} 子 / 白 ${puzzle.whiteStones.length} 子',
-      trailing: TextButton(
-        onPressed: () => _openEditor(puzzle),
-        style: TextButton.styleFrom(
-          visualDensity: VisualDensity.compact,
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-        ),
-        child: const Text('编辑'),
-      ),
-      onTap: () => _open(puzzle.toPuzzle()),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-    );
-  }
+      child: const Text('编辑'),
+    ),
+  );
 
   Widget _customSection(BuildContext context) {
     final theme = Theme.of(context);
@@ -207,7 +223,7 @@ class _PuzzleLibraryPageState extends State<PuzzleLibraryPage> {
                   onStart: () => _open(kGomokuPuzzles.first),
                 ),
                 const SizedBox(height: 18),
-                for (final (tier, puzzles) in _groups()) ...[
+                for (final (tier, puzzles) in _grouped) ...[
                   _TierHeader(
                     tier: tier,
                     solved: puzzles
@@ -217,7 +233,7 @@ class _PuzzleLibraryPageState extends State<PuzzleLibraryPage> {
                   ),
                   const SizedBox(height: 8),
                   for (final puzzle in puzzles) ...[
-                    _puzzleTile(puzzle),
+                    _builtinTile(puzzle),
                     const SizedBox(height: 8),
                   ],
                   const SizedBox(height: 8),
