@@ -46,14 +46,19 @@ void main() {
         expect(line.moves.length, 6, reason: line.name);
         expect(line.moves.first, centerIndex, reason: line.name);
         expect(line.moves.toSet().length, 6, reason: line.name);
-        expect(line.family, anyOf('直指', '斜指'));
-        expect(line.name, startsWith(line.family));
+        expect(line.name, anyOf(startsWith('直指'), startsWith('斜指')));
       }
     });
 
     test('直指与斜指各三条', () {
-      expect(kOpeningLines.where((line) => line.family == '直指').length, 3);
-      expect(kOpeningLines.where((line) => line.family == '斜指').length, 3);
+      expect(
+        kOpeningLines.where((line) => line.name.startsWith('直指')).length,
+        3,
+      );
+      expect(
+        kOpeningLines.where((line) => line.name.startsWith('斜指')).length,
+        3,
+      );
     });
 
     test('候选开局按前两手收敛', () {

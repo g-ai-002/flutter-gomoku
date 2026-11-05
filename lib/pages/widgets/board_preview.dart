@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../game/engine/board_utils.dart';
 import '../../theme/board_painting.dart';
 import '../../theme/board_skin.dart';
 
@@ -23,39 +24,35 @@ class BoardPreview extends StatelessWidget {
         ],
       ),
       child: CustomPaint(
-        size: const Size(172, 172),
-        painter: _BoardPreviewPainter(skin: skin),
+        size: const Size.square(172),
+        painter: _BoardPreviewPainter(skin),
       ),
     );
   }
 }
 
 class _BoardPreviewPainter extends CustomPainter {
-  const _BoardPreviewPainter({required this.skin});
-
-  final BoardSkin skin;
+  const _BoardPreviewPainter(this.skin);
 
   /// 预览用的几手棋：黑白交替，落在天元附近。
-  static const List<(int, int, int)> _stones = [
-    (7, 7, 1),
-    (8, 8, 2),
-    (6, 8, 1),
-    (8, 6, 2),
-  ];
+  static const List<int> _stones = [112, 128, 98, 126];
+
+  final BoardSkin skin;
 
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
-    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(12));
-    canvas.drawRRect(rrect, Paint()..shader = skin.gradient.createShader(rect));
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, const Radius.circular(12)),
+      Paint()..shader = skin.gradient.createShader(rect),
+    );
 
     const pad = 14.0;
     final cell = (size.width - pad * 2) / 14;
-    final top = (size.height - cell * 14) / 2;
-
+    final topLeft = Offset(pad, (size.height - cell * 14) / 2);
     paintBoardGrid(
       canvas,
-      topLeft: Offset(pad, top),
+      topLeft: topLeft,
       cell: cell,
       linePaint: Paint()
         ..color = skin.line.withValues(alpha: 0.55)
@@ -67,13 +64,16 @@ class _BoardPreviewPainter extends CustomPainter {
         ..strokeWidth = 1.2
         ..style = PaintingStyle.stroke,
     );
-
-    for (final (row, col, side) in _stones) {
+    for (var i = 0; i < _stones.length; i++) {
+      final index = _stones[i];
       paintStoneDisc(
         canvas,
-        center: Offset(pad + col * cell, top + row * cell),
+        center: Offset(
+          topLeft.dx + colOf(index) * cell,
+          topLeft.dy + rowOf(index) * cell,
+        ),
         radius: cell * 0.44,
-        face: skin.faceOf(side),
+        face: skin.faceOf(i.isEven ? black : white),
       );
     }
   }

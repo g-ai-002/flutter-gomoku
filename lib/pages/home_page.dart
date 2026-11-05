@@ -11,7 +11,6 @@ import '../theme/board_painting.dart';
 import '../utils/constants.dart';
 import 'game_history_page.dart';
 import 'game_page.dart';
-import 'opening_book_page.dart';
 import 'puzzle_library_page.dart';
 import 'settings_page.dart';
 import 'widgets/board_preview.dart';
@@ -87,15 +86,6 @@ class HomePage extends StatelessWidget {
                               ],
                             ),
                           const SizedBox(height: 24),
-                          OutlinedButton.icon(
-                            onPressed: () => _openOpeningBook(context),
-                            icon: const Icon(
-                              Icons.menu_book_outlined,
-                              size: 18,
-                            ),
-                            label: const Text('开局库 · 6 种开局参考'),
-                          ),
-                          const SizedBox(height: 18),
                           Text(
                             'v${AppConstants.version} · 本地运行，无需联网',
                             style: theme.textTheme.bodySmall?.copyWith(
@@ -142,12 +132,6 @@ class HomePage extends StatelessWidget {
     Navigator.of(
       context,
     ).push(MaterialPageRoute<void>(builder: (_) => const PuzzleLibraryPage()));
-  }
-
-  /// 开局库：浏览内置开局并进入开局练习。
-  void _openOpeningBook(BuildContext context) {
-    Navigator.of(context)
-        .push(MaterialPageRoute<void>(builder: (_) => const OpeningBookPage()));
   }
 
   /// 首页模式入口，宽屏两列、窄屏堆叠都复用同一份定义。

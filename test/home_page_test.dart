@@ -97,7 +97,7 @@ void main() {
     expect(find.text('还没有棋谱'), findsOneWidget);
   });
 
-  testWidgets('残局挑战与开局库入口可打开', (tester) async {
+  testWidgets('残局挑战入口可打开', (tester) async {
     final settings = await createSettings();
     await tester.pumpWidget(wrapPage(const HomePage(), settings));
 
@@ -105,15 +105,5 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
     expect(find.text('十道杀法'), findsOneWidget);
-
-    await tester.pageBack();
-    await tester.pumpAndSettle();
-    final openingEntry = find.text('开局库 · 6 种开局参考');
-    await tester.ensureVisible(openingEntry);
-    await tester.pump();
-    await tester.tap(openingEntry);
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
-    expect(find.text('前六手参考'), findsOneWidget);
   });
 }
