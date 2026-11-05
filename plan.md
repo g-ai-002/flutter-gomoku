@@ -103,6 +103,7 @@
   - [x] 棋盘网格与坐标改用 `boardSize` 常量，移除 15 / 14 魔法数字
   - [x] 新增 10 项持久化、兜底与图层释放测试，216 项测试全部通过
   - [x] `flutter analyze` 无告警，lib 代码量 9938 行，低于 10000 行上限
+  - [x] Gitea Actions 在 v0.5.1 Tag 上完成 Android / Windows / Web 构建并发布 Release
 
 ### v0.5.0 (MINOR) — 2026-11-05
 
