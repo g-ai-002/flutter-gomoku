@@ -52,15 +52,15 @@ class PuzzleProgressService extends ChangeNotifier {
     if (!_solved.add(id)) return;
     notifyListeners();
     LogService.info('残局进度已更新: $id（共 ${_solved.length} 关）');
-    try {
-      _prefs ??= await SharedPreferences.getInstance();
-      await _prefs!.setString(
-        AppConstants.prefKeyPuzzleProgress,
-        jsonEncode(_solved.toList()..sort()),
-      );
-    } catch (error, stack) {
-      LogService.error('保存残局进度失败', error, stack);
-    }
+    await _persist();
+  }
+
+  /// 删除自定义残局时同步移除它的通关记录。
+  Future<void> forget(String id) async {
+    if (!_solved.remove(id)) return;
+    notifyListeners();
+    LogService.info('残局进度已移除: $id');
+    await _persist();
   }
 
   Future<void> clear() async {
@@ -72,6 +72,18 @@ class PuzzleProgressService extends ChangeNotifier {
       LogService.info('已清空残局进度');
     } catch (error, stack) {
       LogService.error('清空残局进度失败', error, stack);
+    }
+  }
+
+  Future<void> _persist() async {
+    try {
+      _prefs ??= await SharedPreferences.getInstance();
+      await _prefs!.setString(
+        AppConstants.prefKeyPuzzleProgress,
+        jsonEncode(_solved.toList()..sort()),
+      );
+    } catch (error, stack) {
+      LogService.error('保存残局进度失败', error, stack);
     }
   }
 }

@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gomoku/game/engine/board_utils.dart';
 import 'package:gomoku/models/game_models.dart';
 import 'package:gomoku/pages/settings_page.dart';
-import 'package:gomoku/theme/board_skin.dart';
 
 import 'support/helpers.dart';
 
@@ -27,9 +26,8 @@ void main() {
     expect(find.text('音效与反馈'), findsOneWidget);
     expect(find.text('运行日志'), findsOneWidget);
     expect(find.text('关于'), findsOneWidget);
-    expect(find.text('原木'), findsOneWidget);
-    expect(find.text('青玉'), findsOneWidget);
-    expect(find.text('墨韵'), findsOneWidget);
+    expect(find.text('深色模式'), findsOneWidget);
+    expect(find.text('显示坐标'), findsOneWidget);
   });
 
   testWidgets('难度、先后手与棋钟选择写入偏好', (tester) async {
@@ -48,16 +46,6 @@ void main() {
     await tester.tap(find.text('10 分钟'));
     await tester.pumpAndSettle();
     expect(settings.timeControl, TimeControl.rapid);
-  });
-
-  testWidgets('皮肤选择即时生效', (tester) async {
-    _useTallView(tester);
-    final settings = await createSettings();
-    await tester.pumpWidget(wrapPage(const SettingsPage(), settings));
-
-    await tester.tap(find.text('青玉'));
-    await tester.pumpAndSettle();
-    expect(settings.boardSkin.id, jadeSkin.id);
   });
 
   testWidgets('开关写入偏好', (tester) async {

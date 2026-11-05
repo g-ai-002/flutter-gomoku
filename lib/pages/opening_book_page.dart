@@ -5,7 +5,6 @@ import '../game/engine/board_utils.dart';
 import '../game/opening_book.dart';
 import '../models/game_models.dart';
 import '../providers/settings_provider.dart';
-import '../theme/board_skin.dart';
 import 'game_page.dart';
 import 'widgets/highlight_panel.dart';
 import 'widgets/opening_preview.dart';
@@ -31,7 +30,6 @@ class OpeningBookPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final skin = context.watch<SettingsProvider>().boardSkin;
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     return Scaffold(
@@ -72,7 +70,6 @@ class OpeningBookPage extends StatelessWidget {
             for (final line in kOpeningLines) ...[
               _OpeningCard(
                 line: line,
-                skin: skin,
                 onPractice: () => _practice(context, line),
               ),
               const SizedBox(height: 10),
@@ -85,14 +82,9 @@ class OpeningBookPage extends StatelessWidget {
 }
 
 class _OpeningCard extends StatelessWidget {
-  const _OpeningCard({
-    required this.line,
-    required this.skin,
-    required this.onPractice,
-  });
+  const _OpeningCard({required this.line, required this.onPractice});
 
   final OpeningLine line;
-  final BoardSkin skin;
   final VoidCallback onPractice;
 
   @override
@@ -109,11 +101,7 @@ class _OpeningCard extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final wide = constraints.maxWidth >= 540;
-          final preview = OpeningPreview(
-            line: line,
-            skin: skin,
-            size: wide ? 138 : 116,
-          );
+          final preview = OpeningPreview(line: line, size: wide ? 138 : 116);
           final details = _details(context);
           return wide
               ? Row(

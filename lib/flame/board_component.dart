@@ -3,7 +3,6 @@ import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide PointerMoveEvent;
 
 import '../game/board_view.dart';
@@ -17,21 +16,22 @@ const double _animDuration = 0.26;
 /// Flame 棋盘组件：绘制棋盘、棋子、提示与落子动画，并处理点击与悬停。
 ///
 /// 棋盘底纹与坐标、静止棋子分别录制为图片复用，落子动画单独绘制，
-/// Web 端也能保持流畅。皮肤通过 [skin] 监听，切换时清空缓存重绘。
+/// Web 端也能保持流畅。
 class BoardComponent extends PositionComponent
     with TapCallbacks, PointerMoveCallbacks {
-  BoardComponent({required this.view, required this.skin});
+  BoardComponent({required this.view, this.skin = kDefaultBoardSkin});
 
   final BoardView view;
-  final ValueListenable<BoardSkin> skin;
+  final BoardSkin skin;
 
-  BoardSkin get _skin => skin.value;
+  BoardSkin get _skin => skin;
 
   double _cell = 0;
   double _originX = 0;
   double _originY = 0;
   double _time = 0;
   int _seenMoves = 0;
+  int _seenRevision = 0;
   _StoneAnim? _anim;
   int? _hoverIndex;
 
@@ -39,26 +39,7 @@ class BoardComponent extends PositionComponent
   final _PictureLayer _boardLayer = _PictureLayer();
   final _PictureLayer _stoneLayer = _PictureLayer();
 
-  @override
-  Future<void> onLoad() async {
-    await super.onLoad();
-    skin.addListener(_clearCaches);
-  }
-
-  @override
-  void onRemove() {
-    skin.removeListener(_clearCaches);
-    _clearCaches();
-    super.onRemove();
-  }
-
-  void _clearCaches() {
-    _boardLayer.clear();
-    _stoneLayer.clear();
-    _disposeCoordPainters();
-  }
-
-  /// 坐标文字按尺寸缓存，缩放或换肤后须整体释放，避免按尺寸累积。
+  /// 坐标文字按尺寸缓存，缩放后须整体释放，避免按尺寸累积。
   void _disposeCoordPainters() {
     for (final painter in _coordPainters.values) {
       painter.dispose();
@@ -70,6 +51,12 @@ class BoardComponent extends PositionComponent
   void update(double dt) {
     super.update(dt);
     _time += dt;
+    if (view.revision != _seenRevision) {
+      _seenRevision = view.revision;
+      _anim = null;
+      _seenMoves = view.history.length;
+      _invalidateStones();
+    }
     _syncMoves();
     final anim = _anim;
     if (anim != null) {
@@ -134,7 +121,8 @@ class BoardComponent extends PositionComponent
   void onTapDown(TapDownEvent event) {
     final index = _indexAt(_offsetOf(event.localPosition));
     if (index == null) return;
-    if (!view.canInteract || view.cells[index] != empty) return;
+    if (!view.canInteract) return;
+    if (view.cells[index] != empty && !view.allowsReplace) return;
     SoundService.tap();
     view.tapCell(index);
   }

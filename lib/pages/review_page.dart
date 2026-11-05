@@ -4,13 +4,11 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 
 import '../flame/gomoku_game.dart';
 import '../game/game_archive.dart';
 import '../game/replay_controller.dart';
 import '../models/move_record.dart';
-import '../providers/settings_provider.dart';
 import '../services/file_system_service.dart';
 import '../services/log_service.dart';
 import '../utils/formatters.dart';
@@ -53,12 +51,6 @@ class _ReviewPageState extends State<ReviewPage> {
     _replay = ReplayController(moves: widget.moves);
     _game = GomokuGame(view: _replay);
     LogService.info('进入复盘: ${widget.title}, 共 ${_replay.total} 手');
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _game.skin = Provider.of<SettingsProvider>(context).boardSkin;
   }
 
   @override

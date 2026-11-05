@@ -10,7 +10,6 @@ import 'widgets/log_dialog.dart';
 import 'widgets/page_list.dart';
 import 'widgets/preference_pickers.dart';
 import 'widgets/section_card.dart';
-import 'widgets/skin_picker.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -59,8 +58,6 @@ class SettingsPage extends StatelessWidget {
               title: '外观与棋盘',
               icon: Icons.palette_outlined,
               children: [
-                SkinPicker(settings: settings),
-                const SizedBox(height: 16),
                 _SwitchRow(
                   title: '深色模式',
                   subtitle: '暖墨底色，夜间对弈更舒适',

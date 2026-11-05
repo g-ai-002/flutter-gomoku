@@ -63,7 +63,7 @@ class HomePage extends StatelessWidget {
                         children: [
                           _TopBar(darkMode: settings.darkMode),
                           const SizedBox(height: 22),
-                          _Hero(skin: settings.boardSkin),
+                          const _Hero(),
                           const SizedBox(height: 30),
                           if (twoColumns)
                             Wrap(
@@ -177,7 +177,7 @@ class HomePage extends StatelessWidget {
     EntryTile(
       leading: EntryBadge(icon: Icons.flag_outlined, accent: colors.secondary),
       title: '残局挑战',
-      subtitle: '10 道杀法 · 一步成五到双三',
+      subtitle: '10 道杀法 · 支持自建残局',
       onTap: () => _openPuzzles(context),
     ),
     EntryTile(
@@ -256,9 +256,7 @@ class _TopBar extends StatelessWidget {
 }
 
 class _Hero extends StatelessWidget {
-  const _Hero({required this.skin});
-
-  final BoardSkin skin;
+  const _Hero();
 
   @override
   Widget build(BuildContext context) {
@@ -266,7 +264,7 @@ class _Hero extends StatelessWidget {
     final colors = theme.colorScheme;
     return Column(
       children: [
-        BoardPreview(skin: skin),
+        const BoardPreview(),
         const SizedBox(height: 20),
         Text(
           '五子棋',

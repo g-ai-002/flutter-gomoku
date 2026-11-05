@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../theme/board_painting.dart';
 import '../../theme/board_skin.dart';
 
-/// 首页装饰：一张缩小的 15 路棋盘，黑白各两子，配色跟随当前皮肤。
+/// 首页装饰：一张缩小的 15 路棋盘，黑白各两子，使用统一棋盘配色。
 class BoardPreview extends StatelessWidget {
   const BoardPreview({super.key, this.skin = kDefaultBoardSkin});
 

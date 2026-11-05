@@ -79,7 +79,7 @@ class _GamePageState extends State<GamePage> {
           ? (opening == null ? OpeningBook.standard : OpeningBook([opening]))
           : null,
     );
-    _game = GomokuGame(view: _controller, skin: settings.boardSkin);
+    _game = GomokuGame(view: _controller);
     _feedback = MoveFeedbackTracker(_controller);
     _controller.addListener(_onControllerChanged);
     final clock = _controller.timeControl;
@@ -92,12 +92,6 @@ class _GamePageState extends State<GamePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _controller.start();
     });
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _game.skin = Provider.of<SettingsProvider>(context).boardSkin;
   }
 
   void _onControllerChanged() {

@@ -45,11 +45,6 @@ class StorageService {
   Future<void> setShowCoordinates(bool value) =>
       _write((p) => p.setBool(AppConstants.prefKeyShowCoordinates, value));
 
-  /// 棋盘皮肤 id，未设置或未知值由 `boardSkinOf` 回退到默认皮肤。
-  String? get boardSkinId => _p.getString(AppConstants.prefKeyBoardSkin);
-  Future<void> setBoardSkinId(String value) =>
-      _write((p) => p.setString(AppConstants.prefKeyBoardSkin, value));
-
   bool get soundEnabled => _p.getBool(AppConstants.prefKeySound) ?? true;
   Future<void> setSoundEnabled(bool value) =>
       _write((p) => p.setBool(AppConstants.prefKeySound, value));

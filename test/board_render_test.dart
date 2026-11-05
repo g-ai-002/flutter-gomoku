@@ -7,15 +7,12 @@ import 'package:gomoku/flame/board_component.dart';
 import 'package:gomoku/game/engine/board_utils.dart';
 import 'package:gomoku/game/game_controller.dart';
 import 'package:gomoku/models/game_models.dart';
-import 'package:gomoku/theme/board_skin.dart';
 
 const double _size = 480;
 
 Future<ByteData> _renderBoard(GameController controller) async {
-  final component = BoardComponent(
-    view: controller,
-    skin: ValueNotifier(woodSkin),
-  )..size = Vector2(_size, _size);
+  final component = BoardComponent(view: controller)
+    ..size = Vector2(_size, _size);
   final recorder = ui.PictureRecorder();
   component.render(ui.Canvas(recorder));
   final image = await recorder.endRecording().toImage(

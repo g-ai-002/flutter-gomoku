@@ -9,14 +9,13 @@ class StoneFace {
   final Color ink;
 }
 
-/// 棋盘皮肤：棋盘底色、线条墨色、星位、强调色与双方棋面配色。
+/// 棋盘外观：底色、线条墨色、强调色与双方棋面配色。
 ///
-/// 皮肤只影响绘制，不参与规则与对局逻辑，对局页、复盘页与首页缩略图共用。
+/// 外观只影响绘制，不参与规则与对局逻辑，所有棋盘页面共用。
 class BoardSkin {
   const BoardSkin({
     required this.id,
     required this.name,
-    required this.description,
     required this.boardLight,
     required this.boardDark,
     required this.line,
@@ -27,7 +26,6 @@ class BoardSkin {
 
   final String id;
   final String name;
-  final String description;
   final Color boardLight;
   final Color boardDark;
   final Color line;
@@ -47,10 +45,9 @@ class BoardSkin {
 }
 
 /// 原木：经典木纹配暖色棋盘。
-const BoardSkin woodSkin = BoardSkin(
+const BoardSkin kDefaultBoardSkin = BoardSkin(
   id: 'wood',
   name: '原木',
-  description: '经典木纹',
   boardLight: Color(0xFFF4E3C1),
   boardDark: Color(0xFFE0C391),
   line: Color(0xFF8A6337),
@@ -65,58 +62,4 @@ const BoardSkin woodSkin = BoardSkin(
     dark: Color(0xFFD9D2C2),
     ink: Color(0xFF8A8274),
   ),
-);
-
-/// 青玉：淡青棋盘配冷调线条，适合白天久坐。
-const BoardSkin jadeSkin = BoardSkin(
-  id: 'jade',
-  name: '青玉',
-  description: '淡青素雅',
-  boardLight: Color(0xFFE9F1E4),
-  boardDark: Color(0xFFC7DBC7),
-  line: Color(0xFF4C6B57),
-  accent: Color(0xFF2F5D50),
-  blackStone: StoneFace(
-    light: Color(0xFF56645C),
-    dark: Color(0xFF171E1A),
-    ink: Color(0xFF0C100D),
-  ),
-  whiteStone: StoneFace(
-    light: Color(0xFFFDFEF9),
-    dark: Color(0xFFD5DCCF),
-    ink: Color(0xFF7F8B7D),
-  ),
-);
-
-/// 墨韵：深墨棋盘配浅色线条，夜间观感沉静。
-const BoardSkin inkSkin = BoardSkin(
-  id: 'ink',
-  name: '墨韵',
-  description: '深墨夜局',
-  boardLight: Color(0xFF4C524D),
-  boardDark: Color(0xFF2E3330),
-  line: Color(0xFFE2DAC8),
-  accent: Color(0xFFE7B25C),
-  blackStone: StoneFace(
-    light: Color(0xFF6A7169),
-    dark: Color(0xFF171B18),
-    ink: Color(0xFF070907),
-  ),
-  whiteStone: StoneFace(
-    light: Color(0xFFFFFFFF),
-    dark: Color(0xFFE2DCCD),
-    ink: Color(0xFF807A6C),
-  ),
-);
-
-/// 默认皮肤：偏好缺失或 id 失效时统一回退到此皮肤。
-const BoardSkin kDefaultBoardSkin = woodSkin;
-
-/// 全部可选皮肤，顺序即设置页展示顺序。
-const List<BoardSkin> kBoardSkins = [woodSkin, jadeSkin, inkSkin];
-
-/// 按 id 取皮肤，未知 id 回退默认皮肤，兼容旧版本偏好。
-BoardSkin boardSkinOf(String? id) => kBoardSkins.firstWhere(
-  (skin) => skin.id == id,
-  orElse: () => kDefaultBoardSkin,
 );

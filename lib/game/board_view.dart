@@ -27,5 +27,11 @@ abstract class BoardView {
   /// 黑棋禁手点，供棋盘标记；未启用禁手时为空。
   Set<int> get forbiddenPoints => const {};
 
+  /// 局面版本号：编辑器直接改棋子后递增，棋盘据此丢弃缓存的棋子图层。
+  int get revision => 0;
+
+  /// 是否允许点击已有棋子，残局编辑器用它移除棋子。
+  bool get allowsReplace => false;
+
   void tapCell(int index);
 }

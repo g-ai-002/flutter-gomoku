@@ -106,6 +106,12 @@ class GameController extends ChangeNotifier implements BoardView {
     return _forbiddenCache ??= GomokuForbidden.points(board.cells);
   }
 
+  @override
+  bool get allowsReplace => false;
+
+  @override
+  int get revision => 0;
+
   bool get isHumanTurn =>
       mode == GameMode.twoPlayers || board.sideToMove == humanSide;
 

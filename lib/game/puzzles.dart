@@ -25,6 +25,7 @@ class GomokuPuzzle {
     required this.blackStones,
     required this.whiteStones,
     required this.tip,
+    this.isCustom = false,
   });
 
   final String id;
@@ -36,6 +37,10 @@ class GomokuPuzzle {
   final List<int> blackStones;
   final List<int> whiteStones;
   final String tip;
+  final bool isCustom;
+
+  String get label => isCustom ? '自定义' : tier.label;
+  String get goal => isCustom ? '自定残局' : tier.goal;
 
   /// 每次对局都生成一份新的棋盘，避免改动内置局面。
   Uint8List buildCells() {

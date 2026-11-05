@@ -1,12 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '../flame/gomoku_game.dart';
 import '../game/puzzle_controller.dart';
 import '../game/puzzles.dart';
-import '../providers/settings_provider.dart';
 import '../services/log_service.dart';
 import '../services/move_feedback_tracker.dart';
 import '../services/puzzle_progress_service.dart';
@@ -46,12 +44,6 @@ class _PuzzlePageState extends State<PuzzlePage> {
     LogService.info('进入残局: ${widget.puzzle.id} ${widget.puzzle.title}');
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _game.skin = Provider.of<SettingsProvider>(context).boardSkin;
-  }
-
   void _onChanged() {
     if (!mounted) return;
     _feedback.sync();
@@ -72,7 +64,9 @@ class _PuzzlePageState extends State<PuzzlePage> {
 
   Future<void> _showResult(bool solved) async {
     if (!mounted) return;
-    final index = kGomokuPuzzles.indexOf(widget.puzzle);
+    final index = widget.puzzle.isCustom
+        ? -1
+        : kGomokuPuzzles.indexOf(widget.puzzle);
     final hasNext = index >= 0 && index + 1 < kGomokuPuzzles.length;
     final action = await showPuzzleResultDialog(
       context,
@@ -81,7 +75,7 @@ class _PuzzlePageState extends State<PuzzlePage> {
           ? '在 ${widget.puzzle.moveLimit} 手内连成五子'
           : (_controller.failureReason ?? '未能完成残局'),
       note:
-          '${widget.puzzle.tier.label} · ${widget.puzzle.title} · '
+          '${widget.puzzle.label} · ${widget.puzzle.title} · '
           '已用 ${_controller.playerMoves}/${widget.puzzle.moveLimit} 手',
       hasNext: hasNext,
     );
@@ -105,7 +99,7 @@ class _PuzzlePageState extends State<PuzzlePage> {
     showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text('${widget.puzzle.tier.goal} · ${widget.puzzle.title}'),
+        title: Text('${widget.puzzle.goal} · ${widget.puzzle.title}'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,7 +143,7 @@ class _PuzzlePageState extends State<PuzzlePage> {
     return BoardPageScaffold(
       title: '残局挑战',
       caption:
-          '${widget.puzzle.tier.label} · ${widget.puzzle.title} · '
+          '${widget.puzzle.label} · ${widget.puzzle.title} · '
           '${widget.puzzle.moveLimit} 手内成五',
       actions: [
         IconButton(
@@ -166,7 +160,7 @@ class _PuzzlePageState extends State<PuzzlePage> {
         sidePanel: (_) => MovePanel(
           history: _controller.history,
           footer:
-              '${widget.puzzle.tier.goal} · '
+              '${widget.puzzle.goal} · '
               '白棋由本地 AI 应对，点击交叉点落子。',
         ),
       ),

@@ -14,13 +14,12 @@ class AppConstants {
   AppConstants._();
 
   static const String appName = '五子棋';
-  static const String version = '0.3.2';
+  static const String version = '0.4.0';
 
   static const String prefKeyDarkMode = 'dark_mode';
   static const String prefKeyDifficulty = 'difficulty';
   static const String prefKeyHumanSide = 'human_side';
   static const String prefKeyShowCoordinates = 'show_coordinates';
-  static const String prefKeyBoardSkin = 'board_skin';
   static const String prefKeySound = 'sound_enabled';
   static const String prefKeyMusic = 'music_enabled';
   static const String prefKeyHaptics = 'haptics_enabled';
@@ -28,5 +27,6 @@ class AppConstants {
   static const String prefKeyGameHistory = 'game_history';
   static const String prefKeyOpeningHints = 'opening_hints';
   static const String prefKeyPuzzleProgress = 'puzzle_progress';
+  static const String prefKeyCustomPuzzles = 'custom_puzzles';
   static const String prefKeyForbiddenRule = 'forbidden_rule';
 }

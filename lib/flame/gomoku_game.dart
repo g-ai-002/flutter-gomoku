@@ -2,27 +2,21 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
 import '../game/board_view.dart';
-import '../theme/board_skin.dart';
 import 'board_component.dart';
 
 /// Flame 游戏入口：棋盘组件铺满可用区域。
 class GomokuGame extends FlameGame {
-  GomokuGame({required this.view, BoardSkin skin = kDefaultBoardSkin})
-    : _skin = ValueNotifier(skin);
+  GomokuGame({required this.view});
 
   final BoardView view;
-  final ValueNotifier<BoardSkin> _skin;
   BoardComponent? _board;
-
-  BoardSkin get skin => _skin.value;
-  set skin(BoardSkin value) => _skin.value = value;
 
   @override
   Color backgroundColor() => Colors.transparent;
 
   @override
   Future<void> onLoad() async {
-    final board = BoardComponent(view: view, skin: _skin);
+    final board = BoardComponent(view: view);
     _board = board;
     _fit(board);
     await add(board);

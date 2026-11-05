@@ -5,7 +5,6 @@ import 'package:gomoku/models/game_models.dart';
 import 'package:gomoku/models/saved_game.dart';
 import 'package:gomoku/services/game_history_service.dart';
 import 'package:gomoku/services/storage_service.dart';
-import 'package:gomoku/theme/board_skin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 SavedGame _savedGame(String id, {int minutes = 0}) {
@@ -38,7 +37,6 @@ void main() {
       expect(storage.soundEnabled, isTrue);
       expect(storage.musicEnabled, isTrue);
       expect(storage.hapticsEnabled, isTrue);
-      expect(storage.boardSkinId, isNull);
     });
 
     test('写入后可以读回', () async {
@@ -51,7 +49,6 @@ void main() {
       await storage.setSoundEnabled(false);
       await storage.setMusicEnabled(false);
       await storage.setHapticsEnabled(false);
-      await storage.setBoardSkinId(jadeSkin.id);
 
       expect(storage.darkMode, isTrue);
       expect(storage.showCoordinates, isFalse);
@@ -61,22 +58,19 @@ void main() {
       expect(storage.soundEnabled, isFalse);
       expect(storage.musicEnabled, isFalse);
       expect(storage.hapticsEnabled, isFalse);
-      expect(storage.boardSkinId, jadeSkin.id);
     });
 
-    test('未知枚举值与皮肤回退到默认', () async {
+    test('未知枚举值回退到默认', () async {
       SharedPreferences.setMockInitialValues({
         'difficulty': 'unknown',
         'time_control': 'unknown',
         'human_side': 9,
-        'board_skin': 'unknown',
       });
       StorageService.resetForTests();
       final storage = await StorageService.instance;
       expect(storage.difficulty, Difficulty.expert);
       expect(storage.timeControl, TimeControl.none);
       expect(storage.humanSide, 9);
-      expect(boardSkinOf(storage.boardSkinId).id, kDefaultBoardSkin.id);
     });
   });
 
