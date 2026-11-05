@@ -17,6 +17,7 @@ import '../services/sound_service.dart';
 import 'review_page.dart';
 import 'widgets/app_snack.dart';
 import 'widgets/board_actions.dart';
+import 'widgets/board_hint_overlay.dart';
 import 'widgets/board_page_scaffold.dart';
 import 'widgets/board_play_layout.dart';
 import 'widgets/board_stage.dart';
@@ -247,43 +248,33 @@ class _GamePageState extends State<GamePage> {
     );
   }
 
+  /// 状态区只放固定高度的状态条与棋钟，开局名与禁手图例改由棋盘浮层展示。
   Widget _buildStatus() {
-    final opening = _controller.openingName;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         GameStatusBar(controller: _controller, humanSide: widget.humanSide),
-        if (opening != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 5),
-            child: Text(
-              '开局 · $opening',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-                letterSpacing: 0.6,
-              ),
-            ),
-          ),
         if (_controller.clock != null) ...[
           const SizedBox(height: 8),
           ClockBar(controller: _controller),
         ],
-        if (_controller.forbiddenPoints.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 5),
-            child: Text(
-              '红圈为黑棋禁手点',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
       ],
     );
   }
 
-  Widget _buildBoard() =>
-      BoardStage(game: _game, gameKey: const ValueKey('gomoku-board'));
+  Widget _buildBoard() => BoardStage(
+    game: _game,
+    gameKey: const ValueKey('gomoku-board'),
+    overlays: IgnorePointer(
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) => BoardHintOverlay(
+          opening: _controller.openingName,
+          showForbiddenLegend: _controller.forbiddenPoints.isNotEmpty,
+        ),
+      ),
+    ),
+  );
 
   Widget _buildActions({required bool showMoves}) {
     final isAi = widget.mode == GameMode.vsAi;

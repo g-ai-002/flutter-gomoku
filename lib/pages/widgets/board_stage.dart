@@ -7,53 +7,63 @@ import '../../flame/gomoku_game.dart';
 
 /// 棋盘舞台：统一圆角、投影与 Flame 容器，对局、残局与复盘页共用。
 ///
-/// 棋盘保持 1:1 的宽高比，按可用空间取最大尺寸；组件自带重绘边界，
-/// 状态栏或操作区变化时不会触发棋盘重绘。
+/// 棋盘保持 1:1 的宽高比，按可用空间取最大尺寸；棋盘本体自带重绘边界，
+/// 状态栏或操作区变化时不会触发棋盘重绘。[overlays] 叠在棋盘上方，
+/// 不参与布局计算，提示出现或消失都不会改变棋盘尺寸。
 class BoardStage extends StatelessWidget {
   const BoardStage({
     super.key,
     required this.game,
     required this.gameKey,
     this.maxWidth = 680,
+    this.overlays,
   });
 
   final GomokuGame game;
   final Key gameKey;
   final double maxWidth;
 
+  /// 棋盘浮层，缺省为空；由页面按需传入提示、图例等临时信息。
+  final Widget? overlays;
+
   @override
   Widget build(BuildContext context) {
-    return RepaintBoundary(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          var width = math.min(constraints.maxWidth, maxWidth);
-          var height = width;
-          if (height > constraints.maxHeight) {
-            height = constraints.maxHeight;
-            width = height;
-          }
-          return Center(
-            child: Container(
-              width: width,
-              height: height,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.18),
-                    blurRadius: 22,
-                    offset: const Offset(0, 10),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        var width = math.min(constraints.maxWidth, maxWidth);
+        var height = width;
+        if (height > constraints.maxHeight) {
+          height = constraints.maxHeight;
+          width = height;
+        }
+        return Center(
+          child: Stack(
+            children: [
+              RepaintBoundary(
+                child: Container(
+                  width: width,
+                  height: height,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.18),
+                        blurRadius: 22,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
                   ),
-                ],
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
+                    child: GameWidget<GomokuGame>(key: gameKey, game: game),
+                  ),
+                ),
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(18),
-                child: GameWidget<GomokuGame>(key: gameKey, game: game),
-              ),
-            ),
-          );
-        },
-      ),
+              if (overlays != null) Positioned.fill(child: overlays!),
+            ],
+          ),
+        );
+      },
     );
   }
 }

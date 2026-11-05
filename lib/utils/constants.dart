@@ -14,7 +14,7 @@ class AppConstants {
   AppConstants._();
 
   static const String appName = '五子棋';
-  static const String version = '0.3.1';
+  static const String version = '0.3.2';
 
   static const String prefKeyDarkMode = 'dark_mode';
   static const String prefKeyDifficulty = 'difficulty';

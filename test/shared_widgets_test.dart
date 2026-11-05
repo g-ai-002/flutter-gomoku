@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:gomoku/pages/widgets/board_hint_overlay.dart';
 import 'package:gomoku/pages/widgets/board_play_layout.dart';
 import 'package:gomoku/pages/widgets/choice_pill.dart';
 import 'package:gomoku/pages/widgets/entry_tile.dart';
@@ -118,6 +119,43 @@ void main() {
     );
     final decoration = container.decoration! as BoxDecoration;
     expect(decoration.borderRadius, BorderRadius.circular(14));
+  });
+
+  testWidgets('棋盘浮层展示开局名与禁手图例，空提示不占布局', (tester) async {
+    await tester.pumpWidget(
+      _host(
+        SizedBox(
+          width: 240,
+          height: 240,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: BoardHintOverlay(
+                  opening: '直指·斜连',
+                  showForbiddenLegend: true,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('开局 · 直指·斜连'), findsOneWidget);
+    expect(find.text('红圈为黑棋禁手点'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.pumpWidget(
+      _host(
+        const SizedBox(
+          width: 240,
+          height: 240,
+          child: BoardHintOverlay(),
+        ),
+      ),
+    );
+    expect(find.byType(Text), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('宽屏棋盘布局只构建宽屏操作区并随通知重建', (tester) async {
