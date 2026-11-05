@@ -165,6 +165,26 @@ void main() {
       controller.dispose();
     });
 
+    test('校验结果缓存随落子、移除与清空刷新', () {
+      final controller = PuzzleEditorController();
+      for (var col = 3; col < 8; col++) {
+        controller.tapCell(indexOf(7, col));
+      }
+      expect(controller.invalidReason, '局面中已经有五连，请调整棋子');
+
+      controller.tapCell(indexOf(7, 7));
+      expect(controller.invalidReason, isNull);
+
+      controller.tapCell(indexOf(7, 7));
+      expect(controller.invalidReason, '局面中已经有五连，请调整棋子');
+
+      controller.clear();
+      expect(controller.blackCount, 0);
+      expect(controller.whiteCount, 0);
+      expect(controller.invalidReason, '请至少摆放一枚黑棋');
+      controller.dispose();
+    });
+
     test('编辑已有残局并限制手数', () {
       final controller = PuzzleEditorController(initial: _puzzle());
       expect(controller.blackCount, 3);

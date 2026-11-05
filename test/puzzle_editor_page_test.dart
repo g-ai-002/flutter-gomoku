@@ -101,6 +101,28 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
+  testWidgets('残局名称为空时提示且不保存', (tester) async {
+    _useDesktopView(tester);
+    final settings = await createSettings();
+    await tester.pumpWidget(
+      wrapPage(PuzzleEditorPage(initial: _customPuzzle()), settings),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 320));
+
+    await tester.tap(find.byTooltip('保存并挑战'));
+    await tester.pump();
+    expect(find.text('残局名称'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextFormField), '');
+    await tester.tap(find.text('保存并挑战'));
+    await tester.pump();
+
+    expect(find.widgetWithText(SnackBar, '请输入残局名称'), findsOneWidget);
+    expect(CustomPuzzleService.instance.puzzles, isEmpty);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   tearDown(() {
     PuzzleProgressService.instance.resetForTest();
   });

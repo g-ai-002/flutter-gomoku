@@ -124,7 +124,7 @@ void main() {
   testWidgets('棋盘浮层展示开局名与禁手图例，空提示不占布局', (tester) async {
     await tester.pumpWidget(
       _host(
-        SizedBox(
+        const SizedBox(
           width: 240,
           height: 240,
           child: Stack(
@@ -146,13 +146,7 @@ void main() {
     expect(tester.takeException(), isNull);
 
     await tester.pumpWidget(
-      _host(
-        const SizedBox(
-          width: 240,
-          height: 240,
-          child: BoardHintOverlay(),
-        ),
-      ),
+      _host(const SizedBox(width: 240, height: 240, child: BoardHintOverlay())),
     );
     expect(find.byType(Text), findsNothing);
     expect(tester.takeException(), isNull);
