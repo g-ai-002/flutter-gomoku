@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
+import '../game/engine/board_utils.dart';
 import '../utils/constants.dart';
 import 'board_skin.dart';
 
@@ -40,10 +41,10 @@ void paintBoardGrid(
 }) {
   final left = topLeft.dx;
   final top = topLeft.dy;
-  final right = left + cell * 14;
-  final bottom = top + cell * 14;
+  final right = left + cell * (boardSize - 1);
+  final bottom = top + cell * (boardSize - 1);
 
-  for (var index = 0; index < 15; index++) {
+  for (var index = 0; index < boardSize; index++) {
     final offset = index * cell;
     canvas.drawLine(
       Offset(left, top + offset),

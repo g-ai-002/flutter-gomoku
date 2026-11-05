@@ -35,4 +35,11 @@ class GomokuGame extends FlameGame {
       ..size = size.clone()
       ..position = Vector2.zero();
   }
+
+  @override
+  void onDispose() {
+    _board?.disposeResources();
+    _board = null;
+    super.onDispose();
+  }
 }

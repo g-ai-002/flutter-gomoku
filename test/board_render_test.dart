@@ -10,9 +10,7 @@ import 'package:gomoku/models/game_models.dart';
 
 const double _size = 480;
 
-Future<ByteData> _renderBoard(GameController controller) async {
-  final component = BoardComponent(view: controller)
-    ..size = Vector2(_size, _size);
+Future<ByteData> _renderComponent(BoardComponent component) async {
   final recorder = ui.PictureRecorder();
   component.render(ui.Canvas(recorder));
   final image = await recorder.endRecording().toImage(
@@ -22,6 +20,12 @@ Future<ByteData> _renderBoard(GameController controller) async {
   final data = await image.toByteData();
   image.dispose();
   return data!;
+}
+
+Future<ByteData> _renderBoard(GameController controller) async {
+  final component = BoardComponent(view: controller)
+    ..size = Vector2(_size, _size);
+  return _renderComponent(component);
 }
 
 ({int r, int g, int b}) _pixel(ByteData data, double x, double y) {
@@ -86,6 +90,28 @@ void main() {
       );
       expect(whiteStone.r, greaterThan(blackStone.r + 60));
       expect(whiteStone.g, greaterThan(blackStone.g + 60));
+    });
+  });
+
+  testWidgets('卸载棋盘后释放图层并可重新绘制', (tester) async {
+    await tester.runAsync(() async {
+      final controller = GameController(
+        mode: GameMode.twoPlayers,
+        difficulty: Difficulty.entry,
+        humanSide: black,
+      );
+      addTearDown(controller.dispose);
+      controller.start();
+      controller.tapCell(centerIndex);
+      final component = BoardComponent(view: controller)
+        ..size = Vector2(_size, _size);
+
+      final first = await _renderComponent(component);
+      component.disposeResources();
+      component.disposeResources();
+      final second = await _renderComponent(component);
+
+      expect(second.lengthInBytes, first.lengthInBytes);
     });
   });
 }

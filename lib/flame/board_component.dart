@@ -47,6 +47,16 @@ class BoardComponent extends PositionComponent
     _coordPainters.clear();
   }
 
+  /// 释放录制图层与坐标文字缓存；页面销毁时由 [GomokuGame] 调用。
+  ///
+  /// Flame 不会在 GameWidget 卸载时逐个调用子组件的 onRemove，
+  /// 这里显式回收 ui.Picture，避免反复进出对局页累积原生图片内存。
+  void disposeResources() {
+    _disposeCoordPainters();
+    _boardLayer.clear();
+    _stoneLayer.clear();
+  }
+
   @override
   void update(double dt) {
     super.update(dt);
@@ -216,7 +226,7 @@ class BoardComponent extends PositionComponent
         canvas,
         Offset(
           _originX + index * _cell - columnPainter.width / 2,
-          _originY + 14 * _cell + _cell * 0.72,
+          _originY + (boardSize - 1) * _cell + _cell * 0.72,
         ),
       );
       final rowPainter = _coordPainter('${index + 1}');
