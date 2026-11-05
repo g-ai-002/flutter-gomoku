@@ -7,11 +7,10 @@ import '../models/game_models.dart';
 import '../models/move_record.dart';
 import '../services/log_service.dart';
 import 'ai_player.dart';
+import 'board_session.dart';
 import 'board_state.dart';
-import 'board_view.dart';
 import 'engine/board_utils.dart';
 import 'engine/rules.dart';
-import 'hint_session.dart';
 import 'notation.dart';
 import 'puzzles.dart';
 
@@ -19,7 +18,7 @@ import 'puzzles.dart';
 enum PuzzleStatus { playing, solved, failed }
 
 /// 残局控制器：玩家执黑，白棋由本地 AI 应对，并在限定手数内判定成败。
-class PuzzleController extends ChangeNotifier implements BoardView {
+class PuzzleController extends BoardSession {
   PuzzleController({
     required this.puzzle,
     AiMoveProvider? aiMove,
@@ -40,16 +39,6 @@ class PuzzleController extends ChangeNotifier implements BoardView {
   /// 玩家已走的手数，白棋的应手不计入。
   int playerMoves = 0;
   bool thinking = false;
-
-  late final HintSession _hint = HintSession(_notify);
-
-  @override
-  int? get hintIndex => _hint.index;
-
-  bool get hintLoading => _hint.loading;
-
-  int _serial = 0;
-  bool _disposed = false;
 
   @override
   Uint8List get cells => board.cells;
@@ -103,7 +92,7 @@ class PuzzleController extends ChangeNotifier implements BoardView {
   /// 悔棋撤回玩家最近一手与白棋的应手。
   void undo() {
     if (!canUndo) return;
-    _serial++;
+    cancelPending();
     clearHint(notify: false);
     thinking = false;
     if (board.history.isNotEmpty && board.history.last.side == white) {
@@ -114,11 +103,11 @@ class PuzzleController extends ChangeNotifier implements BoardView {
     status = PuzzleStatus.playing;
     failureReason = null;
     LogService.info('残局悔棋: ${puzzle.title}');
-    _notify();
+    notifyBoard();
   }
 
   void restart() {
-    _serial++;
+    cancelPending();
     clearHint(notify: false);
     board = GomokuBoard.fromCells(puzzle.buildCells());
     playerMoves = 0;
@@ -126,12 +115,12 @@ class PuzzleController extends ChangeNotifier implements BoardView {
     failureReason = null;
     thinking = false;
     LogService.info('残局重开: ${puzzle.title}');
-    _notify();
+    notifyBoard();
   }
 
   Future<void> requestHint() async {
     if (!canInteract || hintLoading) return;
-    final move = await _hint.request(
+    final move = await hint.request(
       () => _hintMove(Uint8List.fromList(board.cells), black),
       isValid: (move) =>
           move >= 0 &&
@@ -143,8 +132,6 @@ class PuzzleController extends ChangeNotifier implements BoardView {
     if (move == null) return;
     LogService.info('残局提示: ${MoveNotation.describe(move)}');
   }
-
-  void clearHint({bool notify = true}) => _hint.clear(notify: notify);
 
   void _play(int index) {
     clearHint(notify: false);
@@ -175,17 +162,17 @@ class PuzzleController extends ChangeNotifier implements BoardView {
       _fail('未能在 ${puzzle.moveLimit} 手内取胜');
       return;
     }
-    _notify();
+    notifyBoard();
     if (board.sideToMove == white) _defend();
   }
 
   Future<void> _defend() async {
     if (thinking) return;
     thinking = true;
-    final serial = ++_serial;
-    _notify();
+    final serial = beginSerial();
+    notifyBoard();
     if (kIsWeb) await Future<void>.delayed(Duration.zero);
-    if (_disposed || serial != _serial) return;
+    if (!isCurrent(serial)) return;
 
     AiReply? reply;
     try {
@@ -197,7 +184,7 @@ class PuzzleController extends ChangeNotifier implements BoardView {
     } catch (error, stack) {
       LogService.error('残局 AI 应手失败', error, stack);
     }
-    if (_disposed || serial != _serial) return;
+    if (!isCurrent(serial)) return;
 
     thinking = false;
     final candidate = reply?.move ?? -1;
@@ -227,7 +214,7 @@ class PuzzleController extends ChangeNotifier implements BoardView {
     thinking = false;
     clearHint(notify: false);
     LogService.info('残局通关: ${puzzle.id} ${puzzle.title}, $playerMoves 手');
-    _notify();
+    notifyBoard();
   }
 
   void _fail(String reason) {
@@ -236,18 +223,6 @@ class PuzzleController extends ChangeNotifier implements BoardView {
     thinking = false;
     clearHint(notify: false);
     LogService.info('残局失败: ${puzzle.id} ${puzzle.title}（$reason）');
-    _notify();
-  }
-
-  void _notify() {
-    if (!_disposed) notifyListeners();
-  }
-
-  @override
-  void dispose() {
-    _disposed = true;
-    _serial++;
-    _hint.dispose();
-    super.dispose();
+    notifyBoard();
   }
 }
