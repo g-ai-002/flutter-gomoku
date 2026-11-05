@@ -10,6 +10,7 @@ import 'widgets/entry_tile.dart';
 import 'widgets/game_dialogs.dart';
 import 'widgets/highlight_panel.dart';
 import 'widgets/page_list.dart';
+import 'widgets/puzzle_share_dialog.dart';
 import 'widgets/status_chip.dart';
 
 /// 残局列表：按难度分组展示十道内置杀局，并管理玩家自建的残局。
@@ -57,6 +58,20 @@ class _PuzzleLibraryPageState extends State<PuzzleLibraryPage> {
     await _progress.clear();
     if (!mounted) return;
     showSnack(context, '残局进度已清空');
+  }
+
+  /// 粘贴分享码导入他人残局，导入后排在「我的残局」最前。
+  Future<void> _importShareCode() async {
+    final puzzle = await showPuzzleImportDialog(context);
+    if (puzzle == null || !mounted) return;
+    await _custom.save(
+      title: puzzle.title,
+      moveLimit: puzzle.moveLimit,
+      blackStones: puzzle.blackStones,
+      whiteStones: puzzle.whiteStones,
+    );
+    if (!mounted) return;
+    showSnack(context, '已导入「${puzzle.title}」');
   }
 
   /// 内置残局按难度分组，静态缓存，避免每次构建重复过滤。
@@ -128,13 +143,26 @@ class _PuzzleLibraryPageState extends State<PuzzleLibraryPage> {
     accent: Theme.of(context).colorScheme.secondary,
     solved: _progress.isSolved(puzzle.id),
     onTap: () => _open(puzzle.toPuzzle()),
-    trailing: TextButton(
-      onPressed: () => _openEditor(puzzle),
-      style: TextButton.styleFrom(
-        visualDensity: VisualDensity.compact,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-      ),
-      child: const Text('编辑'),
+    trailing: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          tooltip: '分享码',
+          onPressed: () => showPuzzleShareDialog(context, puzzle),
+          icon: const Icon(Icons.share_outlined, size: 17),
+          visualDensity: VisualDensity.compact,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints.tightFor(width: 32, height: 32),
+        ),
+        TextButton(
+          onPressed: () => _openEditor(puzzle),
+          style: TextButton.styleFrom(
+            visualDensity: VisualDensity.compact,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+          ),
+          child: const Text('编辑'),
+        ),
+      ],
     ),
   );
 
@@ -193,6 +221,11 @@ class _PuzzleLibraryPageState extends State<PuzzleLibraryPage> {
       appBar: AppBar(
         title: const Text('残局挑战'),
         actions: [
+          IconButton(
+            tooltip: '导入分享码',
+            onPressed: _importShareCode,
+            icon: const Icon(Icons.paste_rounded, size: 20),
+          ),
           IconButton(
             tooltip: '新建残局',
             onPressed: () => _openEditor(),
