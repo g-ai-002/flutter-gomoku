@@ -1,10 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/constants.dart';
 import 'log_service.dart';
+import 'prefs_json.dart';
 
 /// 残局通关记录：只保存已通关的关卡 id，读写失败不影响挑战流程。
 class PuzzleProgressService extends ChangeNotifier {
@@ -13,7 +11,10 @@ class PuzzleProgressService extends ChangeNotifier {
   static final PuzzleProgressService instance = PuzzleProgressService._();
 
   final Set<String> _solved = {};
-  SharedPreferences? _prefs;
+  final PrefsJson _store = PrefsJson(
+    key: AppConstants.prefKeyPuzzleProgress,
+    label: '残局进度',
+  );
   bool _loaded = false;
 
   Set<String> get solved => Set.unmodifiable(_solved);
@@ -25,26 +26,21 @@ class PuzzleProgressService extends ChangeNotifier {
   @visibleForTesting
   void resetForTest() {
     _solved.clear();
-    _prefs = null;
+    _store.resetCache();
     _loaded = false;
   }
 
   Future<void> load() async {
     if (_loaded) return;
     _loaded = true;
-    try {
-      _prefs ??= await SharedPreferences.getInstance();
-      final raw = _prefs!.getString(AppConstants.prefKeyPuzzleProgress);
-      if (raw == null || raw.isEmpty) return;
-      final decoded = jsonDecode(raw);
-      if (decoded is! List) return;
-      _solved
-        ..clear()
-        ..addAll(decoded.whereType<String>());
-      notifyListeners();
-    } catch (error, stack) {
-      LogService.error('读取残局进度失败', error, stack);
-    }
+    final loaded = await _store.read<String>(
+      (item) => item is String ? item : null,
+    );
+    if (loaded == null) return;
+    _solved
+      ..clear()
+      ..addAll(loaded);
+    notifyListeners();
   }
 
   Future<void> markSolved(String id) async {
@@ -66,24 +62,8 @@ class PuzzleProgressService extends ChangeNotifier {
   Future<void> clear() async {
     _solved.clear();
     notifyListeners();
-    try {
-      _prefs ??= await SharedPreferences.getInstance();
-      await _prefs!.remove(AppConstants.prefKeyPuzzleProgress);
-      LogService.info('已清空残局进度');
-    } catch (error, stack) {
-      LogService.error('清空残局进度失败', error, stack);
-    }
+    await _store.clear();
   }
 
-  Future<void> _persist() async {
-    try {
-      _prefs ??= await SharedPreferences.getInstance();
-      await _prefs!.setString(
-        AppConstants.prefKeyPuzzleProgress,
-        jsonEncode(_solved.toList()..sort()),
-      );
-    } catch (error, stack) {
-      LogService.error('保存残局进度失败', error, stack);
-    }
-  }
+  Future<void> _persist() => _store.write(_solved.toList()..sort());
 }

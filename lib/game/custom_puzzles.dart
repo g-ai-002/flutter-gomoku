@@ -1,9 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/log_service.dart';
+import '../services/prefs_json.dart';
 import '../utils/constants.dart';
 import 'engine/board_utils.dart';
 import 'puzzles.dart';
@@ -93,37 +91,31 @@ class CustomPuzzleService extends ChangeNotifier {
   static final CustomPuzzleService instance = CustomPuzzleService._();
 
   final List<CustomPuzzle> _puzzles = [];
-  SharedPreferences? _prefs;
+  final PrefsJson _store = PrefsJson(
+    key: AppConstants.prefKeyCustomPuzzles,
+    label: '自定义残局',
+  );
 
   List<CustomPuzzle> get puzzles => List.unmodifiable(_puzzles);
 
   @visibleForTesting
   void resetForTest() {
     _puzzles.clear();
-    _prefs = null;
+    _store.resetCache();
   }
 
   Future<void> load() async {
-    try {
-      _prefs ??= await SharedPreferences.getInstance();
-      final raw = _prefs!.getString(AppConstants.prefKeyCustomPuzzles);
-      final decoded = raw == null || raw.isEmpty ? null : jsonDecode(raw);
-      if (decoded is! List) return;
-      final loaded = <CustomPuzzle>[];
-      for (final item in decoded) {
-        if (item is! Map<String, dynamic>) continue;
-        final puzzle = CustomPuzzle.fromJson(item);
-        if (puzzle != null) loaded.add(puzzle);
-      }
-      loaded.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      _puzzles
-        ..clear()
-        ..addAll(loaded.take(CustomPuzzle.maxCount));
-      notifyListeners();
-    } catch (error, stack) {
-      LogService.error('读取自定义残局失败', error, stack);
-    }
+    final loaded = await _store.read<CustomPuzzle>(_decode);
+    if (loaded == null) return;
+    loaded.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    _puzzles
+      ..clear()
+      ..addAll(loaded.take(CustomPuzzle.maxCount));
+    notifyListeners();
   }
+
+  static CustomPuzzle? _decode(Object? item) =>
+      item is Map<String, dynamic> ? CustomPuzzle.fromJson(item) : null;
 
   /// 新建或覆盖已有 id 的残局，返回落库后的条目。
   Future<CustomPuzzle> save({
@@ -173,15 +165,6 @@ class CustomPuzzleService extends ChangeNotifier {
     return null;
   }
 
-  Future<void> _persist() async {
-    try {
-      _prefs ??= await SharedPreferences.getInstance();
-      await _prefs!.setString(
-        AppConstants.prefKeyCustomPuzzles,
-        jsonEncode([for (final puzzle in _puzzles) puzzle.toJson()]),
-      );
-    } catch (error, stack) {
-      LogService.error('保存自定义残局失败', error, stack);
-    }
-  }
+  Future<void> _persist() =>
+      _store.write([for (final puzzle in _puzzles) puzzle.toJson()]);
 }
