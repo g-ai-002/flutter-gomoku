@@ -42,21 +42,20 @@ class _PuzzleEditorPageState extends State<PuzzleEditorPage> {
       showSnack(context, reason);
       return;
     }
-    final input = TextEditingController(
-      text:
-          widget.initial?.title ??
-          '我的残局 ${CustomPuzzleService.instance.puzzles.length + 1}',
-    );
+    var draft =
+        widget.initial?.title ??
+        '我的残局 ${CustomPuzzleService.instance.puzzles.length + 1}';
     final result = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('残局名称'),
-        content: TextField(
-          controller: input,
+        content: TextFormField(
+          initialValue: draft,
           autofocus: true,
           maxLength: 20,
           textInputAction: TextInputAction.done,
-          onSubmitted: (value) => Navigator.of(dialogContext).pop(value),
+          onChanged: (value) => draft = value,
+          onFieldSubmitted: (value) => Navigator.of(dialogContext).pop(value),
           decoration: const InputDecoration(
             hintText: '例如：双三杀',
             border: OutlineInputBorder(),
@@ -68,13 +67,12 @@ class _PuzzleEditorPageState extends State<PuzzleEditorPage> {
             child: const Text('取消'),
           ),
           FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(input.text),
+            onPressed: () => Navigator.of(dialogContext).pop(draft),
             child: const Text('保存并挑战'),
           ),
         ],
       ),
     );
-    input.dispose();
     final title = result?.trim();
     if (title == null || title.isEmpty || !mounted) return;
     final saved = await CustomPuzzleService.instance.save(
