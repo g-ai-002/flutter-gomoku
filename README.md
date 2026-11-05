@@ -27,26 +27,27 @@
 
 ## 下载
 
-v0.5.0（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-gomoku/releases/tag/v0.5.0)
+v0.5.1（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-gomoku/releases/tag/v0.5.1)
 
 | 平台 | 产物 |
 | --- | --- |
-| Android (arm64) | `flutter-gomoku-0.5.0-android-aarch64.apk` |
-| Windows (x64, Win10+) | `flutter-gomoku-0.5.0-windows-x86_64.zip` |
-| Web | `flutter-gomoku-0.5.0-web.zip`（解压后起静态服务器） |
+| Android (arm64) | `flutter-gomoku-0.5.1-android-aarch64.apk` |
+| Windows (x64, Win10+) | `flutter-gomoku-0.5.1-windows-x86_64.zip` |
+| Web | `flutter-gomoku-0.5.1-web.zip`（解压后起静态服务器） |
 
 | 版本 | 说明 |
 | --- | --- |
+| v0.5.1 | 重构持久化与 AI 回合，修复加载竞态并在离开棋盘时释放图层 |
 | v0.5.0 | 新增残局分享码，离线复制粘贴即可导入他人的自建残局 |
 | v0.4.1 | 重构持久化、控制器生命周期与列表卡片，编辑器不再重建棋盘 |
 | v0.4.0 | 新增残局编辑器与自定义关卡，支持摆子、限手数、编辑与删除 |
 | v0.3.2 | 开局名与禁手图例改为棋盘浮层，对局主界面不再随提示出现而移位 |
-| v0.3.1 | 重构页面骨架、棋盘布局与提示流程，收敛重复实现并补齐测试 |
 
 ### 更早版本
 
 | 版本 | 说明 |
 | --- | --- |
+| v0.3.1 | 重构页面骨架、棋盘布局与提示流程，收敛重复实现并补齐测试 |
 | v0.3.0 | 新增禁手规则：长连 / 四四 / 三三禁手、棋盘标记与 AI 遵守 |
 | v0.2.1 | 重构提示、落子反馈与页面操作代码，修复缓存与音频重试问题 |
 | v0.2.0 | 新增残局挑战、开局库与开局提示，补齐单人练习路径 |
