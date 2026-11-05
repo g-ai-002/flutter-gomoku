@@ -1,7 +1,5 @@
-import 'package:flutter/foundation.dart';
-
 import '../services/log_service.dart';
-import '../services/prefs_json.dart';
+import '../services/prefs_collection.dart';
 import '../utils/constants.dart';
 import 'engine/board_utils.dart';
 import 'puzzles.dart';
@@ -85,37 +83,30 @@ class CustomPuzzle {
 }
 
 /// 自定义残局库：内存与 SharedPreferences 双写，最多保留 30 关。
-class CustomPuzzleService extends ChangeNotifier {
-  CustomPuzzleService._();
+class CustomPuzzleService extends PrefsCollection<CustomPuzzle> {
+  CustomPuzzleService._()
+    : super(
+        key: AppConstants.prefKeyCustomPuzzles,
+        label: '自定义残局',
+        maxCount: CustomPuzzle.maxCount,
+      );
 
   static final CustomPuzzleService instance = CustomPuzzleService._();
 
-  final List<CustomPuzzle> _puzzles = [];
-  final PrefsJson _store = PrefsJson(
-    key: AppConstants.prefKeyCustomPuzzles,
-    label: '自定义残局',
-  );
+  List<CustomPuzzle> get puzzles => items;
 
-  List<CustomPuzzle> get puzzles => List.unmodifiable(_puzzles);
+  @override
+  String idOf(CustomPuzzle item) => item.id;
 
-  @visibleForTesting
-  void resetForTest() {
-    _puzzles.clear();
-    _store.resetCache();
-  }
+  @override
+  Object? encode(CustomPuzzle item) => item.toJson();
 
-  Future<void> load() async {
-    final loaded = await _store.read<CustomPuzzle>(_decode);
-    if (loaded == null) return;
-    loaded.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    _puzzles
-      ..clear()
-      ..addAll(loaded.take(CustomPuzzle.maxCount));
-    notifyListeners();
-  }
-
-  static CustomPuzzle? _decode(Object? item) =>
+  @override
+  CustomPuzzle? decode(Object? item) =>
       item is Map<String, dynamic> ? CustomPuzzle.fromJson(item) : null;
+
+  @override
+  DateTime? dateOf(CustomPuzzle item) => item.createdAt;
 
   /// 新建或覆盖已有 id 的残局，返回落库后的条目。
   Future<CustomPuzzle> save({
@@ -125,46 +116,32 @@ class CustomPuzzleService extends ChangeNotifier {
     required List<int> blackStones,
     required List<int> whiteStones,
   }) async {
+    await load();
     final existing = id == null ? null : _find(id);
     final now = DateTime.now();
     final puzzle = CustomPuzzle(
       id:
           existing?.id ??
-          'custom_${now.microsecondsSinceEpoch}_${_puzzles.length}',
+          'custom_${now.microsecondsSinceEpoch}_${puzzles.length}',
       title: title.trim(),
       moveLimit: moveLimit,
       blackStones: List.unmodifiable(blackStones),
       whiteStones: List.unmodifiable(whiteStones),
       createdAt: existing?.createdAt ?? now,
     );
-    _puzzles
-      ..removeWhere((item) => item.id == puzzle.id)
-      ..insert(0, puzzle);
-    if (_puzzles.length > CustomPuzzle.maxCount) {
-      _puzzles.removeRange(CustomPuzzle.maxCount, _puzzles.length);
-    }
-    notifyListeners();
     LogService.info('自定义残局已保存: ${puzzle.title}');
-    await _persist();
+    await put(puzzle);
     return puzzle;
   }
 
   Future<void> remove(String id) async {
-    final before = _puzzles.length;
-    _puzzles.removeWhere((item) => item.id == id);
-    if (_puzzles.length == before) return;
-    notifyListeners();
-    LogService.info('已删除自定义残局: $id');
-    await _persist();
+    if (await removeById(id)) LogService.info('已删除自定义残局: $id');
   }
 
   CustomPuzzle? _find(String id) {
-    for (final puzzle in _puzzles) {
+    for (final puzzle in puzzles) {
       if (puzzle.id == id) return puzzle;
     }
     return null;
   }
-
-  Future<void> _persist() =>
-      _store.write([for (final puzzle in _puzzles) puzzle.toJson()]);
 }
