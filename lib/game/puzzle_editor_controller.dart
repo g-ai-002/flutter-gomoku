@@ -63,19 +63,12 @@ class PuzzleEditorController extends ChangeNotifier implements BoardView {
   String? get invalidReason {
     if (!_invalidDirty) return _invalidReason;
     _invalidDirty = false;
-    _invalidReason = _blackCount == 0 ? '请至少摆放一枚黑棋' : _findFive();
-    return _invalidReason;
-  }
-
-  String? _findFive() {
-    for (var index = 0; index < cellCount; index++) {
-      final side = cells[index];
-      if (side == empty) continue;
-      if (GomokuRules.hasFive(cells, index, side)) {
-        return '局面中已经有五连，请调整棋子';
-      }
+    if (_blackCount == 0) {
+      _invalidReason = '请至少摆放一枚黑棋';
+    } else {
+      _invalidReason = GomokuRules.hasAnyFive(cells) ? '局面中已经有五连，请调整棋子' : null;
     }
-    return null;
+    return _invalidReason;
   }
 
   @override

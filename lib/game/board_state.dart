@@ -109,15 +109,9 @@ class GomokuBoard {
 
   /// 供棋谱导入与复盘校验：当前局面是否仍有五连。
   void _adoptWinningLine() {
-    for (var index = 0; index < cellCount; index++) {
-      final side = cells[index];
-      if (side == empty) continue;
-      final line = GomokuRules.winningLineAt(cells, index, side);
-      if (line.isNotEmpty) {
-        winningLine = line;
-        winner = side;
-        return;
-      }
-    }
+    final line = GomokuRules.firstWinningLine(cells);
+    if (line.isEmpty) return;
+    winningLine = line;
+    winner = cells[line.first];
   }
 }

@@ -4,7 +4,6 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 
 import '../models/game_models.dart';
-import '../models/move_record.dart';
 import '../services/log_service.dart';
 import 'ai_player.dart';
 import 'board_session.dart';
@@ -52,9 +51,8 @@ class GameController extends BoardSession {
   /// 让子方案，空盘时预置黑子并由白方先行。
   final Handicap handicap;
 
-  @override
-  Uint8List get cells => board.cells;
   final TimeControl timeControl;
+  @override
   final GomokuBoard board;
   final AiMoveProvider _aiMove;
   final HintMoveProvider _hintMove;
@@ -82,15 +80,6 @@ class GameController extends BoardSession {
   /// 最近一次 AI 搜索摘要，供界面展示引擎层数与用时。
   AiInsight? aiInsight;
 
-  @override
-  List<MoveRecord> get history => board.history;
-
-  @override
-  int? get lastIndex => board.lastIndex;
-
-  @override
-  List<int> get winningLine => board.winningLine;
-
   /// 当前黑棋的禁手点，仅在人类可以落子时计算并缓存。
   @override
   Set<int> get forbiddenPoints {
@@ -113,9 +102,6 @@ class GameController extends BoardSession {
 
   @override
   bool get canInteract => canInteractive;
-
-  @override
-  int get sideToMove => board.sideToMove;
 
   bool get canUndo {
     if (board.history.isEmpty) return false;
@@ -198,43 +184,41 @@ class GameController extends BoardSession {
 
   void undo() {
     if (!canUndo) return;
-    cancelPending();
-    clearHint(notify: false);
-    endThinking();
+    _resetRound();
     do {
       board.undoLast();
     } while (mode == GameMode.vsAi &&
         board.history.isNotEmpty &&
         board.sideToMove != humanSide);
-    result = null;
-    aiInsight = null;
-    lastViolation = null;
-    _forbiddenCache = null;
     _tracker?.rewind(keepMoves: board.history.length, side: board.sideToMove);
     LogService.info('悔棋，当前轮到${sideName(board.sideToMove)}');
     notifyBoard();
   }
 
   void restart() {
-    cancelPending();
-    clearHint(notify: false);
+    _resetRound(clearBook: true);
     board.reset();
-    endThinking();
-    result = null;
-    aiInsight = null;
-    lastViolation = null;
-    _forbiddenCache = null;
-    _bookLine = null;
     _tracker?.restart(board.sideToMove);
     LogService.info('重新开始对局');
     notifyBoard();
     if (mode == GameMode.vsAi && board.sideToMove != humanSide) _think();
   }
 
+  /// 清理悔棋与重开共用的异步与终局状态。
+  void _resetRound({bool clearBook = false}) {
+    cancelPending();
+    clearHint(notify: false);
+    endThinking();
+    result = null;
+    aiInsight = null;
+    lastViolation = null;
+    _forbiddenCache = null;
+    if (clearBook) _bookLine = null;
+  }
+
   void resign() {
     if (result != null) return;
     cancelPending();
-    clearHint(notify: false);
     endThinking();
     _finish(GameResult(winner: opponentOf(humanSide), reason: '认输'));
   }

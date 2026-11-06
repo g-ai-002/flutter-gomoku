@@ -67,6 +67,20 @@ void main() {
       expect(GomokuRules.hasFive(cells, indexOf(7, 5), white), isFalse);
       expect(GomokuRules.winningLineAt(cells, indexOf(7, 5), white), isEmpty);
     });
+
+    test('全盘五连扫描返回第一条连线', () {
+      final cells = emptyCells();
+      _place(cells, black, [(2, 2), (2, 3), (2, 4), (2, 5), (2, 6)]);
+      _place(cells, white, [(9, 2), (9, 3), (9, 4), (9, 5), (9, 6)]);
+
+      expect(GomokuRules.hasAnyFive(cells), isTrue);
+      expect(
+        GomokuRules.firstWinningLine(cells),
+        containsAll([indexOf(2, 2), indexOf(2, 6)]),
+      );
+      expect(GomokuRules.hasAnyFive(emptyCells()), isFalse);
+      expect(GomokuRules.firstWinningLine(emptyCells()), isEmpty);
+    });
   });
 
   group('战术与候选点', () {

@@ -4,7 +4,6 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 
 import '../models/game_models.dart';
-import '../models/move_record.dart';
 import '../services/log_service.dart';
 import 'ai_player.dart';
 import 'board_session.dart';
@@ -31,25 +30,13 @@ class PuzzleController extends BoardSession {
   final AiMoveProvider _aiMove;
   final HintMoveProvider _hintMove;
 
+  @override
   late GomokuBoard board;
-
   PuzzleStatus status = PuzzleStatus.playing;
   String? failureReason;
 
   /// 玩家已走的手数，白棋的应手不计入。
   int playerMoves = 0;
-
-  @override
-  Uint8List get cells => board.cells;
-
-  @override
-  List<MoveRecord> get history => board.history;
-
-  @override
-  int? get lastIndex => board.lastIndex;
-
-  @override
-  List<int> get winningLine => board.winningLine;
 
   @override
   bool get showCoordinates => true;
@@ -62,9 +49,6 @@ class PuzzleController extends BoardSession {
 
   @override
   int get revision => 0;
-
-  @override
-  int get sideToMove => board.sideToMove;
 
   @override
   bool get canInteract =>
@@ -170,11 +154,8 @@ class PuzzleController extends BoardSession {
     final serial = beginThinking();
     final reply = await searchAi(
       serial: serial,
-      search: () => _aiMove(
-        Uint8List.fromList(board.cells),
-        white,
-        Difficulty.normal,
-      ),
+      search: () =>
+          _aiMove(Uint8List.fromList(board.cells), white, Difficulty.normal),
       label: '残局 AI 应手',
     );
     if (!isCurrent(serial)) return;
@@ -195,19 +176,21 @@ class PuzzleController extends BoardSession {
   }
 
   void _finish() {
-    status = PuzzleStatus.solved;
-    endThinking();
-    clearHint(notify: false);
+    _end(PuzzleStatus.solved);
     LogService.info('残局通关: ${puzzle.id} ${puzzle.title}, $playerMoves 手');
-    notifyBoard();
   }
 
   void _fail(String reason) {
-    status = PuzzleStatus.failed;
+    _end(PuzzleStatus.failed, reason);
+    LogService.info('残局失败: ${puzzle.id} ${puzzle.title}（$reason）');
+  }
+
+  /// 终局统一收起思考态与提示，再通知界面刷新结果。
+  void _end(PuzzleStatus outcome, [String? reason]) {
+    status = outcome;
     failureReason = reason;
     endThinking();
     clearHint(notify: false);
-    LogService.info('残局失败: ${puzzle.id} ${puzzle.title}（$reason）');
     notifyBoard();
   }
 }

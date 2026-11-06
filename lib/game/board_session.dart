@@ -2,17 +2,37 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../models/move_record.dart';
 import '../services/log_service.dart';
 import 'ai_player.dart';
+import 'board_state.dart';
 import 'board_view.dart';
 import 'hint_session.dart';
 
-/// 对局与残局控制器共用的异步生命周期。
+/// 对局与残局控制器共用的棋盘状态与异步生命周期。
 ///
 /// 统一持有提示会话、AI 思考态、请求序号与释放状态：重开、悔棋或发起
 /// 新请求时，旧搜索的回包通过 [isCurrent] 丢弃，避免各控制器重复维护
-/// 一套标志位。
+/// 一套标志位。子类只需提供 [board]，棋盘与棋谱的只读状态由这里映射。
 abstract class BoardSession extends ChangeNotifier implements BoardView {
+  /// 当前棋局；对局控制器持有固定实例，残局控制器在重开时替换。
+  GomokuBoard get board;
+
+  @override
+  Uint8List get cells => board.cells;
+
+  @override
+  List<MoveRecord> get history => board.history;
+
+  @override
+  int? get lastIndex => board.lastIndex;
+
+  @override
+  List<int> get winningLine => board.winningLine;
+
+  @override
+  int get sideToMove => board.sideToMove;
+
   late final HintSession hint = HintSession(notifyBoard);
 
   int _serial = 0;

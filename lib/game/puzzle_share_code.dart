@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'custom_puzzles.dart';
-import 'engine/board_utils.dart';
 import 'engine/rules.dart';
 
 /// 自定义残局的纯文本分享码：`GMK1~<base64url 载荷>~<校验位>`。
@@ -52,7 +51,8 @@ class PuzzleShareCode {
       'id': 'shared_${time.microsecondsSinceEpoch}',
       'createdAt': time.toIso8601String(),
     });
-    if (puzzle == null || _hasFive(puzzle)) return null;
+    if (puzzle == null) return null;
+    if (GomokuRules.hasAnyFive(puzzle.toPuzzle().buildCells())) return null;
     return puzzle;
   }
 
@@ -63,14 +63,5 @@ class PuzzleShareCode {
       hash = ((hash ^ unit) * 0x01000193) & 0xFFFFFFFF;
     }
     return hash.toRadixString(16).padLeft(8, '0');
-  }
-
-  static bool _hasFive(CustomPuzzle puzzle) {
-    final cells = puzzle.toPuzzle().buildCells();
-    for (var index = 0; index < cellCount; index++) {
-      final side = cells[index];
-      if (side != empty && GomokuRules.hasFive(cells, index, side)) return true;
-    }
-    return false;
   }
 }

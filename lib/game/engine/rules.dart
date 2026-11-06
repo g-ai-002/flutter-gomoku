@@ -30,6 +30,28 @@ class GomokuRules {
     return false;
   }
 
+  /// 全盘第一条五连，供局面校验与棋谱导入使用。
+  static List<int> firstWinningLine(Uint8List cells) {
+    for (var index = 0; index < cellCount; index++) {
+      final side = cells[index];
+      if (side == empty) continue;
+      final line = winningLineAt(cells, index, side);
+      if (line.isNotEmpty) return line;
+    }
+    return const [];
+  }
+
+  /// 局面上是否已经有任意一方成五。
+  ///
+  /// 只返回布尔值，不构造连线，供残局编辑器与分享码校验使用。
+  static bool hasAnyFive(Uint8List cells) {
+    for (var index = 0; index < cellCount; index++) {
+      final side = cells[index];
+      if (side != empty && hasFive(cells, index, side)) return true;
+    }
+    return false;
+  }
+
   /// 从 [index] 沿 (dr, dc) 向两端延伸，返回连续同色棋子的起点与长度。
   static ({int startRow, int startCol, int length}) runAt(
     Uint8List cells,
