@@ -10,7 +10,6 @@ import 'widgets/entry_tile.dart';
 import 'widgets/game_dialogs.dart';
 import 'widgets/highlight_panel.dart';
 import 'widgets/page_list.dart';
-import 'widgets/puzzle_share_dialog.dart';
 import 'widgets/status_chip.dart';
 
 /// 残局列表：按难度分组展示十道内置杀局，并管理玩家自建的残局。
@@ -60,20 +59,6 @@ class _PuzzleLibraryPageState extends State<PuzzleLibraryPage> {
     showSnack(context, '残局进度已清空');
   }
 
-  /// 粘贴分享码导入他人残局，导入后排在「我的残局」最前。
-  Future<void> _importShareCode() async {
-    final puzzle = await showPuzzleImportDialog(context);
-    if (puzzle == null || !mounted) return;
-    await _custom.save(
-      title: puzzle.title,
-      moveLimit: puzzle.moveLimit,
-      blackStones: puzzle.blackStones,
-      whiteStones: puzzle.whiteStones,
-    );
-    if (!mounted) return;
-    showSnack(context, '已导入「${puzzle.title}」');
-  }
-
   /// 内置残局按难度分组，静态缓存，避免每次构建重复过滤。
   static final List<(PuzzleTier, List<GomokuPuzzle>)> _grouped = [
     for (final tier in PuzzleTier.values)
@@ -96,7 +81,8 @@ class _PuzzleLibraryPageState extends State<PuzzleLibraryPage> {
     required VoidCallback onTap,
     Widget? trailing,
   }) {
-    final colors = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
     return EntryTile(
       leading: EntryBadge(
         accent: solved ? colors.tertiary : accent,
@@ -115,8 +101,9 @@ class _PuzzleLibraryPageState extends State<PuzzleLibraryPage> {
                   ),
                   child: Text(
                     '已通关',
-                    style: Theme.of(context).textTheme.labelSmall
-                        ?.copyWith(color: colors.tertiary),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: colors.tertiary,
+                    ),
                   ),
                 )
               : null),
@@ -146,14 +133,6 @@ class _PuzzleLibraryPageState extends State<PuzzleLibraryPage> {
     trailing: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        IconButton(
-          tooltip: '分享码',
-          onPressed: () => showPuzzleShareDialog(context, puzzle),
-          icon: const Icon(Icons.share_outlined, size: 17),
-          visualDensity: VisualDensity.compact,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints.tightFor(width: 32, height: 32),
-        ),
         TextButton(
           onPressed: () => _openEditor(puzzle),
           style: TextButton.styleFrom(
@@ -221,11 +200,6 @@ class _PuzzleLibraryPageState extends State<PuzzleLibraryPage> {
       appBar: AppBar(
         title: const Text('残局挑战'),
         actions: [
-          IconButton(
-            tooltip: '导入分享码',
-            onPressed: _importShareCode,
-            icon: const Icon(Icons.paste_rounded, size: 20),
-          ),
           IconButton(
             tooltip: '新建残局',
             onPressed: () => _openEditor(),
@@ -296,6 +270,9 @@ class _ProgressHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final subtle = theme.textTheme.bodySmall?.copyWith(
+      color: colors.onSurfaceVariant,
+    );
     final ratio = total == 0 ? 0.0 : solved / total;
     return HighlightPanel(
       child: Column(
@@ -327,14 +304,7 @@ class _ProgressHeader extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(
-                child: Text(
-                  '从一步成五到双三杀，逐关练习棋型嗅觉。',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colors.onSurfaceVariant,
-                  ),
-                ),
-              ),
+              Expanded(child: Text('从一步成五到双三杀，逐关练习棋型嗅觉。', style: subtle)),
               const SizedBox(width: 10),
               FilledButton.tonalIcon(
                 onPressed: onStart,
