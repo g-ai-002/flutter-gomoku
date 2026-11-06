@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../game/engine/board_utils.dart';
+import '../../game/handicap.dart';
 import '../../models/game_models.dart';
 import '../../providers/settings_provider.dart';
 import 'choice_pill.dart';
@@ -59,6 +60,30 @@ class SidePicker extends StatelessWidget {
           accent: colors.secondary,
           onTap: () => settings.setHumanSide(white),
         ),
+      ],
+    );
+  }
+}
+
+/// 让子选择：人机执黑时预置黑子，由白方先行。
+class HandicapPicker extends StatelessWidget {
+  const HandicapPicker({super.key, required this.settings});
+
+  final SettingsProvider settings;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return _PickerGroup(
+      label: '让子（执黑时·白方先行）',
+      children: [
+        for (final handicap in Handicap.values)
+          ChoicePill(
+            label: handicap.label,
+            selected: settings.handicap == handicap,
+            accent: colors.tertiary,
+            onTap: () => settings.setHandicap(handicap),
+          ),
       ],
     );
   }

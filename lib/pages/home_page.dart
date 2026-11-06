@@ -146,7 +146,9 @@ class HomePage extends StatelessWidget {
         accent: colors.primary,
       ),
       title: GameMode.vsAi.label,
-      subtitle: '三档 AI 难度 · 可执黑或执白',
+      subtitle: settings.handicap.enabled && settings.humanSide == black
+          ? '${settings.handicap.label} · 白方先行'
+          : '三档 AI 难度 · 可执黑或执白',
       onTap: () => _startGame(context, settings, GameMode.vsAi),
     ),
     EntryTile(

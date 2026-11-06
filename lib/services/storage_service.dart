@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../game/engine/board_utils.dart';
+import '../game/handicap.dart';
 import '../models/game_models.dart';
 import '../utils/constants.dart';
 
@@ -85,4 +86,11 @@ class StorageService {
   int get humanSide => _p.getInt(AppConstants.prefKeyHumanSide) ?? black;
   Future<void> setHumanSide(int value) =>
       _write((p) => p.setInt(AppConstants.prefKeyHumanSide, value));
+
+  /// 人机执黑时的让子方案，未设置或未知值回退到不让子。
+  Handicap get handicap =>
+      Handicap.byName(_p.getString(AppConstants.prefKeyHandicap));
+
+  Future<void> setHandicap(Handicap value) =>
+      _write((p) => p.setString(AppConstants.prefKeyHandicap, value.name));
 }

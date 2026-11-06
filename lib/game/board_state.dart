@@ -4,20 +4,24 @@ import '../models/move_record.dart';
 import 'engine/board_utils.dart';
 import 'engine/forbidden.dart';
 import 'engine/rules.dart';
+import 'handicap.dart';
 import 'notation.dart';
 
 /// 可撤销的五子棋棋局状态。
 class GomokuBoard {
-  GomokuBoard({this.forbidBlack = false})
+  GomokuBoard({this.forbidBlack = false, this.handicap = Handicap.none})
     : cells = emptyCells(),
-      sideToMove = black;
+      sideToMove = black {
+    _placeHandicap();
+  }
 
   /// 从既有局面构造，供测试与棋谱导入使用。
   GomokuBoard.fromCells(
     Uint8List source, {
     this.sideToMove = black,
     this.forbidBlack = false,
-  }) : cells = Uint8List.fromList(source) {
+  }) : cells = Uint8List.fromList(source),
+       handicap = Handicap.none {
     _adoptWinningLine();
   }
 
@@ -25,6 +29,9 @@ class GomokuBoard {
 
   /// 是否启用黑棋禁手（长连、四四、三三）。
   bool forbidBlack;
+
+  /// 让子方案：预置黑子后由白方先行。
+  final Handicap handicap;
   int sideToMove;
   final List<MoveRecord> history = [];
   int? lastIndex;
@@ -75,6 +82,16 @@ class GomokuBoard {
     lastIndex = null;
     winningLine = const [];
     winner = null;
+    _placeHandicap();
+  }
+
+  /// 让子预置：黑棋占住天元与星位，随后由白方先行。
+  void _placeHandicap() {
+    if (!handicap.enabled) return;
+    for (final index in handicap.points) {
+      cells[index] = black;
+    }
+    sideToMove = white;
   }
 
   MoveRecord? undoLast() {

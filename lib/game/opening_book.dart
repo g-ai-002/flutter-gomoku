@@ -64,79 +64,41 @@ class OpeningBook {
 
 int _point(String notation) => MoveNotation.parse(notation)!;
 
+List<int> _line(String notation) => [
+  for (final token in notation.split(' ')) _point(token),
+];
+
 /// 六条参考开局，均由本地引擎从前六手对弈中筛选，覆盖直指与斜指两类。
 /// 开局名以「直指 / 斜指」开头，实战浮层只展示名称。
 final List<OpeningLine> kOpeningLines = [
   OpeningLine(
     id: 'direct-diagonal',
     name: '直指·斜连',
-    moves: [
-      _point('H8'),
-      _point('I8'),
-      _point('G7'),
-      _point('I9'),
-      _point('I7'),
-      _point('I10'),
-    ],
+    moves: _line('H8 I8 G7 I9 I7 I10'),
   ),
   OpeningLine(
     id: 'direct-line',
     name: '直指·同线',
-    moves: [
-      _point('H8'),
-      _point('I8'),
-      _point('G8'),
-      _point('H9'),
-      _point('G10'),
-      _point('G9'),
-    ],
+    moves: _line('H8 I8 G8 H9 G10 G9'),
   ),
   OpeningLine(
     id: 'direct-press',
     name: '直指·上压',
-    moves: [
-      _point('H8'),
-      _point('I8'),
-      _point('I7'),
-      _point('G9'),
-      _point('H7'),
-      _point('H9'),
-    ],
+    moves: _line('H8 I8 I7 G9 H7 H9'),
   ),
   OpeningLine(
     id: 'indirect-guard',
     name: '斜指·回防',
-    moves: [
-      _point('H8'),
-      _point('I9'),
-      _point('G8'),
-      _point('I8'),
-      _point('I7'),
-      _point('G9'),
-    ],
+    moves: _line('H8 I9 G8 I8 I7 G9'),
   ),
   OpeningLine(
     id: 'indirect-flow',
     name: '斜指·顺势',
-    moves: [
-      _point('H8'),
-      _point('I9'),
-      _point('G9'),
-      _point('I7'),
-      _point('I8'),
-      _point('J8'),
-    ],
+    moves: _line('H8 I9 G9 I7 I8 J8'),
   ),
   OpeningLine(
     id: 'indirect-counter',
     name: '斜指·反压',
-    moves: [
-      _point('H8'),
-      _point('I9'),
-      _point('I7'),
-      _point('G9'),
-      _point('H9'),
-      _point('H10'),
-    ],
+    moves: _line('H8 I9 I7 G9 H9 H10'),
   ),
 ];

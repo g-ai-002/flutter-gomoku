@@ -12,6 +12,7 @@ import 'board_state.dart';
 import 'engine/board_utils.dart';
 import 'engine/forbidden.dart';
 import 'engine/rules.dart';
+import 'handicap.dart';
 import 'match_clock.dart';
 import 'notation.dart';
 import 'opening_book.dart';
@@ -28,9 +29,11 @@ class GameController extends BoardSession {
     this.showCoordinates = true,
     this.timeControl = TimeControl.none,
     this.forbidBlack = false,
+    this.handicap = Handicap.none,
     this.openingBook,
     math.Random? openingRandom,
-  }) : board = board ?? GomokuBoard(forbidBlack: forbidBlack),
+  }) : board =
+           board ?? GomokuBoard(forbidBlack: forbidBlack, handicap: handicap),
        _aiMove = aiMove ?? AiPlayer.chooseMove,
        _hintMove = hintMove ?? AiPlayer.hintMove,
        _openingRandom = openingRandom ?? math.Random() {
@@ -45,6 +48,9 @@ class GameController extends BoardSession {
 
   /// 是否启用黑棋禁手（长连、四四、三三）。
   final bool forbidBlack;
+
+  /// 让子方案，空盘时预置黑子并由白方先行。
+  final Handicap handicap;
 
   @override
   Uint8List get cells => board.cells;
@@ -219,7 +225,7 @@ class GameController extends BoardSession {
     lastViolation = null;
     _forbiddenCache = null;
     _bookLine = null;
-    _tracker?.restart(black);
+    _tracker?.restart(board.sideToMove);
     LogService.info('重新开始对局');
     notifyBoard();
     if (mode == GameMode.vsAi && board.sideToMove != humanSide) _think();

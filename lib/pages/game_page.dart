@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../flame/gomoku_game.dart';
 import '../game/engine/board_utils.dart';
 import '../game/game_controller.dart';
+import '../game/handicap.dart';
 import '../game/opening_book.dart';
 import '../models/game_models.dart';
 import '../models/saved_game.dart';
@@ -63,10 +64,14 @@ class _GamePageState extends State<GamePage> {
     _resetGameIdentity();
     final settings = context.read<SettingsProvider>();
     final opening = widget.opening;
+    final handicap = widget.mode == GameMode.vsAi && widget.humanSide == black
+        ? settings.handicap
+        : Handicap.none;
     final useBook =
         opening != null ||
         (widget.mode == GameMode.vsAi &&
             widget.humanSide == black &&
+            !handicap.enabled &&
             settings.openingHints);
     _controller = GameController(
       mode: widget.mode,
@@ -75,6 +80,7 @@ class _GamePageState extends State<GamePage> {
       showCoordinates: settings.showCoordinates,
       timeControl: settings.timeControl,
       forbidBlack: settings.forbiddenRule,
+      handicap: handicap,
       openingBook: useBook
           ? (opening == null ? OpeningBook.standard : OpeningBook([opening]))
           : null,
@@ -85,9 +91,11 @@ class _GamePageState extends State<GamePage> {
     final clock = _controller.timeControl;
     final clockText = clock.isTimed ? '，棋钟 ${clock.label}' : '';
     final openingText = opening == null ? '' : '，开局练习 ${opening.name}';
+    final handicapText = handicap.enabled ? '，${handicap.label}' : '';
     LogService.info(
       '开始对局: ${widget.mode.label}, 难度 ${widget.difficulty.label}, '
-      '执${widget.humanSide == black ? '黑' : '白'}$clockText$openingText',
+      '执${widget.humanSide == black ? '黑' : '白'}$clockText$openingText'
+      '$handicapText',
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _controller.start();
@@ -164,6 +172,7 @@ class _GamePageState extends State<GamePage> {
           endedAt: endedAt,
           moves: _controller.history,
           result: '${result.title}（${result.reason}）',
+          handicap: _controller.handicap,
         ),
       ),
     );
@@ -179,6 +188,7 @@ class _GamePageState extends State<GamePage> {
           result: result == null ? null : '${result.title}（${result.reason}）',
           moves: List.of(_controller.history),
           date: _endedAt ?? DateTime.now(),
+          handicap: _controller.handicap,
         ),
       ),
     );
@@ -203,12 +213,16 @@ class _GamePageState extends State<GamePage> {
 
   String get _ruleSuffix => _controller.forbidBlack ? ' · 禁手' : '';
 
+  String get _handicapSuffix =>
+      _controller.handicap.enabled ? ' · ${_controller.handicap.label}' : '';
+
   String get _subtitle {
     final opening = widget.opening;
     if (opening != null) return '开局练习 · ${opening.name}$_ruleSuffix';
     if (widget.mode == GameMode.vsAi) {
       final side = widget.humanSide == black ? '执黑' : '执白';
-      return '${widget.difficulty.label} · $side$_clockSuffix$_ruleSuffix';
+      return '${widget.difficulty.label} · $side$_clockSuffix$_ruleSuffix'
+          '$_handicapSuffix';
     }
     return '同屏对弈$_clockSuffix$_ruleSuffix';
   }

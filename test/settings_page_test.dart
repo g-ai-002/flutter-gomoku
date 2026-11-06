@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gomoku/game/engine/board_utils.dart';
+import 'package:gomoku/game/handicap.dart';
 import 'package:gomoku/models/game_models.dart';
 import 'package:gomoku/pages/settings_page.dart';
 
@@ -25,7 +26,6 @@ void main() {
     expect(find.text('外观与棋盘'), findsOneWidget);
     expect(find.text('音效与反馈'), findsOneWidget);
     expect(find.text('运行日志'), findsOneWidget);
-    expect(find.text('关于'), findsOneWidget);
     expect(find.text('深色模式'), findsOneWidget);
     expect(find.text('显示坐标'), findsOneWidget);
   });
@@ -42,6 +42,10 @@ void main() {
     await tester.tap(find.text('执白后行'));
     await tester.pumpAndSettle();
     expect(settings.humanSide, white);
+
+    await tester.tap(find.text('让二子'));
+    await tester.pumpAndSettle();
+    expect(settings.handicap, Handicap.two);
 
     await tester.tap(find.text('10 分钟'));
     await tester.pumpAndSettle();

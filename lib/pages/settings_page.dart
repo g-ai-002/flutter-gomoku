@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../providers/settings_provider.dart';
 import '../services/file_system_service.dart';
-import '../utils/constants.dart';
 import '../utils/platform_info.dart';
 import 'widgets/app_snack.dart';
 import 'widgets/log_dialog.dart';
@@ -33,6 +32,8 @@ class SettingsPage extends StatelessWidget {
                 DifficultyPicker(settings: settings),
                 const SizedBox(height: 16),
                 SidePicker(settings: settings, label: '默认执子'),
+                const SizedBox(height: 16),
+                HandicapPicker(settings: settings),
                 const SizedBox(height: 16),
                 TimeControlPicker(settings: settings),
                 const SizedBox(height: 16),
@@ -154,28 +155,6 @@ class SettingsPage extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            SectionCard(
-              title: '关于',
-              icon: Icons.info_outline,
-              children: [
-                const _AboutRow(label: '版本', value: 'v${AppConstants.version}'),
-                const SizedBox(height: 8),
-                const _AboutRow(label: '引擎', value: 'Flutter + Flame'),
-                const SizedBox(height: 8),
-                const _AboutRow(label: '平台', value: 'Android / Windows / Web'),
-                const SizedBox(height: 12),
-                Text(
-                  '默认采用无禁手规则，黑白轮流落子，先连成五子者胜。'
-                  '开启禁手后黑棋不可长连、四四与三三，禁手点会以红圈标记。'
-                  '人机对战由本地棋型评估与 Alpha-Beta 搜索驱动，无需联网。',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colors.onSurfaceVariant,
-                    height: 1.6,
-                  ),
-                ),
-              ],
-            ),
           ],
         ),
       ),
@@ -225,30 +204,6 @@ class _SwitchRow extends StatelessWidget {
           onChanged: onChanged,
           activeTrackColor: colors.primary,
         ),
-      ],
-    );
-  }
-}
-
-class _AboutRow extends StatelessWidget {
-  const _AboutRow({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        Text(
-          label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const Spacer(),
-        Text(value, style: theme.textTheme.bodySmall),
       ],
     );
   }

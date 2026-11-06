@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 
 import '../flame/gomoku_game.dart';
 import '../game/game_archive.dart';
+import '../game/handicap.dart';
 import '../game/replay_controller.dart';
 import '../models/move_record.dart';
 import '../services/file_system_service.dart';
@@ -27,6 +28,7 @@ class ReviewPage extends StatefulWidget {
     required this.moves,
     this.result,
     this.date,
+    this.handicap = Handicap.none,
   });
 
   final String title;
@@ -35,6 +37,9 @@ class ReviewPage extends StatefulWidget {
 
   /// 棋谱结束时间，导出时写入「日期」；为空时取当前时间。
   final DateTime? date;
+
+  /// 该局使用的让子方案，复盘与再次导出时沿用。
+  final Handicap handicap;
 
   @override
   State<ReviewPage> createState() => _ReviewPageState();
@@ -48,7 +53,7 @@ class _ReviewPageState extends State<ReviewPage> {
   @override
   void initState() {
     super.initState();
-    _replay = ReplayController(moves: widget.moves);
+    _replay = ReplayController(moves: widget.moves, handicap: widget.handicap);
     _game = GomokuGame(view: _replay);
     LogService.info('进入复盘: ${widget.title}, 共 ${_replay.total} 手');
   }
@@ -114,6 +119,7 @@ class _ReviewPageState extends State<ReviewPage> {
     moves: widget.moves,
     result: widget.result,
     date: widget.date,
+    handicap: widget.handicap,
   );
 
   @override

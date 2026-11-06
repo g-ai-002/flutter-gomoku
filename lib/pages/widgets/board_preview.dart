@@ -6,9 +6,7 @@ import '../../theme/board_skin.dart';
 
 /// 首页装饰：一张缩小的 15 路棋盘，黑白各两子，使用统一棋盘配色。
 class BoardPreview extends StatelessWidget {
-  const BoardPreview({super.key, this.skin = kDefaultBoardSkin});
-
-  final BoardSkin skin;
+  const BoardPreview({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,28 +21,26 @@ class BoardPreview extends StatelessWidget {
           ),
         ],
       ),
-      child: CustomPaint(
-        size: const Size.square(172),
-        painter: _BoardPreviewPainter(skin),
+      child: const CustomPaint(
+        size: Size.square(172),
+        painter: _BoardPreviewPainter(),
       ),
     );
   }
 }
 
 class _BoardPreviewPainter extends CustomPainter {
-  const _BoardPreviewPainter(this.skin);
+  const _BoardPreviewPainter();
 
   /// 预览用的几手棋：黑白交替，落在天元附近。
   static const List<int> _stones = [112, 128, 98, 126];
-
-  final BoardSkin skin;
 
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
     canvas.drawRRect(
       RRect.fromRectAndRadius(rect, const Radius.circular(12)),
-      Paint()..shader = skin.gradient.createShader(rect),
+      Paint()..shader = kBoardGradient.createShader(rect),
     );
 
     const pad = 14.0;
@@ -55,12 +51,12 @@ class _BoardPreviewPainter extends CustomPainter {
       topLeft: topLeft,
       cell: cell,
       linePaint: Paint()
-        ..color = skin.line.withValues(alpha: 0.55)
+        ..color = kBoardLine.withValues(alpha: 0.55)
         ..strokeWidth = 0.7
         ..style = PaintingStyle.stroke,
-      starPaint: Paint()..color = skin.line.withValues(alpha: 0.75),
+      starPaint: Paint()..color = kBoardLine.withValues(alpha: 0.75),
       borderPaint: Paint()
-        ..color = skin.line.withValues(alpha: 0.55)
+        ..color = kBoardLine.withValues(alpha: 0.55)
         ..strokeWidth = 1.2
         ..style = PaintingStyle.stroke,
     );
@@ -73,12 +69,11 @@ class _BoardPreviewPainter extends CustomPainter {
           topLeft.dy + rowOf(index) * cell,
         ),
         radius: cell * 0.44,
-        face: skin.faceOf(i.isEven ? black : white),
+        face: faceOf(i.isEven ? black : white),
       );
     }
   }
 
   @override
-  bool shouldRepaint(covariant _BoardPreviewPainter oldDelegate) =>
-      oldDelegate.skin != skin;
+  bool shouldRepaint(covariant _BoardPreviewPainter oldDelegate) => false;
 }

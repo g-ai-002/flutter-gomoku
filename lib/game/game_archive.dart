@@ -1,6 +1,7 @@
 import '../models/move_record.dart';
 import '../utils/formatters.dart';
 import 'board_state.dart';
+import 'handicap.dart';
 import 'notation.dart';
 
 /// 导入后的棋谱：标题、结果、日期与着法序列。
@@ -10,12 +11,14 @@ class ArchivedGame {
     required this.moves,
     this.result,
     this.date,
+    this.handicap = Handicap.none,
   });
 
   final String title;
   final List<int> moves;
   final String? result;
   final String? date;
+  final Handicap handicap;
 }
 
 /// 棋谱文本的编码与解析，复盘导出与棋谱库导入共用。
@@ -30,6 +33,7 @@ class GameArchive {
     required List<MoveRecord> moves,
     String? result,
     DateTime? date,
+    Handicap handicap = Handicap.none,
   }) {
     final buffer = StringBuffer()
       ..writeln('# 五子棋棋谱')
@@ -40,9 +44,9 @@ class GameArchive {
     if (date != null) {
       buffer.writeln('日期：${formatDateTime(date)}');
     }
-    buffer
-      ..writeln('先手：黑')
-      ..writeln(_movesHeader);
+    buffer.writeln(handicap.enabled ? '先手：白' : '先手：黑');
+    if (handicap.enabled) buffer.writeln('让子：${handicap.count}');
+    buffer.writeln(_movesHeader);
     for (var i = 0; i < moves.length; i += 12) {
       final end = i + 12 < moves.length ? i + 12 : moves.length;
       buffer.writeln(
@@ -59,6 +63,7 @@ class GameArchive {
     var title = '导入棋谱';
     String? result;
     String? date;
+    var handicap = Handicap.none;
     final moveTokens = <String>[];
     var inMoves = false;
 
@@ -89,6 +94,10 @@ class GameArchive {
             date = value;
             continue;
           }
+          if (key == '让子') {
+            handicap = Handicap.byCount(int.tryParse(value));
+            continue;
+          }
           if (key == '先手') continue;
         }
       }
@@ -104,10 +113,16 @@ class GameArchive {
     }
     if (moves.isEmpty) return null;
 
-    final board = GomokuBoard();
+    final board = GomokuBoard(handicap: handicap);
     for (final move in moves) {
       if (board.apply(move) == null) return null;
     }
-    return ArchivedGame(title: title, moves: moves, result: result, date: date);
+    return ArchivedGame(
+      title: title,
+      moves: moves,
+      result: result,
+      date: date,
+      handicap: handicap,
+    );
   }
 }

@@ -3,17 +3,23 @@ import 'package:flutter/foundation.dart';
 import '../models/move_record.dart';
 import 'board_state.dart';
 import 'board_view.dart';
+import 'handicap.dart';
 
-/// 复盘控制器：按步回放一局棋谱，棋盘从空盘逐着重演。
+/// 复盘控制器：按步回放一局棋谱，棋盘从开局局面逐着重演。
 class ReplayController extends ChangeNotifier implements BoardView {
-  ReplayController({required List<MoveRecord> moves})
-    : moves = List.unmodifiable(moves) {
+  ReplayController({
+    required List<MoveRecord> moves,
+    this.handicap = Handicap.none,
+  }) : moves = List.unmodifiable(moves) {
     _validate();
-    _board = GomokuBoard();
+    _board = GomokuBoard(handicap: handicap);
   }
 
   /// 完整棋谱，超出当前进度的部分视为「未来」。
   final List<MoveRecord> moves;
+
+  /// 该局使用的让子方案，重演前先预置黑子。
+  final Handicap handicap;
 
   late GomokuBoard _board;
   int _cursor = 0;
@@ -81,7 +87,7 @@ class ReplayController extends ChangeNotifier implements BoardView {
     final target = cursor.clamp(0, moves.length);
     if (target == _cursor) return;
     if (target < _cursor) {
-      _board = GomokuBoard();
+      _board = GomokuBoard(handicap: handicap);
       _cursor = 0;
     }
     while (_cursor < target) {
@@ -100,7 +106,7 @@ class ReplayController extends ChangeNotifier implements BoardView {
 
   /// 构造时整体校验一遍，非法棋谱在进入复盘页前就暴露出来。
   void _validate() {
-    final board = GomokuBoard();
+    final board = GomokuBoard(handicap: handicap);
     for (var index = 0; index < moves.length; index++) {
       if (board.apply(moves[index].index) == null) {
         throw ArgumentError('第 ${index + 1} 手「${moves[index].notation}」不是合法着法');

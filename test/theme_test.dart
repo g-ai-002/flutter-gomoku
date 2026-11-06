@@ -5,10 +5,9 @@ import 'package:gomoku/theme/app_theme.dart';
 void main() {
   group('主题与棋盘', () {
     test('默认皮肤包含黑白棋面与强调色', () {
-      const skin = kDefaultBoardSkin;
-      expect(skin.blackStone.dark.computeLuminance(), lessThan(0.2));
-      expect(skin.whiteStone.light.computeLuminance(), greaterThan(0.7));
-      expect(skin.accent, isNot(skin.boardLight));
+      expect(kBlackStone.dark.computeLuminance(), lessThan(0.2));
+      expect(kWhiteStone.light.computeLuminance(), greaterThan(0.7));
+      expect(kBoardAccent, isNot(kBoardLight));
     });
 
     test('浅色与深色主题亮度正确', () {

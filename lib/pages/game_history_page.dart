@@ -24,6 +24,7 @@ class GameHistoryPage extends StatelessWidget {
           result: game.result,
           moves: game.moves,
           date: game.endedAt,
+          handicap: game.handicap,
         ),
       ),
     );

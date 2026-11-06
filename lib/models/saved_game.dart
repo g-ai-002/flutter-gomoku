@@ -1,5 +1,6 @@
 import '../game/board_state.dart';
 import '../game/game_archive.dart';
+import '../game/handicap.dart';
 import 'move_record.dart';
 
 /// 保存在本地的对局回放：着法序列，写入偏好存储后可再次复盘。
@@ -10,6 +11,7 @@ class SavedGame {
     required this.endedAt,
     required List<MoveRecord> moves,
     this.result,
+    this.handicap = Handicap.none,
   }) : moves = List.unmodifiable(moves);
 
   final String id;
@@ -17,6 +19,9 @@ class SavedGame {
   final DateTime endedAt;
   final List<MoveRecord> moves;
   final String? result;
+
+  /// 该局使用的让子方案，复盘时据此预置黑子。
+  final Handicap handicap;
 
   int get moveCount => moves.length;
 
@@ -28,6 +33,7 @@ class SavedGame {
     moves: moves,
     result: result,
     date: endedAt,
+    handicap: handicap,
   );
 
   Map<String, dynamic> toJson() => {
@@ -35,6 +41,7 @@ class SavedGame {
     'title': title,
     'endedAt': endedAt.toIso8601String(),
     'result': result,
+    'handicap': handicap.name,
     'moves': [for (final move in moves) move.index],
   };
 
@@ -49,7 +56,11 @@ class SavedGame {
       indices.add(token);
     }
     if (indices.isEmpty) return null;
-    final board = GomokuBoard();
+    final rawHandicap = json['handicap'];
+    final handicap = Handicap.byName(
+      rawHandicap is String ? rawHandicap : null,
+    );
+    final board = GomokuBoard(handicap: handicap);
     if (!board.replay(indices)) return null;
     final endedAt =
         DateTime.tryParse('${json['endedAt']}') ??
@@ -64,13 +75,14 @@ class SavedGame {
       result: json['result'] is String && (json['result'] as String).isNotEmpty
           ? json['result'] as String
           : null,
+      handicap: handicap,
     );
   }
 
   /// 把导入的棋谱转成棋谱库条目，日期缺失时用当前时间。
   factory SavedGame.fromArchive(ArchivedGame archive) {
     final now = DateTime.now();
-    final board = GomokuBoard();
+    final board = GomokuBoard(handicap: archive.handicap);
     board.replay(archive.moves);
     return SavedGame(
       id: 'import_${now.microsecondsSinceEpoch}',
@@ -78,6 +90,7 @@ class SavedGame {
       endedAt: DateTime.tryParse(archive.date ?? '') ?? now,
       moves: board.history,
       result: archive.result,
+      handicap: archive.handicap,
     );
   }
 }

@@ -88,6 +88,13 @@ void main() {
     expect(find.byType(SettingsPage), findsOneWidget);
   });
 
+  testWidgets('开启让子后人机入口展示让子与白方先行', (tester) async {
+    final settings = await createSettings(values: {'handicap': 'two'});
+    await tester.pumpWidget(wrapPage(const HomePage(), settings));
+
+    expect(find.text('让二子 · 白方先行'), findsOneWidget);
+  });
+
   testWidgets('棋谱复盘入口打开棋谱库', (tester) async {
     final settings = await createSettings();
     await tester.pumpWidget(wrapPage(const HomePage(), settings));

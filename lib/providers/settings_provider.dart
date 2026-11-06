@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../game/handicap.dart';
 import '../models/game_models.dart';
 import '../services/music_service.dart';
 import '../services/sound_service.dart';
@@ -26,6 +27,11 @@ class SettingsProvider extends ChangeNotifier {
   int get humanSide => _storage.humanSide;
   Future<void> setHumanSide(int value) =>
       _update(() => _storage.setHumanSide(value));
+
+  /// 让子方案：人机对战执黑时预置黑子，由白方先行。
+  Handicap get handicap => _storage.handicap;
+  Future<void> setHandicap(Handicap value) =>
+      _update(() => _storage.setHandicap(value));
 
   bool get soundEnabled => _storage.soundEnabled;
   Future<void> setSoundEnabled(bool value) => _update(() async {

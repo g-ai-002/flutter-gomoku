@@ -19,12 +19,9 @@ const double _animDuration = 0.26;
 /// Web 端也能保持流畅。
 class BoardComponent extends PositionComponent
     with TapCallbacks, PointerMoveCallbacks {
-  BoardComponent({required this.view, this.skin = kDefaultBoardSkin});
+  BoardComponent({required this.view});
 
   final BoardView view;
-  final BoardSkin skin;
-
-  BoardSkin get _skin => skin;
 
   double _cell = 0;
   double _originX = 0;
@@ -107,10 +104,10 @@ class BoardComponent extends PositionComponent
     _originY = height / 2 - _cell * 7;
   }
 
-  /// 录制图层的缓存键：尺寸、格距与皮肤共同决定棋盘与棋子的位置。
+  /// 录制图层的缓存键：尺寸与格距共同决定棋盘与棋子的位置。
   String get _layoutKey =>
       '${size.x.toStringAsFixed(1)}x${size.y.toStringAsFixed(1)}|'
-      '${_cell.toStringAsFixed(2)}|${_skin.id}';
+      '${_cell.toStringAsFixed(2)}';
 
   Offset _centerOf(int index) =>
       Offset(_originX + colOf(index) * _cell, _originY + rowOf(index) * _cell);
@@ -173,14 +170,14 @@ class BoardComponent extends PositionComponent
       canvas.drawRect(
         Rect.fromLTWH(0, 0, size.x, size.y),
         Paint()
-          ..shader = _skin.gradient.createShader(
+          ..shader = kBoardGradient.createShader(
             Rect.fromLTWH(0, 0, size.x, size.y),
           ),
       );
       _drawGrain(canvas);
 
       final Paint linePaint = Paint()
-        ..color = _skin.line.withValues(alpha: 0.72)
+        ..color = kBoardLine.withValues(alpha: 0.72)
         ..strokeWidth = math.max(0.7, _cell * 0.035)
         ..style = PaintingStyle.stroke;
       paintBoardGrid(
@@ -188,9 +185,9 @@ class BoardComponent extends PositionComponent
         topLeft: Offset(_originX, _originY),
         cell: _cell,
         linePaint: linePaint,
-        starPaint: Paint()..color = _skin.line.withValues(alpha: 0.85),
+        starPaint: Paint()..color = kBoardLine.withValues(alpha: 0.85),
         borderPaint: Paint()
-          ..color = _skin.line.withValues(alpha: 0.9)
+          ..color = kBoardLine.withValues(alpha: 0.9)
           ..strokeWidth = math.max(1.1, _cell * 0.07)
           ..style = PaintingStyle.stroke,
       );
@@ -200,7 +197,7 @@ class BoardComponent extends PositionComponent
 
   void _drawGrain(Canvas canvas) {
     final paint = Paint()
-      ..color = _skin.line.withValues(alpha: 0.05)
+      ..color = kBoardLine.withValues(alpha: 0.05)
       ..style = PaintingStyle.stroke
       ..strokeWidth = _cell * 0.06;
     for (var band = 0; band < 6; band++) {
@@ -249,7 +246,7 @@ class BoardComponent extends PositionComponent
           text: text,
           style: TextStyle(
             fontSize: math.max(7, _cell * 0.34),
-            color: _skin.line.withValues(alpha: 0.55),
+            color: kBoardLine.withValues(alpha: 0.55),
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -272,7 +269,7 @@ class BoardComponent extends PositionComponent
           canvas,
           center: _centerOf(index),
           radius: radius,
-          face: _skin.faceOf(side),
+          face: faceOf(side),
         );
       }
     });
@@ -289,14 +286,14 @@ class BoardComponent extends PositionComponent
       canvas,
       center: center,
       radius: radius * scale,
-      face: _skin.faceOf(anim.side),
+      face: faceOf(anim.side),
       opacity: math.min(1, progress * 4),
       highlight: progress > 0.6,
     );
     final ripple = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = math.max(1, _cell * 0.035)
-      ..color = _skin.accent.withValues(alpha: (1 - progress) * 0.45);
+      ..color = kBoardAccent.withValues(alpha: (1 - progress) * 0.45);
     canvas.drawCircle(center, radius * (1 + progress * 0.9), ripple);
   }
 
@@ -308,8 +305,8 @@ class BoardComponent extends PositionComponent
     final center = _centerOf(index);
     final radius = _cell * 0.46;
     final marker = side == black
-        ? _skin.whiteStone.light.withValues(alpha: 0.92)
-        : _skin.blackStone.dark.withValues(alpha: 0.8);
+        ? kWhiteStone.light.withValues(alpha: 0.92)
+        : kBlackStone.dark.withValues(alpha: 0.8);
     canvas.drawCircle(center, radius * 0.16, Paint()..color = marker);
   }
 
@@ -319,7 +316,7 @@ class BoardComponent extends PositionComponent
     final center = _centerOf(index);
     final radius = _cell * 0.46;
     final pulse = 0.92 + 0.08 * math.sin(_time * 4.2);
-    final color = _skin.accent;
+    const color = kBoardAccent;
     canvas.drawCircle(
       center,
       radius * 0.78 * pulse,
@@ -365,7 +362,7 @@ class BoardComponent extends PositionComponent
       canvas,
       center: _centerOf(index),
       radius: _cell * 0.46,
-      face: _skin.faceOf(view.sideToMove),
+      face: faceOf(view.sideToMove),
       opacity: 0.34,
       highlight: false,
     );
@@ -377,7 +374,7 @@ class BoardComponent extends PositionComponent
     final start = _centerOf(line.first);
     final end = _centerOf(line.last);
     final pulse = 0.75 + 0.25 * math.sin(_time * 3.2);
-    final accent = _skin.accent;
+    const accent = kBoardAccent;
     canvas.drawLine(
       start,
       end,
