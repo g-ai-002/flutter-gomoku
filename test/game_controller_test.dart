@@ -294,5 +294,43 @@ void main() {
       expect(controller.canUndo, isTrue);
       expect(controller.lastSide, black);
     });
+
+    test('AI 对演由黑方先行并自动终局', () async {
+      final cells = emptyCells();
+      _placeRow(cells, black, 7, 3, 6);
+      final controller = _controller(
+        mode: GameMode.aiSelf,
+        board: GomokuBoard.fromCells(cells),
+        aiMove: (cells, side, difficulty, {bool? forbidBlack}) async =>
+            SearchResult(move: indexOf(7, 7), score: 1, depth: 1, nodes: 1),
+      );
+      controller.start();
+      expect(controller.canInteractive, isFalse);
+      expect(controller.thinking, isTrue);
+
+      controller.tapCell(centerIndex);
+      expect(controller.history, isEmpty);
+
+      await pumpEventQueue();
+      expect(controller.history.single.side, black);
+      expect(controller.result?.winner, black);
+      expect(controller.canInteractive, isFalse);
+      expect(controller.canUndo, isFalse);
+    });
+
+    test('AI 对演轮到白方时同样自动落子', () async {
+      final cells = emptyCells();
+      _placeRow(cells, white, 4, 3, 6);
+      final controller = _controller(
+        mode: GameMode.aiSelf,
+        board: GomokuBoard.fromCells(cells, sideToMove: white),
+        aiMove: (cells, side, difficulty, {bool? forbidBlack}) async =>
+            SearchResult(move: indexOf(4, 7), score: 1, depth: 1, nodes: 1),
+      );
+      controller.start();
+      await pumpEventQueue();
+      expect(controller.history.single.side, white);
+      expect(controller.result?.winner, white);
+    });
   });
 }

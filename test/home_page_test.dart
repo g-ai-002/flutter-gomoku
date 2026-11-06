@@ -9,13 +9,15 @@ import 'support/helpers.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('首页展示品牌与四个入口', (tester) async {
+  testWidgets('首页展示品牌与五个入口', (tester) async {
     final settings = await createSettings();
     await tester.pumpWidget(wrapPage(const HomePage(), settings));
 
     expect(find.text('五子棋'), findsWidgets);
     expect(find.text('人机对战'), findsOneWidget);
     expect(find.text('双人对弈'), findsOneWidget);
+    expect(find.text('AI 对演'), findsOneWidget);
+    expect(find.text('双方 AI 自动对弈 · 观战学习'), findsOneWidget);
     expect(find.text('残局挑战'), findsOneWidget);
     expect(find.text('棋谱复盘'), findsOneWidget);
     expect(find.textContaining('v${AppConstants.version}'), findsOneWidget);
@@ -99,6 +101,7 @@ void main() {
     final settings = await createSettings();
     await tester.pumpWidget(wrapPage(const HomePage(), settings));
 
+    await tester.ensureVisible(find.text('棋谱复盘'));
     await tester.tap(find.text('棋谱复盘'));
     await tester.pumpAndSettle();
     expect(find.text('还没有棋谱'), findsOneWidget);

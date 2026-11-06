@@ -34,7 +34,8 @@ enum Difficulty {
 /// 对弈模式。
 enum GameMode {
   vsAi('人机对战'),
-  twoPlayers('双人对弈');
+  twoPlayers('双人对弈'),
+  aiSelf('AI 对演');
 
   const GameMode(this.label);
 

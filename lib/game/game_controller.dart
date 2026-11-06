@@ -96,7 +96,13 @@ class GameController extends BoardSession {
   int get revision => 0;
 
   bool get isHumanTurn =>
-      mode == GameMode.twoPlayers || board.sideToMove == humanSide;
+      mode == GameMode.twoPlayers ||
+      (mode == GameMode.vsAi && board.sideToMove == humanSide);
+
+  /// 是否轮到本地 AI：人机对战的电脑方，或 AI 对演的双方。
+  bool get _aiTurn =>
+      mode == GameMode.aiSelf ||
+      (mode == GameMode.vsAi && board.sideToMove != humanSide);
 
   bool get canInteractive => result == null && !thinking && isHumanTurn;
 
@@ -104,6 +110,7 @@ class GameController extends BoardSession {
   bool get canInteract => canInteractive;
 
   bool get canUndo {
+    if (mode == GameMode.aiSelf) return false;
     if (board.history.isEmpty) return false;
     if (mode == GameMode.twoPlayers) return true;
     return board.history.any((record) => record.side == humanSide);
@@ -146,11 +153,11 @@ class GameController extends BoardSession {
     return board.cells[move] == empty ? move : null;
   }
 
-  /// 页面挂载后调用；人类执白时由 AI 先行。
+  /// 页面挂载后调用；人类执白或 AI 对演时由 AI 先行。
   void start() {
     _syncClock();
     notifyBoard();
-    if (mode == GameMode.vsAi && board.sideToMove != humanSide) _think();
+    if (_aiTurn) _think();
   }
 
   /// 界面定时调用：结算当前行棋方用时，超时即判负。
@@ -201,7 +208,7 @@ class GameController extends BoardSession {
     _tracker?.restart(board.sideToMove);
     LogService.info('重新开始对局');
     notifyBoard();
-    if (mode == GameMode.vsAi && board.sideToMove != humanSide) _think();
+    if (_aiTurn) _think();
   }
 
   /// 清理悔棋与重开共用的异步与终局状态。
@@ -286,7 +293,7 @@ class GameController extends BoardSession {
     }
     _syncClock();
     notifyBoard();
-    if (mode == GameMode.vsAi && board.sideToMove != humanSide) _think();
+    if (_aiTurn) _think();
   }
 
   void _syncClock() {

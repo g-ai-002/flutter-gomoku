@@ -39,7 +39,7 @@ class SettingsPage extends StatelessWidget {
                 const SizedBox(height: 16),
                 _SwitchRow(
                   title: '开局提示',
-                  subtitle: '人机执黑时，前六手参考内置开局库',
+                  subtitle: '人机执黑或 AI 对演时，前六手参考内置开局库',
                   value: settings.openingHints,
                   onChanged: settings.setOpeningHints,
                   switchKey: const ValueKey('switch-opening'),

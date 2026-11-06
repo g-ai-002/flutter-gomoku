@@ -24,7 +24,6 @@ class GameStatusBar extends StatelessWidget {
     final colors = theme.colorScheme;
     final side = controller.board.sideToMove;
     final accent = sideAccentOf(context, side);
-    final isAiMode = controller.mode == GameMode.vsAi;
     final last = controller.history.isEmpty ? null : controller.history.last;
 
     return SizedBox(
@@ -65,7 +64,11 @@ class GameStatusBar extends StatelessWidget {
             )
           else
             Text(
-              isAiMode ? (humanSide == black ? '你执黑' : '你执白') : '同屏对弈',
+              switch (controller.mode) {
+                GameMode.vsAi => humanSide == black ? '你执黑' : '你执白',
+                GameMode.aiSelf => '双方 AI',
+                GameMode.twoPlayers => '同屏对弈',
+              },
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colors.onSurfaceVariant,
               ),
@@ -99,7 +102,7 @@ class GameStatusBar extends StatelessWidget {
       );
     }
     final insight = controller.aiInsight;
-    if (insight != null && controller.mode == GameMode.vsAi) {
+    if (insight != null && controller.mode != GameMode.twoPlayers) {
       return Tooltip(
         message: insight.detail,
         child: Text(
@@ -120,8 +123,9 @@ class GameStatusBar extends StatelessWidget {
         ),
       );
     }
+    final idle = controller.mode == GameMode.aiSelf ? 'AI 自动落子' : '点击交叉点落子';
     return Text(
-      controller.result == null ? '点击交叉点落子' : '本局已结束',
+      controller.result == null ? idle : '本局已结束',
       style: theme.textTheme.bodySmall?.copyWith(
         color: theme.colorScheme.onSurfaceVariant,
       ),

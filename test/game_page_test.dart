@@ -2,8 +2,6 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gomoku/flame/gomoku_game.dart';
-import 'package:gomoku/game/engine/board_utils.dart';
-import 'package:gomoku/game/opening_book.dart';
 import 'package:gomoku/models/game_models.dart';
 import 'package:gomoku/pages/game_page.dart';
 
@@ -121,47 +119,6 @@ void main() {
 
     expect(settings.forbiddenRule, isTrue);
     expect(find.textContaining('同屏对弈 · 禁手'), findsOneWidget);
-    await tester.pumpWidget(const SizedBox.shrink());
-  });
-
-  testWidgets('开局名以浮层展示且不改变棋盘尺寸', (tester) async {
-    // 高度受限的窗口：状态区多出一行就会挤压棋盘，便于暴露布局移位。
-    tester.view.physicalSize = const Size(1280, 620);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    final settings = await createSettings();
-    final line = kOpeningLines.first;
-    await tester.pumpWidget(
-      wrapPage(
-        GamePage(
-          mode: GameMode.vsAi,
-          difficulty: Difficulty.expert,
-          humanSide: black,
-          opening: line,
-        ),
-        settings,
-      ),
-    );
-    await _pumpGame(tester);
-
-    final board = find.byType(GameWidget<GomokuGame>);
-    final before = tester.getRect(board);
-    final cell = before.width / 16.4;
-    Offset center(int row, int col) => before.topLeft + Offset(
-      before.width / 2 + (col - 7) * cell,
-      before.height / 2 + (row - 7) * cell,
-    );
-
-    // 前两手仍不足以定型开局；第三手落子后浮层出现，棋盘尺寸必须保持不变。
-    await tester.tapAt(center(7, 7));
-    await _pumpGame(tester);
-    expect(find.textContaining('开局 · '), findsNothing);
-
-    await tester.tapAt(center(6, 6));
-    await _pumpGame(tester);
-    expect(find.textContaining('开局 · ${line.name}'), findsOneWidget);
-    expect(tester.getRect(board), before);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 

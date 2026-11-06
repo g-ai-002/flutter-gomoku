@@ -161,6 +161,15 @@ class HomePage extends StatelessWidget {
       onTap: () => _startGame(context, settings, GameMode.twoPlayers),
     ),
     EntryTile(
+      leading: EntryBadge(
+        icon: Icons.smart_display_outlined,
+        accent: colors.primary,
+      ),
+      title: GameMode.aiSelf.label,
+      subtitle: '双方 AI 自动对弈 · 观战学习',
+      onTap: () => _startGame(context, settings, GameMode.aiSelf),
+    ),
+    EntryTile(
       leading: EntryBadge(icon: Icons.flag_outlined, accent: colors.secondary),
       title: '残局挑战',
       subtitle: '10 道杀法 · 支持自建残局',
