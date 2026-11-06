@@ -29,26 +29,27 @@
 
 ## 下载
 
-v0.7.0（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-gomoku/releases/tag/v0.7.0)
+v0.7.1（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-gomoku/releases/tag/v0.7.1)
 
 | 平台 | 产物 |
 | --- | --- |
-| Android (arm64) | `flutter-gomoku-0.7.0-android-aarch64.apk` |
-| Windows (x64, Win10+) | `flutter-gomoku-0.7.0-windows-x86_64.zip` |
-| Web | `flutter-gomoku-0.7.0-web.zip`（解压后起静态服务器） |
+| Android (arm64) | `flutter-gomoku-0.7.1-android-aarch64.apk` |
+| Windows (x64, Win10+) | `flutter-gomoku-0.7.1-windows-x86_64.zip` |
+| Web | `flutter-gomoku-0.7.1-web.zip`（解压后起静态服务器） |
 
 | 版本 | 说明 |
 | --- | --- |
+| v0.7.1 | 重构棋盘只读视图与 AI 合法着法校验，收敛异步收尾并修复终局回包竞态 |
 | v0.7.0 | 新增 AI 对演模式，双方 AI 自动对弈可观战；完善禁手递归活三判定 |
 | v0.6.1 | 重构棋盘视图、五连扫描与偏好读写，收敛控制器重复状态 |
 | v0.6.0 | 新增让子对局：天元与星位预置 1–4 枚黑子，白方先行，棋谱与棋钟同步适配 |
 | v0.5.1 | 重构持久化与 AI 回合，修复加载竞态并在离开棋盘时释放图层 |
-| v0.5.0 | 新增残局分享码，离线复制粘贴即可导入他人的自建残局 |
 
 ### 更早版本
 
 | 版本 | 说明 |
 | --- | --- |
+| v0.5.0 | 新增残局分享码，离线复制粘贴即可导入他人的自建残局 |
 | v0.4.1 | 重构持久化、控制器生命周期与列表卡片，编辑器不再重建棋盘 |
 | v0.4.0 | 新增残局编辑器与自定义关卡，支持摆子、限手数、编辑与删除 |
 | v0.3.2 | 开局名与禁手图例改为棋盘浮层，提示出现不再推动棋盘 |
