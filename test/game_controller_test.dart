@@ -182,6 +182,28 @@ void main() {
       expect(controller.thinking, isFalse);
     });
 
+    test('AI 思考中超时判负后丢弃回包', () async {
+      final completer = Completer<SearchResult>();
+      final controller = _controller(
+        timeControl: TimeControl.blitz,
+        aiMove: (cells, side, difficulty, {bool? forbidBlack}) =>
+            completer.future,
+      );
+      controller.start();
+      controller.tapCell(centerIndex);
+      expect(controller.thinking, isTrue);
+
+      controller.tickClock(const Duration(minutes: 5));
+      expect(controller.result?.reason, '超时');
+      expect(controller.thinking, isFalse);
+
+      completer.complete(
+        const SearchResult(move: _aiMove, score: 1, depth: 1, nodes: 1),
+      );
+      await pumpEventQueue();
+      expect(controller.history.length, 1);
+    });
+
     test('AI 返回非法着法时兜底优先自己成五', () async {
       final cells = emptyCells();
       _placeRow(cells, white, 2, 3, 6);

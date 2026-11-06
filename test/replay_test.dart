@@ -32,10 +32,14 @@ void main() {
       expect(replay.cursor, 0);
       expect(replay.total, 9);
       expect(replay.history, isEmpty);
+      expect(replay.cells, everyElement(empty));
+      expect(replay.sideToMove, black);
       expect(replay.canPrevious, isFalse);
       expect(replay.canNext, isTrue);
       expect(replay.progressText, '第 0 / 9 手');
 
+      replay.next();
+      expect(replay.sideToMove, white);
       replay.last();
       expect(replay.cursor, 9);
       expect(replay.history.length, 9);

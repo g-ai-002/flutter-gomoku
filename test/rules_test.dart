@@ -149,6 +149,37 @@ void main() {
       expect(GomokuRules.fallbackMove(full, black), isNull);
     });
 
+    test('AI 合法着法原样返回', () {
+      final cells = emptyCells();
+      cells[indexOf(7, 7)] = black;
+      expect(GomokuRules.pickMove(cells, white, indexOf(7, 8)), indexOf(7, 8));
+      expect(GomokuRules.pickMove(cells, white, null), isNotNull);
+    });
+
+    test('AI 非法着法改用兜底，禁手点不可选', () {
+      final cells = emptyCells();
+      _place(cells, black, [(7, 3), (7, 4), (7, 5), (7, 6)]);
+      _place(cells, white, [(9, 3), (9, 4), (9, 5), (9, 6)]);
+
+      expect(
+        GomokuRules.pickMove(cells, white, indexOf(7, 3)),
+        isNot(indexOf(7, 3)),
+      );
+      expect(
+        GomokuRules.pickMove(cells, white, cellCount + 1),
+        anyOf(indexOf(9, 2), indexOf(9, 7)),
+      );
+      expect(
+        GomokuRules.pickMove(
+          cells,
+          black,
+          indexOf(7, 2),
+          forbidden: {indexOf(7, 2), indexOf(7, 7)},
+        ),
+        isNot(indexOf(7, 2)),
+      );
+    });
+
     test('复用候选点不改变棋盘', () {
       final cells = emptyCells();
       _place(cells, black, [(7, 3), (7, 4), (7, 5), (7, 6)]);
