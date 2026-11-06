@@ -6,6 +6,7 @@
 
 - 🎯 完整规则：横、竖、斜任意方向五连判胜，长连计胜，满盘判和
 - ⚖️ 禁手规则：可选黑棋长连 / 四四 / 三三禁手，棋盘红圈标记禁手点，AI 与提示自动遵守
+- 🎁 让子对局：人机执黑时可在天元与星位预置 1–4 枚黑子，白方先行，适合教学与低手对弈
 - 🤖 人机对战：入门 / 普通 / 高手三档（默认高手），本地棋型评估 + Alpha-Beta 搜索，可选执黑或执白
 - 💡 走子提示：人机对战中一键请求推荐着法，棋盘高亮 6 秒
 - 🧩 残局挑战：十道内置杀局，分入门 / 进阶 / 挑战三档，限手数通关并记录进度
@@ -27,26 +28,27 @@
 
 ## 下载
 
-v0.5.1（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-gomoku/releases/tag/v0.5.1)
+v0.6.0（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-gomoku/releases/tag/v0.6.0)
 
 | 平台 | 产物 |
 | --- | --- |
-| Android (arm64) | `flutter-gomoku-0.5.1-android-aarch64.apk` |
-| Windows (x64, Win10+) | `flutter-gomoku-0.5.1-windows-x86_64.zip` |
-| Web | `flutter-gomoku-0.5.1-web.zip`（解压后起静态服务器） |
+| Android (arm64) | `flutter-gomoku-0.6.0-android-aarch64.apk` |
+| Windows (x64, Win10+) | `flutter-gomoku-0.6.0-windows-x86_64.zip` |
+| Web | `flutter-gomoku-0.6.0-web.zip`（解压后起静态服务器） |
 
 | 版本 | 说明 |
 | --- | --- |
+| v0.6.0 | 新增让子对局：天元与星位预置 1–4 枚黑子，白方先行，棋谱与棋钟同步适配 |
 | v0.5.1 | 重构持久化与 AI 回合，修复加载竞态并在离开棋盘时释放图层 |
 | v0.5.0 | 新增残局分享码，离线复制粘贴即可导入他人的自建残局 |
 | v0.4.1 | 重构持久化、控制器生命周期与列表卡片，编辑器不再重建棋盘 |
 | v0.4.0 | 新增残局编辑器与自定义关卡，支持摆子、限手数、编辑与删除 |
-| v0.3.2 | 开局名与禁手图例改为棋盘浮层，对局主界面不再随提示出现而移位 |
 
 ### 更早版本
 
 | 版本 | 说明 |
 | --- | --- |
+| v0.3.2 | 开局名与禁手图例改为棋盘浮层，提示出现不再推动棋盘 |
 | v0.3.1 | 重构页面骨架、棋盘布局与提示流程，收敛重复实现并补齐测试 |
 | v0.3.0 | 新增禁手规则：长连 / 四四 / 三三禁手、棋盘标记与 AI 遵守 |
 | v0.2.1 | 重构提示、落子反馈与页面操作代码，修复缓存与音频重试问题 |
@@ -85,6 +87,7 @@ lib/
 │   ├── board_state.dart / game_controller.dart
 │   ├── hint_session.dart      # 提示加载态与请求竞态
 │   ├── match_clock.dart / replay_controller.dart / game_archive.dart
+│   ├── handicap.dart          # 让子方案与天元 / 星位预置
 │   ├── opening_book.dart      # 六条开局棋谱与匹配
 │   ├── puzzle_share_code.dart # 自定义残局分享码编解码
 │   └── puzzle_controller.dart / puzzles.dart / custom_puzzles.dart  # 残局数据、挑战流程与自定义残局库
