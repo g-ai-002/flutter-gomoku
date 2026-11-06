@@ -20,17 +20,13 @@ class DifficultyPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    return _PickerGroup(
+    return _ChoiceGroup<Difficulty>(
       label: label,
-      children: [
-        for (final difficulty in Difficulty.values)
-          ChoicePill(
-            label: difficulty.label,
-            selected: settings.difficulty == difficulty,
-            accent: colors.primary,
-            onTap: () => settings.setDifficulty(difficulty),
-          ),
-      ],
+      values: Difficulty.values,
+      selected: settings.difficulty,
+      labelOf: (value) => value.label,
+      accentOf: (_) => colors.primary,
+      onSelected: settings.setDifficulty,
     );
   }
 }
@@ -45,22 +41,13 @@ class SidePicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    return _PickerGroup(
+    return _ChoiceGroup<int>(
       label: label,
-      children: [
-        ChoicePill(
-          label: '执黑先行',
-          selected: settings.humanSide == black,
-          accent: colors.onSurface,
-          onTap: () => settings.setHumanSide(black),
-        ),
-        ChoicePill(
-          label: '执白后行',
-          selected: settings.humanSide == white,
-          accent: colors.secondary,
-          onTap: () => settings.setHumanSide(white),
-        ),
-      ],
+      values: const [black, white],
+      selected: settings.humanSide,
+      labelOf: (value) => value == black ? '执黑先行' : '执白后行',
+      accentOf: (value) => value == black ? colors.onSurface : colors.secondary,
+      onSelected: settings.setHumanSide,
     );
   }
 }
@@ -74,17 +61,13 @@ class HandicapPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    return _PickerGroup(
+    return _ChoiceGroup<Handicap>(
       label: '让子（执黑时·白方先行）',
-      children: [
-        for (final handicap in Handicap.values)
-          ChoicePill(
-            label: handicap.label,
-            selected: settings.handicap == handicap,
-            accent: colors.tertiary,
-            onTap: () => settings.setHandicap(handicap),
-          ),
-      ],
+      values: Handicap.values,
+      selected: settings.handicap,
+      labelOf: (value) => value.label,
+      accentOf: (_) => colors.tertiary,
+      onSelected: settings.setHandicap,
     );
   }
 }
@@ -103,27 +86,34 @@ class TimeControlPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    return _PickerGroup(
+    return _ChoiceGroup<TimeControl>(
       label: label,
-      children: [
-        for (final control in TimeControl.values)
-          ChoicePill(
-            label: control.label,
-            selected: settings.timeControl == control,
-            accent: colors.primary,
-            onTap: () => settings.setTimeControl(control),
-          ),
-      ],
+      values: TimeControl.values,
+      selected: settings.timeControl,
+      labelOf: (value) => value.label,
+      accentOf: (_) => colors.primary,
+      onSelected: settings.setTimeControl,
     );
   }
 }
 
-/// 偏好选择器的统一骨架：小标题 + 一行可换行的胶囊选项。
-class _PickerGroup extends StatelessWidget {
-  const _PickerGroup({required this.label, required this.children});
+/// 一组互斥选项：标题、胶囊按钮与统一回调。
+class _ChoiceGroup<T> extends StatelessWidget {
+  const _ChoiceGroup({
+    required this.label,
+    required this.values,
+    required this.selected,
+    required this.labelOf,
+    required this.accentOf,
+    required this.onSelected,
+  });
 
   final String label;
-  final List<Widget> children;
+  final List<T> values;
+  final T selected;
+  final String Function(T value) labelOf;
+  final Color Function(T value) accentOf;
+  final ValueChanged<T> onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -138,7 +128,19 @@ class _PickerGroup extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        Wrap(spacing: 8, runSpacing: 8, children: children),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final value in values)
+              ChoicePill(
+                label: labelOf(value),
+                selected: value == selected,
+                accent: accentOf(value),
+                onTap: () => onSelected(value),
+              ),
+          ],
+        ),
       ],
     );
   }

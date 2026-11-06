@@ -29,6 +29,13 @@ class StorageService {
     return prefs;
   }
 
+  bool _bool(String key, {bool fallback = false}) =>
+      _p.getBool(key) ?? fallback;
+
+  String? _string(String key) => _p.getString(key);
+
+  int _int(String key, {int fallback = 0}) => _p.getInt(key) ?? fallback;
+
   Future<void> _write(
     Future<bool> Function(SharedPreferences prefs) action,
   ) async {
@@ -37,60 +44,67 @@ class StorageService {
     } catch (_) {}
   }
 
-  bool get darkMode => _p.getBool(AppConstants.prefKeyDarkMode) ?? false;
+  Future<void> _setBool(String key, bool value) =>
+      _write((p) => p.setBool(key, value));
+
+  Future<void> _setString(String key, String value) =>
+      _write((p) => p.setString(key, value));
+
+  Future<void> _setInt(String key, int value) =>
+      _write((p) => p.setInt(key, value));
+
+  bool get darkMode => _bool(AppConstants.prefKeyDarkMode);
   Future<void> setDarkMode(bool value) =>
-      _write((p) => p.setBool(AppConstants.prefKeyDarkMode, value));
+      _setBool(AppConstants.prefKeyDarkMode, value);
 
   bool get showCoordinates =>
-      _p.getBool(AppConstants.prefKeyShowCoordinates) ?? true;
+      _bool(AppConstants.prefKeyShowCoordinates, fallback: true);
   Future<void> setShowCoordinates(bool value) =>
-      _write((p) => p.setBool(AppConstants.prefKeyShowCoordinates, value));
+      _setBool(AppConstants.prefKeyShowCoordinates, value);
 
-  bool get soundEnabled => _p.getBool(AppConstants.prefKeySound) ?? true;
+  bool get soundEnabled => _bool(AppConstants.prefKeySound, fallback: true);
   Future<void> setSoundEnabled(bool value) =>
-      _write((p) => p.setBool(AppConstants.prefKeySound, value));
+      _setBool(AppConstants.prefKeySound, value);
 
-  bool get musicEnabled => _p.getBool(AppConstants.prefKeyMusic) ?? true;
+  bool get musicEnabled => _bool(AppConstants.prefKeyMusic, fallback: true);
   Future<void> setMusicEnabled(bool value) =>
-      _write((p) => p.setBool(AppConstants.prefKeyMusic, value));
+      _setBool(AppConstants.prefKeyMusic, value);
 
-  bool get hapticsEnabled => _p.getBool(AppConstants.prefKeyHaptics) ?? true;
+  bool get hapticsEnabled => _bool(AppConstants.prefKeyHaptics, fallback: true);
   Future<void> setHapticsEnabled(bool value) =>
-      _write((p) => p.setBool(AppConstants.prefKeyHaptics, value));
+      _setBool(AppConstants.prefKeyHaptics, value);
 
   /// 棋钟方案，未设置或未知值回退到不限时。
   TimeControl get timeControl =>
-      TimeControl.byName(_p.getString(AppConstants.prefKeyTimeControl));
+      TimeControl.byName(_string(AppConstants.prefKeyTimeControl));
   Future<void> setTimeControl(TimeControl value) =>
-      _write((p) => p.setString(AppConstants.prefKeyTimeControl, value.name));
+      _setString(AppConstants.prefKeyTimeControl, value.name);
 
   /// 人机对战执黑时是否使用内置开局库。
-  bool get openingHints => _p.getBool(AppConstants.prefKeyOpeningHints) ?? true;
+  bool get openingHints =>
+      _bool(AppConstants.prefKeyOpeningHints, fallback: true);
   Future<void> setOpeningHints(bool value) =>
-      _write((p) => p.setBool(AppConstants.prefKeyOpeningHints, value));
+      _setBool(AppConstants.prefKeyOpeningHints, value);
 
   /// 是否启用黑棋禁手（长连、四四、三三），默认关闭。
-  bool get forbiddenRule =>
-      _p.getBool(AppConstants.prefKeyForbiddenRule) ?? false;
+  bool get forbiddenRule => _bool(AppConstants.prefKeyForbiddenRule);
   Future<void> setForbiddenRule(bool value) =>
-      _write((p) => p.setBool(AppConstants.prefKeyForbiddenRule, value));
+      _setBool(AppConstants.prefKeyForbiddenRule, value);
 
   /// AI 难度，未设置或未知值回退到默认难度（高手）。
   Difficulty get difficulty =>
-      Difficulty.byName(_p.getString(AppConstants.prefKeyDifficulty));
-
+      Difficulty.byName(_string(AppConstants.prefKeyDifficulty));
   Future<void> setDifficulty(Difficulty value) =>
-      _write((p) => p.setString(AppConstants.prefKeyDifficulty, value.name));
+      _setString(AppConstants.prefKeyDifficulty, value.name);
 
   /// 人类执子方：黑棋先行，白棋后行。
-  int get humanSide => _p.getInt(AppConstants.prefKeyHumanSide) ?? black;
+  int get humanSide => _int(AppConstants.prefKeyHumanSide, fallback: black);
   Future<void> setHumanSide(int value) =>
-      _write((p) => p.setInt(AppConstants.prefKeyHumanSide, value));
+      _setInt(AppConstants.prefKeyHumanSide, value);
 
   /// 人机执黑时的让子方案，未设置或未知值回退到不让子。
   Handicap get handicap =>
-      Handicap.byName(_p.getString(AppConstants.prefKeyHandicap));
-
+      Handicap.byName(_string(AppConstants.prefKeyHandicap));
   Future<void> setHandicap(Handicap value) =>
-      _write((p) => p.setString(AppConstants.prefKeyHandicap, value.name));
+      _setString(AppConstants.prefKeyHandicap, value.name);
 }
