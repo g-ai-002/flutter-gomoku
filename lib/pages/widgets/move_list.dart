@@ -90,7 +90,6 @@ class _MoveListState extends State<MoveList> {
         ),
       );
     }
-
     final rows = (widget.history.length + 1) ~/ 2;
     final highlight = widget.highlightIndex ?? widget.history.length - 1;
     return ListView.builder(

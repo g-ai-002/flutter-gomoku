@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../game/handicap.dart';
+import '../game/learned_book.dart';
 import '../models/game_models.dart';
 import '../services/music_service.dart';
 import '../services/sound_service.dart';
@@ -69,6 +70,11 @@ class SettingsProvider extends ChangeNotifier {
   bool get forbiddenRule => _storage.forbiddenRule;
   Future<void> setForbiddenRule(bool value) =>
       _update(() => _storage.setForbiddenRule(value));
+
+  /// 自对弈训练得到的精研开局库，为空时全部使用内置开局。
+  LearnedBook get learnedBook => LearnedBook.decode(_storage.learnedBook);
+  Future<void> setLearnedBook(LearnedBook book) =>
+      _update(() => _storage.setLearnedBook(book.encode()));
 
   void _syncFeedback() =>
       SoundService.configure(sound: soundEnabled, haptics: hapticsEnabled);

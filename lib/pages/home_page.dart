@@ -64,27 +64,19 @@ class HomePage extends StatelessWidget {
                           const SizedBox(height: 22),
                           const _Hero(),
                           const SizedBox(height: 30),
-                          if (twoColumns)
-                            Wrap(
-                              spacing: 12,
-                              runSpacing: 12,
-                              children: [
-                                for (final card in modeCards)
-                                  SizedBox(
-                                    width: (contentWidth - 12) / 2,
-                                    child: card,
-                                  ),
-                              ],
-                            )
-                          else
-                            Column(
-                              children: [
-                                for (var i = 0; i < modeCards.length; i++) ...[
-                                  if (i > 0) const SizedBox(height: 12),
-                                  modeCards[i],
-                                ],
-                              ],
-                            ),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: [
+                              for (final card in modeCards)
+                                SizedBox(
+                                  width: twoColumns
+                                      ? (contentWidth - 12) / 2
+                                      : contentWidth,
+                                  child: card,
+                                ),
+                            ],
+                          ),
                           const SizedBox(height: 24),
                           Text(
                             'v${AppConstants.version} · 本地运行，无需联网',
@@ -274,7 +266,7 @@ class _Hero extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _OrnamentLine(color: colors.outline),
+            _ornament(colors),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10),
               child: Text(
@@ -285,7 +277,7 @@ class _Hero extends StatelessWidget {
                 ),
               ),
             ),
-            _OrnamentLine(color: colors.outline),
+            _ornament(colors),
           ],
         ),
         const SizedBox(height: 12),
@@ -298,15 +290,10 @@ class _Hero extends StatelessWidget {
       ],
     );
   }
-}
 
-class _OrnamentLine extends StatelessWidget {
-  const _OrnamentLine({required this.color});
-
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(width: 36, height: 1, color: color.withValues(alpha: 0.9));
-  }
+  Widget _ornament(ColorScheme colors) => Container(
+    width: 36,
+    height: 1,
+    color: colors.outline.withValues(alpha: 0.9),
+  );
 }

@@ -79,18 +79,18 @@ class GameStatusBar extends StatelessWidget {
   }
 
   Widget _status(ThemeData theme) {
+    final colors = theme.colorScheme;
+    final subtle = theme.textTheme.bodySmall?.copyWith(
+      color: colors.onSurfaceVariant,
+    );
+    final accent = theme.textTheme.bodySmall?.copyWith(color: colors.primary);
     if (controller.thinking) {
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          StatusSpinner(color: theme.colorScheme.primary),
+          StatusSpinner(color: colors.primary),
           const SizedBox(width: 7),
-          Text(
-            'AI 思考中…',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.primary,
-            ),
-          ),
+          Text('AI 思考中…', style: accent),
         ],
       );
     }
@@ -102,26 +102,12 @@ class GameStatusBar extends StatelessWidget {
           insight.label,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
+          style: subtle,
         ),
       );
     }
-    if (controller.hintLoading) {
-      return Text(
-        '正在寻找提示…',
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.primary,
-        ),
-      );
-    }
+    if (controller.hintLoading) return Text('正在寻找提示…', style: accent);
     final idle = controller.mode == GameMode.aiSelf ? 'AI 自动落子' : '点击交叉点落子';
-    return Text(
-      controller.result == null ? idle : '本局已结束',
-      style: theme.textTheme.bodySmall?.copyWith(
-        color: theme.colorScheme.onSurfaceVariant,
-      ),
-    );
+    return Text(controller.result == null ? idle : '本局已结束', style: subtle);
   }
 }

@@ -76,7 +76,9 @@ class _GamePageState extends State<GamePage> {
       timeControl: selfPlay ? TimeControl.none : settings.timeControl,
       forbidBlack: settings.forbiddenRule,
       handicap: handicap,
-      openingBook: useBook ? OpeningBook.standard : null,
+      openingBook: useBook
+          ? settings.learnedBook.applyTo(OpeningBook.standard)
+          : null,
     );
     _game = GomokuGame(view: _controller);
     _feedback = MoveFeedbackTracker(_controller);

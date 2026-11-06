@@ -175,5 +175,29 @@ void main() {
       await controller.requestHint();
       expect(controller.hintIndex, line.moves[0]);
     });
+
+    test('精研线替换内置开局后 AI 走延伸着法', () async {
+      final base = kOpeningLines.first;
+      final moves = [...base.moves, indexOf(7, 9), indexOf(8, 7)];
+      final book = OpeningBook([
+        OpeningLine(id: base.id, name: '${base.name}·精研', moves: moves),
+      ]);
+      final controller = _controller(book: book);
+      controller.start();
+      for (var ply = 0; ply < 6; ply++) {
+        if (ply.isEven) {
+          controller.tapCell(moves[ply]);
+        } else {
+          await _waitBook();
+        }
+      }
+      expect(controller.history.length, 6);
+      expect(controller.openingName, '${base.name}·精研');
+
+      controller.tapCell(moves[6]);
+      await _waitBook();
+      expect(controller.history.length, 8);
+      expect(controller.history.last.index, moves[7]);
+    });
   });
 }

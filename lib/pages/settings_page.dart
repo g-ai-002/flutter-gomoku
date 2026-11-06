@@ -1,23 +1,86 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../game/learned_book.dart';
+import '../game/self_play_trainer.dart';
 import '../providers/settings_provider.dart';
 import '../services/file_system_service.dart';
 import '../utils/platform_info.dart';
 import 'widgets/app_snack.dart';
+import 'widgets/game_dialogs.dart';
 import 'widgets/log_dialog.dart';
 import 'widgets/page_list.dart';
 import 'widgets/preference_pickers.dart';
 import 'widgets/section_card.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  static const int _games = 8;
+
+  final SelfPlayTrainer _trainer = SelfPlayTrainer();
+  bool _training = false;
+  bool _cancelled = false;
+  int _done = 0;
+  int _plies = 0;
+
+  Future<void> _train() async {
+    final settings = context.read<SettingsProvider>();
+    setState(() {
+      _training = true;
+      _cancelled = false;
+      _done = 0;
+      _plies = 0;
+    });
+    final report = await _trainer.run(
+      onProgress: (game, plies) {
+        if (!mounted) return;
+        setState(() {
+          _done = game;
+          _plies = plies;
+        });
+      },
+      isCancelled: () => _cancelled,
+    );
+    // 取消或全部和棋时保留原有开局库，避免残缺结果覆盖。
+    if (!report.cancelled && !report.book.isEmpty) {
+      await settings.setLearnedBook(report.book);
+    }
+    if (!mounted) return;
+    setState(() => _training = false);
+    if (report.cancelled) return;
+    showSnack(
+      context,
+      report.book.isEmpty ? '训练未产生精研开局' : '已精研 ${report.book.lines.length} 条开局',
+    );
+  }
+
+  Future<void> _clearLearned() async {
+    final confirmed = await showConfirmDialog(
+      context,
+      title: '清除精研开局？',
+      message: '删除自对弈训练得到的开局，内置开局不受影响，可随时重新训练。',
+      confirmLabel: '清除',
+    );
+    if (!confirmed || !mounted) return;
+    await context.read<SettingsProvider>().setLearnedBook(LearnedBook.empty);
+    if (mounted) showSnack(context, '已清除精研开局');
+  }
 
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsProvider>();
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final subtle = theme.textTheme.bodySmall?.copyWith(
+      color: colors.onSurfaceVariant,
+    );
+    final learned = settings.learnedBook;
     return Scaffold(
       appBar: AppBar(title: const Text('设置')),
       body: SafeArea(
@@ -39,7 +102,7 @@ class SettingsPage extends StatelessWidget {
                 const SizedBox(height: 16),
                 _SwitchRow(
                   title: '开局提示',
-                  subtitle: '人机执黑或 AI 对演时，前六手参考内置开局库',
+                  subtitle: '人机执黑或 AI 对演时，前八手参考本地开局库',
                   value: settings.openingHints,
                   onChanged: settings.setOpeningHints,
                   switchKey: const ValueKey('switch-opening'),
@@ -52,6 +115,65 @@ class SettingsPage extends StatelessWidget {
                   onChanged: settings.setForbiddenRule,
                   switchKey: const ValueKey('switch-forbidden'),
                 ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SectionCard(
+              title: 'AI 精研',
+              icon: Icons.auto_awesome_outlined,
+              children: [
+                Text(
+                  '双方 AI 以六条内置开局自对弈，胜方前八手中的延伸着法写入本地开局库，'
+                  '训练全程离线，约半分钟完成。',
+                  style: subtle,
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _training
+                            ? '训练中 · 第 $_done/$_games 局 · 已走 $_plies 手'
+                            : learned.isEmpty
+                            ? '尚未训练，开局库使用内置棋谱'
+                            : '已精研 ${learned.lines.length} 条开局 · '
+                                  '${learned.totalWins} 胜',
+                        style: subtle,
+                      ),
+                    ),
+                    if (_training)
+                      OutlinedButton(
+                        onPressed: () => setState(() => _cancelled = true),
+                        child: const Text('停止'),
+                      )
+                    else
+                      FilledButton.tonalIcon(
+                        onPressed: _train,
+                        icon: const Icon(Icons.play_arrow_rounded, size: 18),
+                        label: Text(learned.isEmpty ? '开始训练' : '重新训练'),
+                      ),
+                  ],
+                ),
+                if (_training) ...[
+                  const SizedBox(height: 10),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: _done / _games,
+                      minHeight: 6,
+                      backgroundColor: colors.primary.withValues(alpha: 0.12),
+                    ),
+                  ),
+                ] else if (!learned.isEmpty) ...[
+                  const SizedBox(height: 4),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: _clearLearned,
+                      child: const Text('清除精研开局'),
+                    ),
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 12),

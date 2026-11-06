@@ -58,44 +58,26 @@ class PuzzleStatusBar extends StatelessWidget {
       color: accent,
       fontWeight: FontWeight.w600,
     );
-    switch (controller.status) {
-      case PuzzleStatus.solved:
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.emoji_events_outlined, size: 15, color: accent),
-            const SizedBox(width: 6),
-            Text('已通关', style: style),
-          ],
-        );
-      case PuzzleStatus.failed:
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.close_rounded, size: 15, color: accent),
-            const SizedBox(width: 6),
-            Text('挑战失败', style: style),
-          ],
-        );
-      case PuzzleStatus.playing:
-        if (controller.thinking) {
-          return Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              StatusSpinner(color: accent),
-              const SizedBox(width: 7),
-              Text('白棋应对中…', style: style),
-            ],
-          );
-        }
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const StoneDot(side: black),
-            const SizedBox(width: 7),
-            Text('轮到你落子', style: style),
-          ],
-        );
+    Widget chip(Widget icon, String text) => Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        icon,
+        const SizedBox(width: 6),
+        Text(text, style: style),
+      ],
+    );
+    if (controller.status == PuzzleStatus.solved) {
+      return chip(
+        Icon(Icons.emoji_events_outlined, size: 15, color: accent),
+        '已通关',
+      );
     }
+    if (controller.status == PuzzleStatus.failed) {
+      return chip(Icon(Icons.close_rounded, size: 15, color: accent), '挑战失败');
+    }
+    if (controller.thinking) {
+      return chip(StatusSpinner(color: accent), '白棋应对中…');
+    }
+    return chip(const StoneDot(side: black), '轮到你落子');
   }
 }

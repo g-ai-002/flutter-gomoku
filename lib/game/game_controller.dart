@@ -144,7 +144,10 @@ class GameController extends BoardSession {
     final side = moves.length.isEven ? black : white;
     if (side != board.sideToMove) return null;
     final move = line.moves[moves.length];
-    return board.cells[move] == empty ? move : null;
+    if (board.cells[move] != empty || board.forbiddenAt(move) != null) {
+      return null;
+    }
+    return move;
   }
 
   /// 页面挂载后调用；人类执白或 AI 对演时由 AI 先行。
