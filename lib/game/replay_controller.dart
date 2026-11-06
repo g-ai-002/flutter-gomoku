@@ -2,11 +2,11 @@ import 'package:flutter/foundation.dart';
 
 import '../models/move_record.dart';
 import 'board_state.dart';
-import 'board_view.dart';
+import 'board_view_adapter.dart';
 import 'handicap.dart';
 
 /// 复盘控制器：按步回放一局棋谱，棋盘从开局局面逐着重演。
-class ReplayController extends ChangeNotifier implements BoardView {
+class ReplayController extends ChangeNotifier with BoardViewAdapter {
   ReplayController({
     required List<MoveRecord> moves,
     this.handicap = Handicap.none,
@@ -24,6 +24,7 @@ class ReplayController extends ChangeNotifier implements BoardView {
   late GomokuBoard _board;
   int _cursor = 0;
 
+  @override
   GomokuBoard get board => _board;
 
   int get cursor => _cursor;
@@ -40,37 +41,10 @@ class ReplayController extends ChangeNotifier implements BoardView {
   String get progressText => '第 $_cursor / $total 手';
 
   @override
-  Uint8List get cells => _board.cells;
-
-  @override
-  List<MoveRecord> get history => _board.history;
-
-  @override
-  int? get lastIndex => _board.lastIndex;
-
-  @override
-  List<int> get winningLine => _board.winningLine;
-
-  @override
-  int? get hintIndex => null;
-
-  @override
   bool get showCoordinates => true;
 
   @override
-  Set<int> get forbiddenPoints => const {};
-
-  @override
-  bool get allowsReplace => false;
-
-  @override
-  int get revision => 0;
-
-  @override
   bool get canInteract => false;
-
-  @override
-  int get sideToMove => _board.sideToMove;
 
   void next() => jumpTo(_cursor + 1);
 

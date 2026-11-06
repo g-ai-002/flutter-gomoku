@@ -89,12 +89,6 @@ class GameController extends BoardSession {
     return _forbiddenCache ??= GomokuForbidden.points(board.cells);
   }
 
-  @override
-  bool get allowsReplace => false;
-
-  @override
-  int get revision => 0;
-
   bool get isHumanTurn =>
       mode == GameMode.twoPlayers ||
       (mode == GameMode.vsAi && board.sideToMove == humanSide);
@@ -213,9 +207,7 @@ class GameController extends BoardSession {
 
   /// 清理悔棋与重开共用的异步与终局状态。
   void _resetRound({bool clearBook = false}) {
-    cancelPending();
-    clearHint(notify: false);
-    endThinking();
+    clearPending();
     result = null;
     aiInsight = null;
     lastViolation = null;
@@ -225,8 +217,6 @@ class GameController extends BoardSession {
 
   void resign() {
     if (result != null) return;
-    cancelPending();
-    endThinking();
     _finish(GameResult(winner: opponentOf(humanSide), reason: '认输'));
   }
 
@@ -309,7 +299,7 @@ class GameController extends BoardSession {
   void _finish(GameResult outcome) {
     result = outcome;
     _tracker?.stop();
-    clearHint(notify: false);
+    clearPending();
     LogService.info('对局结束: ${outcome.title}（${outcome.reason}）');
     notifyBoard();
   }
@@ -356,26 +346,20 @@ class GameController extends BoardSession {
       );
     }
 
-    final move = reply?.move ?? -1;
-    if (move < 0 ||
-        move >= cellCount ||
-        board.cells[move] != empty ||
-        board.forbiddenAt(move) != null) {
-      final forbidden = forbidBlack && board.sideToMove == black
+    final move = GomokuRules.pickMove(
+      board.cells,
+      board.sideToMove,
+      reply?.move,
+      forbidden: forbidBlack && board.sideToMove == black
           ? GomokuForbidden.points(board.cells)
-          : const <int>{};
-      final fallback = GomokuRules.fallbackMove(
-        board.cells,
-        board.sideToMove,
-        forbidden: forbidden,
-      );
-      if (fallback == null) {
-        _afterMove();
-        return;
-      }
-      LogService.warning('AI 未返回合法着法，改用兜底着法');
-      _play(fallback);
+          : const {},
+    );
+    if (move == null) {
+      _afterMove();
       return;
+    }
+    if (move != reply?.move) {
+      LogService.warning('AI 未返回合法着法，改用兜底着法');
     }
     _play(move);
   }

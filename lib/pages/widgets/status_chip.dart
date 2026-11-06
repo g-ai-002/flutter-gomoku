@@ -40,3 +40,19 @@ class StatusChip extends StatelessWidget {
     );
   }
 }
+
+/// 状态条里的小型进度圈，统一对局与残局的尺寸与线宽。
+class StatusSpinner extends StatelessWidget {
+  const StatusSpinner({super.key, required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 12,
+      height: 12,
+      child: CircularProgressIndicator(strokeWidth: 1.8, color: color),
+    );
+  }
+}

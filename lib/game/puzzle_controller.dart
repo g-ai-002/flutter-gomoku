@@ -42,15 +42,6 @@ class PuzzleController extends BoardSession {
   bool get showCoordinates => true;
 
   @override
-  Set<int> get forbiddenPoints => const {};
-
-  @override
-  bool get allowsReplace => false;
-
-  @override
-  int get revision => 0;
-
-  @override
   bool get canInteract =>
       status == PuzzleStatus.playing && !thinking && board.sideToMove == black;
 
@@ -75,9 +66,7 @@ class PuzzleController extends BoardSession {
   /// 悔棋撤回玩家最近一手与白棋的应手。
   void undo() {
     if (!canUndo) return;
-    cancelPending();
-    clearHint(notify: false);
-    endThinking();
+    clearPending();
     if (board.history.isNotEmpty && board.history.last.side == white) {
       board.undoLast();
     }
@@ -90,13 +79,11 @@ class PuzzleController extends BoardSession {
   }
 
   void restart() {
-    cancelPending();
-    clearHint(notify: false);
+    clearPending();
     board = GomokuBoard.fromCells(puzzle.buildCells());
     playerMoves = 0;
     status = PuzzleStatus.playing;
     failureReason = null;
-    endThinking();
     LogService.info('残局重开: ${puzzle.title}');
     notifyBoard();
   }
@@ -161,13 +148,7 @@ class PuzzleController extends BoardSession {
     if (!isCurrent(serial)) return;
 
     endThinking();
-    final candidate = reply?.move ?? -1;
-    final move =
-        candidate >= 0 &&
-            candidate < cellCount &&
-            board.cells[candidate] == empty
-        ? candidate
-        : GomokuRules.fallbackMove(board.cells, white);
+    final move = GomokuRules.pickMove(board.cells, white, reply?.move);
     if (move == null) {
       _fail('白棋已无子可下');
       return;
@@ -189,8 +170,7 @@ class PuzzleController extends BoardSession {
   void _end(PuzzleStatus outcome, [String? reason]) {
     status = outcome;
     failureReason = reason;
-    endThinking();
-    clearHint(notify: false);
+    clearPending();
     notifyBoard();
   }
 }

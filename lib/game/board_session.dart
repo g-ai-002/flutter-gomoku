@@ -2,11 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import '../models/move_record.dart';
 import '../services/log_service.dart';
 import 'ai_player.dart';
 import 'board_state.dart';
-import 'board_view.dart';
+import 'board_view_adapter.dart';
 import 'hint_session.dart';
 
 /// 对局与残局控制器共用的棋盘状态与异步生命周期。
@@ -14,24 +13,10 @@ import 'hint_session.dart';
 /// 统一持有提示会话、AI 思考态、请求序号与释放状态：重开、悔棋或发起
 /// 新请求时，旧搜索的回包通过 [isCurrent] 丢弃，避免各控制器重复维护
 /// 一套标志位。子类只需提供 [board]，棋盘与棋谱的只读状态由这里映射。
-abstract class BoardSession extends ChangeNotifier implements BoardView {
+abstract class BoardSession extends ChangeNotifier with BoardViewAdapter {
   /// 当前棋局；对局控制器持有固定实例，残局控制器在重开时替换。
+  @override
   GomokuBoard get board;
-
-  @override
-  Uint8List get cells => board.cells;
-
-  @override
-  List<MoveRecord> get history => board.history;
-
-  @override
-  int? get lastIndex => board.lastIndex;
-
-  @override
-  List<int> get winningLine => board.winningLine;
-
-  @override
-  int get sideToMove => board.sideToMove;
 
   late final HintSession hint = HintSession(notifyBoard);
 
@@ -72,6 +57,14 @@ abstract class BoardSession extends ChangeNotifier implements BoardView {
   /// 结束 AI 回合；重开、悔棋或终局时由调用方清理。
   @protected
   void endThinking() => _thinking = false;
+
+  /// 悔棋、重开或终局共用的收尾：作废回包、收起提示并结束思考态。
+  @protected
+  void clearPending() {
+    cancelPending();
+    clearHint(notify: false);
+    endThinking();
+  }
 
   /// 执行一次 AI 搜索，统一 Web 首帧让步、异常日志与回包竞态校验。
   ///

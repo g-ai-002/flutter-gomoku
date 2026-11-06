@@ -152,6 +152,25 @@ class GomokuRules {
     return immediateWin(cells, opponentOf(side), candidates: candidates);
   }
 
+  /// 校验 AI 搜索返回的着法：合法时原样返回，否则改用 [fallbackMove]。
+  ///
+  /// 对局与残局共用同一套合法性条件，避免各自漏判越界、占用或禁手点。
+  static int? pickMove(
+    Uint8List cells,
+    int side,
+    int? candidate, {
+    Set<int> forbidden = const {},
+  }) {
+    if (candidate != null &&
+        candidate >= 0 &&
+        candidate < cellCount &&
+        cells[candidate] == empty &&
+        !forbidden.contains(candidate)) {
+      return candidate;
+    }
+    return fallbackMove(cells, side, forbidden: forbidden);
+  }
+
   /// AI 搜索失败或返回非法着法时的兜底着法。
   ///
   /// 优先自己成五，其次封堵对手成五，最后取离中心最近的空点；

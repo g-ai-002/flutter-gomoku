@@ -83,14 +83,7 @@ class GameStatusBar extends StatelessWidget {
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
-            width: 12,
-            height: 12,
-            child: CircularProgressIndicator(
-              strokeWidth: 1.8,
-              color: theme.colorScheme.primary,
-            ),
-          ),
+          StatusSpinner(color: theme.colorScheme.primary),
           const SizedBox(width: 7),
           Text(
             'AI 思考中…',
