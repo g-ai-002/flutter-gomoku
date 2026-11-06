@@ -12,8 +12,8 @@
 - 💡 走子提示：人机对战中一键请求推荐着法，棋盘高亮 6 秒
 - 🧩 残局挑战：十道内置杀局，分入门 / 进阶 / 挑战三档，限手数通关并记录进度
 - 🛠️ 残局编辑器：自由摆放黑白棋子、设置限手数与名称，保存后直接挑战，支持编辑与删除
-- 🔗 残局分享码：把自建残局编码成一段纯文本，复制发给好友后粘贴导入，全程离线
 - 🀄 开局提示：六条直指 / 斜指参考棋谱，人机执黑时 AI 走棋谱应手，可在设置中关闭
+- 🧠 AI 精研：设置页一键自对弈训练 8 局，胜方延伸着法写入本地开局库，全程离线
 - 👥 双人同屏对弈，适合面对面手谈
 - ⏱️ 限时对局：可选 5 / 10 / 20 分钟棋钟，超时判负，AI 思考计入本方用时
 - ↩️ 悔棋、重开、认输，人机对战悔棋同时撤回双方各一手
@@ -29,16 +29,17 @@
 
 ## 下载
 
-v0.7.1（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-gomoku/releases/tag/v0.7.1)
+v0.8.0（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-gomoku/releases/tag/v0.8.0)
 
 | 平台 | 产物 |
 | --- | --- |
-| Android (arm64) | `flutter-gomoku-0.7.1-android-aarch64.apk` |
-| Windows (x64, Win10+) | `flutter-gomoku-0.7.1-windows-x86_64.zip` |
-| Web | `flutter-gomoku-0.7.1-web.zip`（解压后起静态服务器） |
+| Android (arm64) | `flutter-gomoku-0.8.0-android-aarch64.apk` |
+| Windows (x64, Win10+) | `flutter-gomoku-0.8.0-windows-x86_64.zip` |
+| Web | `flutter-gomoku-0.8.0-web.zip`（解压后起静态服务器） |
 
 | 版本 | 说明 |
 | --- | --- |
+| v0.8.0 | 新增 AI 精研：自对弈训练本地开局库，开局应手自动采用精研延伸 |
 | v0.7.1 | 重构棋盘只读视图与 AI 合法着法校验，收敛异步收尾并修复终局回包竞态 |
 | v0.7.0 | 新增 AI 对演模式，双方 AI 自动对弈可观战；完善禁手递归活三判定 |
 | v0.6.1 | 重构棋盘视图、五连扫描与偏好读写，收敛控制器重复状态 |
@@ -49,6 +50,7 @@ v0.7.1（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flut
 
 | 版本 | 说明 |
 | --- | --- |
+| v0.5.1 | 收敛持久化与 AI 回合实现，修复加载竞态并主动释放棋盘图层 |
 | v0.5.0 | 新增残局分享码，离线复制粘贴即可导入他人的自建残局 |
 | v0.4.1 | 重构持久化、控制器生命周期与列表卡片，编辑器不再重建棋盘 |
 | v0.4.0 | 新增残局编辑器与自定义关卡，支持摆子、限手数、编辑与删除 |
@@ -79,8 +81,6 @@ flutter test
 
 导出的棋谱保存在 `<文档>/FlutterGomoku/records/`，导入时可粘贴棋谱文本，或在导入弹窗中直接选取该目录下已导出的文件（Web 端使用剪贴板复制与粘贴）。
 
-自定义残局通过「分享码」传递：`GMK1~…~校验位` 是一段纯文本，不含链接与服务端，复制粘贴即可离线导入。
-
 ## 目录结构
 
 ```
@@ -93,7 +93,8 @@ lib/
 │   ├── match_clock.dart / replay_controller.dart / game_archive.dart
 │   ├── handicap.dart          # 让子方案与天元 / 星位预置
 │   ├── opening_book.dart      # 六条开局棋谱与匹配
-│   ├── puzzle_share_code.dart # 自定义残局分享码编解码
+│   ├── learned_book.dart      # 自对弈精研开局库与持久化
+│   ├── self_play_trainer.dart # 自对弈训练与胜方延伸聚合
 │   └── puzzle_controller.dart / puzzles.dart / custom_puzzles.dart  # 残局数据、挑战流程与自定义残局库
 ├── models/         # 对局、着法与棋谱存档模型
 ├── pages/          # 首页、对局、残局、残局编辑器、设置、棋谱库与复盘
