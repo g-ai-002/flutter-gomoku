@@ -20,7 +20,7 @@ enum ForbiddenReason {
 /// 判定按「落子后的五格窗口」统计四与活三：
 /// 五连直接获胜，优先于四四与三三；长连一律判为禁手。
 /// 活三要求补一子后能形成两端皆空的活四，因此眠三不计入。
-/// 简化之处：未递归排除「补成活四的那一手本身也是禁手」的极端情形。
+/// 补点本身若构成四四等禁手则不计入活三，按递归规则排除该活三。
 class GomokuForbidden {
   GomokuForbidden._();
 
@@ -137,7 +137,10 @@ class GomokuForbidden {
       board[point] = black;
       final run = GomokuRules.runAt(board, index, black, dr, dc);
       String? key;
-      if (run.length == 4 && _openEnds(board, run, dr, dc)) {
+      // 补成活四的一手本身可能是四四等禁手，此时该三不计入活三。
+      if (run.length == 4 &&
+          _openEnds(board, run, dr, dc) &&
+          _evaluate(board, point) == null) {
         final stones =
             [
                 for (var step = 0; step < 4; step++)

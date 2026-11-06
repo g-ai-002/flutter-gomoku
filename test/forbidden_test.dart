@@ -74,6 +74,29 @@ void main() {
       expect(GomokuForbidden.at(cells, indexOf(7, 7)), isNull);
     });
 
+    test('补点自身为四四时该活三不计入', () {
+      // 横向 (7,6)(7,7)(7,9) 补 (7,8) 可成活四，但 (7,8) 同时形成竖向四，
+      // 补点本身是四四禁手，因此横向活三被递归排除，只剩竖向一条活三。
+      final cells = _cells([
+        (7, 6),
+        (7, 9),
+        (6, 7),
+        (8, 7),
+        (4, 8),
+        (5, 8),
+        (6, 8),
+      ]);
+      expect(GomokuForbidden.at(cells, indexOf(7, 7)), isNull);
+    });
+
+    test('去掉让补点成四四的棋子后恢复三三禁手', () {
+      final cells = _cells([(7, 6), (7, 9), (6, 7), (8, 7)]);
+      expect(
+        GomokuForbidden.at(cells, indexOf(7, 7)),
+        ForbiddenReason.doubleThree,
+      );
+    });
+
     test('被白棋封住一端的眠三不计入', () {
       final cells = _cells(
         [for (var col = 5; col <= 6; col++) (7, col)],
