@@ -67,6 +67,22 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('横屏手机首页改为左右分栏，入口免滚动可见', (tester) async {
+    tester.view.physicalSize = const Size(640, 360);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final settings = await createSettings();
+    await tester.pumpWidget(wrapPage(const HomePage(), settings));
+
+    final ai = tester.getRect(find.text('人机对战'));
+    // 入口在右侧分栏，且首屏可见，不必先滚过品牌区。
+    expect(ai.top, lessThan(360));
+    expect(ai.left, greaterThan(200));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('深色模式按钮切换偏好', (tester) async {
     final settings = await createSettings();
     await tester.pumpWidget(wrapPage(const HomePage(), settings));

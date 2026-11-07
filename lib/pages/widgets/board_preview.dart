@@ -6,7 +6,10 @@ import '../../theme/board_skin.dart';
 
 /// 首页装饰：一张缩小的 15 路棋盘，黑白各两子，使用统一棋盘配色。
 class BoardPreview extends StatelessWidget {
-  const BoardPreview({super.key});
+  const BoardPreview({super.key, this.side = 172});
+
+  /// 预览边长，横屏分栏时收窄以给入口列表让出高度。
+  final double side;
 
   @override
   Widget build(BuildContext context) {
@@ -21,9 +24,9 @@ class BoardPreview extends StatelessWidget {
           ),
         ],
       ),
-      child: const CustomPaint(
-        size: Size.square(172),
-        painter: _BoardPreviewPainter(),
+      child: CustomPaint(
+        size: Size.square(side),
+        painter: const _BoardPreviewPainter(),
       ),
     );
   }
