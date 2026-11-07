@@ -32,9 +32,6 @@ class GomokuForbidden {
     return _evaluate(board, index);
   }
 
-  static bool isForbidden(Uint8List cells, int index) =>
-      at(cells, index) != null;
-
   /// 当前局面下黑棋的全部禁手点，供棋盘标记与落子校验。
   static Set<int> points(Uint8List cells) {
     final board = Uint8List.fromList(cells);
@@ -52,7 +49,7 @@ class GomokuForbidden {
     if (side != black) return List.of(moves);
     return [
       for (final move in moves)
-        if (!isForbidden(cells, move)) move,
+        if (at(cells, move) == null) move,
     ];
   }
 

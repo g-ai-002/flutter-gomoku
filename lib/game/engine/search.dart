@@ -113,13 +113,6 @@ class GomokuSearch {
   }
 }
 
-class _ScoredMove {
-  const _ScoredMove(this.move, this.score);
-
-  final int move;
-  final int score;
-}
-
 class _Searcher {
   _Searcher(this.board, int timeLimitMillis)
     : _watch = Stopwatch()..start(),
@@ -132,25 +125,43 @@ class _Searcher {
 
   bool get _expired => _watch.elapsedMilliseconds >= _timeLimitMillis;
 
-  /// 按双方在该点的形态分排序，截取前 [limit] 个。
+  /// 按双方在该点的形态分取出前 [limit] 个着法。
+  ///
+  /// 逐点插入有序缓冲：每个搜索节点只需保留前 [limit] 个候选，
+  /// 不必构造整份评分列表再整体排序，避免大量临时对象与比较开销。
   List<int> ordered(List<int> moves, int side, {required int limit}) {
+    final count = math.min(limit, moves.length);
+    if (count == 0) return const [];
     final opponent = opponentOf(side);
-    final scored = <_ScoredMove>[];
+    final picked = List<int>.filled(count, 0);
+    final scores = Int32List(count);
+    var size = 0;
     for (final move in moves) {
       board[move] = side;
       final own = GomokuEvaluation.pointScore(board, move, side);
       board[move] = empty;
       final defense = GomokuEvaluation.pointScore(board, move, opponent);
-      scored.add(_ScoredMove(move, own * 2 + defense));
+      final score = own * 2 + defense;
+      if (size == count && score <= scores[count - 1]) continue;
+      var at = size < count ? size++ : count - 1;
+      while (at > 0 && scores[at - 1] < score) {
+        scores[at] = scores[at - 1];
+        picked[at] = picked[at - 1];
+        at--;
+      }
+      scores[at] = score;
+      picked[at] = move;
     }
-    scored.sort((a, b) => b.score.compareTo(a.score));
-    final count = math.min(limit, scored.length);
-    return [for (var i = 0; i < count; i++) scored[i].move];
+    return picked;
   }
 
   /// 根节点：逐个候选着法搜索，返回评分列表供随机度筛选。
-  List<_ScoredMove> searchRoot(List<int> roots, int side, int depth) {
-    final results = <_ScoredMove>[];
+  List<({int move, int score})> searchRoot(
+    List<int> roots,
+    int side,
+    int depth,
+  ) {
+    final results = <({int move, int score})>[];
     for (final move in roots) {
       if (_expired) throw const _SearchTimeout();
       board[move] = side;
@@ -167,7 +178,7 @@ class _Searcher {
         );
       }
       board[move] = empty;
-      results.add(_ScoredMove(move, score));
+      results.add((move: move, score: score));
     }
     return results;
   }
