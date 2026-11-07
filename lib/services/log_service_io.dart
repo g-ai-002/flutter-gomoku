@@ -16,11 +16,14 @@ class LogService {
   DateTime? _logDate;
   bool _initialized = false;
   DateTime Function() _now = DateTime.now;
+  int _statBudget = 0;
 
   static const int _maxBufferLines = 2000;
   static const int _maxEarlyLines = 500;
   static const int _maxFileSize = 5 * 1024 * 1024;
   static const int _maxRetentionDays = 7;
+
+  static const int _statInterval = 32;
 
   LogService._();
 
@@ -125,10 +128,13 @@ class LogService {
       if (file != null) {
         _logFile = file;
         _logDate = now;
+        _statBudget = 0;
         _cleanOldLogs();
       }
       return;
     }
+    if (++_statBudget < _statInterval) return;
+    _statBudget = 0;
     _rotateIfNeeded();
   }
 

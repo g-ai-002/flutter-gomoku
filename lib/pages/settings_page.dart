@@ -24,26 +24,28 @@ class _SettingsPageState extends State<SettingsPage> {
   static const int _games = 8;
 
   final SelfPlayTrainer _trainer = SelfPlayTrainer();
+
+  late final Future<String> _logRoot = FileSystemService.instance
+      .getLogRootPath();
+
+  final ValueNotifier<(int, int)?> _progress = ValueNotifier(null);
   bool _training = false;
   bool _cancelled = false;
-  int _done = 0;
-  int _plies = 0;
+
+  @override
+  void dispose() {
+    _progress.dispose();
+    super.dispose();
+  }
 
   Future<void> _train() async {
     final settings = context.read<SettingsProvider>();
-    setState(() {
-      _training = true;
-      _cancelled = false;
-      _done = 0;
-      _plies = 0;
-    });
+    _cancelled = false;
+    _progress.value = (0, 0);
+    setState(() => _training = true);
     final report = await _trainer.run(
       onProgress: (game, plies) {
-        if (!mounted) return;
-        setState(() {
-          _done = game;
-          _plies = plies;
-        });
+        if (mounted) _progress.value = (game, plies);
       },
       isCancelled: () => _cancelled,
     );
@@ -128,52 +130,70 @@ class _SettingsPageState extends State<SettingsPage> {
                   style: subtle,
                 ),
                 const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        _training
-                            ? '训练中 · 第 $_done/$_games 局 · 已走 $_plies 手'
-                            : learned.isEmpty
-                            ? '尚未训练，开局库使用内置棋谱'
-                            : '已精研 ${learned.lines.length} 条开局 · '
-                                  '${learned.totalWins} 胜',
-                        style: subtle,
-                      ),
-                    ),
-                    if (_training)
-                      OutlinedButton(
-                        onPressed: () => setState(() => _cancelled = true),
-                        child: const Text('停止'),
-                      )
-                    else
-                      FilledButton.tonalIcon(
-                        onPressed: _train,
-                        icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                        label: Text(learned.isEmpty ? '开始训练' : '重新训练'),
-                      ),
-                  ],
+                ValueListenableBuilder<(int, int)?>(
+                  valueListenable: _progress,
+                  builder: (context, progress, _) {
+                    final done = progress?.$1 ?? 0;
+                    final plies = progress?.$2 ?? 0;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _training
+                                    ? '训练中 · 第 $done/$_games 局 · 已走 $plies 手'
+                                    : learned.isEmpty
+                                    ? '尚未训练，开局库使用内置棋谱'
+                                    : '已精研 ${learned.lines.length} 条开局 · '
+                                          '${learned.totalWins} 胜',
+                                style: subtle,
+                              ),
+                            ),
+                            if (_training)
+                              OutlinedButton(
+                                onPressed: () =>
+                                    setState(() => _cancelled = true),
+                                child: const Text('停止'),
+                              )
+                            else
+                              FilledButton.tonalIcon(
+                                onPressed: _train,
+                                icon: const Icon(
+                                  Icons.play_arrow_rounded,
+                                  size: 18,
+                                ),
+                                label: Text(learned.isEmpty ? '开始训练' : '重新训练'),
+                              ),
+                          ],
+                        ),
+                        if (_training) ...[
+                          const SizedBox(height: 10),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: done / _games,
+                              minHeight: 6,
+                              backgroundColor: colors.primary.withValues(
+                                alpha: 0.12,
+                              ),
+                            ),
+                          ),
+                        ] else if (!learned.isEmpty) ...[
+                          const SizedBox(height: 4),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: _clearLearned,
+                              child: const Text('清除精研开局'),
+                            ),
+                          ),
+                        ],
+                      ],
+                    );
+                  },
                 ),
-                if (_training) ...[
-                  const SizedBox(height: 10),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: _done / _games,
-                      minHeight: 6,
-                      backgroundColor: colors.primary.withValues(alpha: 0.12),
-                    ),
-                  ),
-                ] else if (!learned.isEmpty) ...[
-                  const SizedBox(height: 4),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: _clearLearned,
-                      child: const Text('清除精研开局'),
-                    ),
-                  ),
-                ],
               ],
             ),
             const SizedBox(height: 12),
@@ -234,7 +254,7 @@ class _SettingsPageState extends State<SettingsPage> {
               icon: Icons.receipt_long_outlined,
               children: [
                 FutureBuilder<String>(
-                  future: FileSystemService.instance.getLogRootPath(),
+                  future: _logRoot,
                   builder: (context, snapshot) {
                     final path = snapshot.data ?? '';
                     final text = path.isEmpty

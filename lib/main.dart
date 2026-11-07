@@ -33,10 +33,14 @@ Future<void> main() async {
   await GameHistoryService.instance.load();
   await PuzzleProgressService.instance.load();
   LogService.info('应用启动: ${AppConstants.appName} v${AppConstants.version}');
-  unawaited(SoundService.init());
   MusicService.enabled = storage.musicEnabled;
-  // Web 需要用户手势才能播放，首次点击页面时由 App 的监听器启动。
-  if (storage.musicEnabled && !kIsWeb) unawaited(MusicService.start());
 
   runApp(GomokuApp(storage: storage));
+  // 音效与音乐由纯 Dart 在运行时合成，放到首帧之后再启动，
+  // 让首页先完成绘制，避免合成占用启动时的主线程。
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    unawaited(SoundService.init());
+    // Web 需要用户手势才能播放，首次点击页面时由 App 的监听器启动。
+    if (storage.musicEnabled && !kIsWeb) unawaited(MusicService.start());
+  });
 }

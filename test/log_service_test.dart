@@ -69,4 +69,19 @@ void main() {
     expect(lines.length, lessThanOrEqualTo(10));
     expect(lines.last, contains('第 29 行'));
   });
+
+  test('连续写入超过节流间隔仍完整落盘', () async {
+    final dir = await Directory.systemTemp.createTemp('gomoku_log_');
+    addTearDown(() async {
+      if (await dir.exists()) await dir.delete(recursive: true);
+    });
+    await LogService.init(logRoot: () async => dir);
+    for (var i = 0; i < 40; i++) {
+      LogService.info('节流第 $i 行');
+    }
+    final content = await File(LogService.logFilePath).readAsString();
+    for (var i = 0; i < 40; i++) {
+      expect(content, contains('[INFO] 节流第 $i 行'));
+    }
+  });
 }
