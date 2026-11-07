@@ -7,19 +7,11 @@ class SectionCard extends StatelessWidget {
     required this.title,
     required this.children,
     this.icon,
-    this.trailing,
-    this.radius = 14,
-    this.color,
   });
 
   final String title;
   final List<Widget> children;
   final IconData? icon;
-  final Widget? trailing;
-  final double radius;
-
-  /// 卡片底色，缺省为当前主题的 surface；渐变背景上用半透明底色。
-  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -28,8 +20,8 @@ class SectionCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
       decoration: BoxDecoration(
-        color: color ?? colors.surface,
-        borderRadius: BorderRadius.circular(radius),
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: colors.outline.withValues(alpha: 0.7)),
       ),
       child: Column(
@@ -42,8 +34,6 @@ class SectionCard extends StatelessWidget {
                 const SizedBox(width: 8),
               ],
               Text(title, style: theme.textTheme.titleSmall),
-              const Spacer(),
-              ?trailing,
             ],
           ),
           const SizedBox(height: 14),

@@ -15,13 +15,11 @@ class BoardStage extends StatelessWidget {
     super.key,
     required this.game,
     required this.gameKey,
-    this.maxWidth = 680,
     this.overlays,
   });
 
   final GomokuGame game;
   final Key gameKey;
-  final double maxWidth;
 
   /// 棋盘浮层，缺省为空；由页面按需传入提示、图例等临时信息。
   final Widget? overlays;
@@ -30,7 +28,7 @@ class BoardStage extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        var width = math.min(constraints.maxWidth, maxWidth);
+        var width = math.min(constraints.maxWidth, 680.0);
         var height = width;
         if (height > constraints.maxHeight) {
           height = constraints.maxHeight;

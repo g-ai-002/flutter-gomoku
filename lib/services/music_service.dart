@@ -133,15 +133,4 @@ class MusicService {
       // 句柄已失效时无需再处理。
     }
   }
-
-  @visibleForTesting
-  static void reset() {
-    sink = null;
-    enabled = true;
-    _source = null;
-    _handle = null;
-    _starting = null;
-    _failed = false;
-    _suspended = false;
-  }
 }

@@ -45,10 +45,10 @@ class _BoardPreviewPainter extends CustomPainter {
 
     const pad = 14.0;
     final cell = (size.width - pad * 2) / 14;
-    final topLeft = Offset(pad, (size.height - cell * 14) / 2);
+    final origin = Offset(pad, (size.height - cell * 14) / 2);
     paintBoardGrid(
       canvas,
-      topLeft: topLeft,
+      topLeft: origin,
       cell: cell,
       linePaint: Paint()
         ..color = kBoardLine.withValues(alpha: 0.55)
@@ -64,10 +64,7 @@ class _BoardPreviewPainter extends CustomPainter {
       final index = _stones[i];
       paintStoneDisc(
         canvas,
-        center: Offset(
-          topLeft.dx + colOf(index) * cell,
-          topLeft.dy + rowOf(index) * cell,
-        ),
+        center: origin + Offset(colOf(index) * cell, rowOf(index) * cell),
         radius: cell * 0.44,
         face: faceOf(i.isEven ? black : white),
       );

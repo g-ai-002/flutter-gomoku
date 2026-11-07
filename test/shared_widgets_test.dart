@@ -51,7 +51,7 @@ void main() {
           children: [
             StatusChip(accent: appInk, child: Text('黑方行棋')),
             SizedBox(height: 8),
-            StatusChip(accent: appAccent, filled: true, child: Text('五连')),
+            StatusChip(accent: appAccent, active: false, child: Text('五连')),
             SizedBox(height: 8),
             SizedBox(
               width: 320,

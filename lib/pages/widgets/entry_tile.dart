@@ -104,24 +104,21 @@ class EntryTile extends StatelessWidget {
   }
 }
 
-/// 入口卡片的方形徽章：图标或序号，底色由强调色淡化得到。
+/// 入口卡片的方形徽章：图标，底色由强调色淡化得到。
 class EntryBadge extends StatelessWidget {
   const EntryBadge({
     super.key,
     required this.accent,
-    this.icon,
-    this.label,
+    required this.icon,
     this.size = 46,
-  }) : assert(icon != null || label != null, '徽章需要图标或文字');
+  });
 
   final Color accent;
-  final IconData? icon;
-  final String? label;
+  final IconData icon;
   final double size;
 
   @override
   Widget build(BuildContext context) {
-    final icon = this.icon;
     return Container(
       width: size,
       height: size,
@@ -130,13 +127,7 @@ class EntryBadge extends StatelessWidget {
         color: accent.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(size * 0.26),
       ),
-      child: icon != null
-          ? Icon(icon, color: accent, size: size * 0.52)
-          : Text(
-              label ?? '',
-              style: Theme.of(context).textTheme.titleSmall
-                  ?.copyWith(color: accent),
-            ),
+      child: Icon(icon, color: accent, size: size * 0.52),
     );
   }
 }
