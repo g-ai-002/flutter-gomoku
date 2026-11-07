@@ -41,156 +41,60 @@ class HomePage extends StatelessWidget {
         child: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
+              // 各尺寸共用一套居中滚动布局，避免横屏与桌面切换分栏造成观感跳变。
+              // 折叠屏展开约 600dp 起即可并排两张入口卡片。
+              final twoColumns = constraints.maxWidth >= 600;
               final horizontal = constraints.maxWidth >= 900 ? 40.0 : 20.0;
-              final avail = constraints.maxWidth - horizontal * 2;
-              // 横屏与桌面并排：左侧品牌预览、右侧入口列表，入口免滚动即可见。
-              final panes =
-                  constraints.maxWidth >= 600 &&
-                  constraints.maxWidth > constraints.maxHeight;
-              return Padding(
-                padding: EdgeInsets.fromLTRB(horizontal, 14, horizontal, 16),
-                child: Column(
-                  children: [
-                    _TopBar(darkMode: settings.darkMode),
-                    SizedBox(height: panes ? 6 : 20),
-                    Expanded(
-                      child: panes
-                          ? _panes(context, cards, math.min(avail, 1200))
-                          : _flow(context, cards, math.min(avail, 780)),
+              final contentWidth = math.min(
+                constraints.maxWidth - horizontal * 2,
+                780.0,
+              );
+              return SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(horizontal, 14, horizontal, 24),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: math.max(0, constraints.maxHeight - 38),
+                  ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 780),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _TopBar(darkMode: settings.darkMode),
+                          const SizedBox(height: 22),
+                          const _Hero(),
+                          const SizedBox(height: 30),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: [
+                              for (final card in cards)
+                                SizedBox(
+                                  width: twoColumns
+                                      ? (contentWidth - 12) / 2
+                                      : contentWidth,
+                                  child: card,
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'v${AppConstants.version} · 本地运行，无需联网',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
+                  ),
                 ),
               );
             },
           ),
         ),
       ),
-    );
-  }
-
-  /// 竖向窗口：品牌区在上、入口在下，整体滚动；平板宽度下入口排成两列。
-  Widget _flow(BuildContext context, List<Widget> cards, double content) {
-    // 矮窗口收窄品牌区，保证至少一列入口在首屏可见。
-    final compact = MediaQuery.sizeOf(context).height < 620;
-    final columns = content >= 560 ? 2 : 1;
-    final width = columns == 2 ? (content - 12) / 2 : content;
-    return SingleChildScrollView(
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 780),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _hero(context, compact: compact),
-              SizedBox(height: compact ? 18 : 28),
-              _grid(cards, width),
-              const SizedBox(height: 22),
-              _version(context),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// 横屏与桌面：左侧预览收窄，右侧入口列表可滚动，够宽时排成两列。
-  Widget _panes(BuildContext context, List<Widget> cards, double row) {
-    final pane = (row - 24) * 5 / 9;
-    final width = pane >= 520 ? (pane - 12) / 2 : pane;
-    return Center(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: row),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 4,
-              child: Center(
-                child: SingleChildScrollView(
-                  child: _hero(context, compact: true),
-                ),
-              ),
-            ),
-            const SizedBox(width: 24),
-            Expanded(
-              flex: 5,
-              child: ListView(
-                children: [
-                  _grid(cards, width),
-                  const SizedBox(height: 16),
-                  _version(context),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _grid(List<Widget> cards, double width) => Wrap(
-    spacing: 12,
-    runSpacing: 12,
-    children: [
-      for (final card in cards) SizedBox(width: width, child: card),
-    ],
-  );
-
-  Widget _version(BuildContext context) {
-    final theme = Theme.of(context);
-    return Text(
-      'v${AppConstants.version} · 本地运行，无需联网',
-      textAlign: TextAlign.center,
-      style: theme.textTheme.bodySmall?.copyWith(
-        color: theme.colorScheme.onSurfaceVariant,
-      ),
-    );
-  }
-
-  Widget _hero(BuildContext context, {bool compact = false}) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-    final title = Text(
-      '五子棋',
-      textAlign: TextAlign.center,
-      style: theme.textTheme.headlineMedium?.copyWith(
-        fontSize: compact ? 26 : 32,
-        letterSpacing: compact ? 6 : 8,
-        color: colors.onSurface,
-      ),
-    );
-    final subtle = theme.textTheme.bodySmall?.copyWith(
-      color: colors.onSurfaceVariant,
-    );
-    final ornament = Container(width: 36, height: 1, color: colors.outline);
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        BoardPreview(side: compact ? 128 : 172),
-        SizedBox(height: compact ? 14 : 20),
-        title,
-        SizedBox(height: compact ? 8 : 10),
-        if (!compact) ...[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ornament,
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: Text(
-                  '縱 橫 · 五 連',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: colors.onSurfaceVariant,
-                    letterSpacing: 3,
-                  ),
-                ),
-              ),
-              ornament,
-            ],
-          ),
-          const SizedBox(height: 12),
-        ],
-        Text('黑白之间，方寸之上见胜负', textAlign: TextAlign.center, style: subtle),
-      ],
     );
   }
 
@@ -333,4 +237,60 @@ class _TopBar extends StatelessWidget {
       ],
     );
   }
+}
+
+class _Hero extends StatelessWidget {
+  const _Hero();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    return Column(
+      children: [
+        const BoardPreview(),
+        const SizedBox(height: 20),
+        Text(
+          '五子棋',
+          textAlign: TextAlign.center,
+          style: theme.textTheme.headlineMedium?.copyWith(
+            fontSize: 32,
+            letterSpacing: 8,
+            color: colors.onSurface,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _ornament(colors),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Text(
+                '縱 橫 · 五 連',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  letterSpacing: 3,
+                ),
+              ),
+            ),
+            _ornament(colors),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Text(
+          '黑白之间，方寸之上见胜负',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: colors.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _ornament(ColorScheme colors) => Container(
+    width: 36,
+    height: 1,
+    color: colors.outline.withValues(alpha: 0.9),
+  );
 }

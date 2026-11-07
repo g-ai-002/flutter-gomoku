@@ -67,7 +67,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('横屏手机首页改为左右分栏，入口免滚动可见', (tester) async {
+  testWidgets('横屏手机沿用居中滚动布局，入口不分栏', (tester) async {
     tester.view.physicalSize = const Size(640, 360);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -76,10 +76,29 @@ void main() {
     final settings = await createSettings();
     await tester.pumpWidget(wrapPage(const HomePage(), settings));
 
-    final ai = tester.getRect(find.text('人机对战'));
-    // 入口在右侧分栏，且首屏可见，不必先滚过品牌区。
-    expect(ai.top, lessThan(360));
-    expect(ai.left, greaterThan(200));
+    final hero = tester.getTopLeft(find.text('黑白之间，方寸之上见胜负'));
+    final ai = tester.getTopLeft(find.text('人机对战'));
+    final duel = tester.getTopLeft(find.text('双人对弈'));
+    // 品牌区在上、入口在下，两列排布，与竖屏保持同一套布局。
+    expect(ai.dy, greaterThan(hero.dy));
+    expect(duel.dy, closeTo(ai.dy, 0.5));
+    expect(ai.dx, lessThan(320));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('桌面宽屏同样居中排布，不切换分栏列表', (tester) async {
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final settings = await createSettings();
+    await tester.pumpWidget(wrapPage(const HomePage(), settings));
+
+    final ai = tester.getTopLeft(find.text('人机对战'));
+    final duel = tester.getTopLeft(find.text('双人对弈'));
+    expect(duel.dy, closeTo(ai.dy, 0.5));
+    expect(find.byType(ListView), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
