@@ -5,14 +5,17 @@ import 'dart:typed_data';
 const int kSynthSampleRate = 22050;
 
 /// 单枚乐音：正弦基频叠加二、三次谐波，可混入少量噪声模拟木质敲击。
+///
+/// 构造参数依次为基频、起始秒数、时长、音量与噪声比例；
+/// 音效配方按这一固定顺序紧凑排列，便于对照听感微调。
 class SynthNote {
-  const SynthNote({
-    required this.frequency,
-    required this.start,
-    required this.duration,
+  const SynthNote(
+    this.frequency,
+    this.start,
+    this.duration, [
     this.gain = 0.5,
     this.noise = 0,
-  });
+  ]);
 
   /// 基频（Hz）。
   final double frequency;
@@ -78,14 +81,17 @@ const int kMusicSampleRate = 16000;
 const double kMusicLoopSeconds = 16;
 
 /// 背景音乐中的拨弦音：起止时间、基频、音量与衰减速度。
+///
+/// 构造参数依次为起始秒数、基频、时长、音量与衰减系数，
+/// 数据表按这一固定顺序紧凑排列，便于对照乐谱调整。
 class _PluckNote {
-  const _PluckNote({
-    required this.start,
-    required this.frequency,
-    required this.duration,
+  const _PluckNote(
+    this.start,
+    this.frequency,
+    this.duration, [
     this.gain = 0.4,
     this.damp = 1.2,
-  });
+  ]);
 
   final double start;
   final double frequency;
@@ -96,54 +102,30 @@ class _PluckNote {
 
 /// C 宫五声音阶的主旋律与低音铺底，全部为相对循环起点的秒数。
 const List<_PluckNote> _musicNotes = [
-  _PluckNote(
-    start: 0,
-    frequency: 130.81,
-    duration: 7.6,
-    gain: 0.30,
-    damp: 0.55,
-  ),
-  _PluckNote(
-    start: 4,
-    frequency: 196.00,
-    duration: 3.6,
-    gain: 0.24,
-    damp: 0.75,
-  ),
-  _PluckNote(
-    start: 8,
-    frequency: 130.81,
-    duration: 7.6,
-    gain: 0.30,
-    damp: 0.55,
-  ),
-  _PluckNote(
-    start: 12,
-    frequency: 196.00,
-    duration: 3.6,
-    gain: 0.24,
-    damp: 0.75,
-  ),
-  _PluckNote(start: 0.0, frequency: 392.00, duration: 1.2, gain: 0.46),
-  _PluckNote(start: 0.6, frequency: 523.25, duration: 1.2, gain: 0.50),
-  _PluckNote(start: 1.4, frequency: 587.33, duration: 1.2, gain: 0.50),
-  _PluckNote(start: 2.2, frequency: 659.25, duration: 1.0, gain: 0.50),
-  _PluckNote(start: 3.0, frequency: 587.33, duration: 1.2, gain: 0.45),
-  _PluckNote(start: 3.8, frequency: 523.25, duration: 1.4, gain: 0.45),
-  _PluckNote(start: 4.8, frequency: 440.00, duration: 1.0),
-  _PluckNote(start: 5.4, frequency: 392.00, duration: 1.2),
-  _PluckNote(start: 6.2, frequency: 440.00, duration: 1.0),
-  _PluckNote(start: 6.8, frequency: 523.25, duration: 1.4, gain: 0.45),
-  _PluckNote(start: 7.8, frequency: 587.33, duration: 1.0),
-  _PluckNote(start: 8.4, frequency: 659.25, duration: 1.4, gain: 0.50),
-  _PluckNote(start: 9.4, frequency: 783.99, duration: 1.6, gain: 0.48),
-  _PluckNote(start: 10.6, frequency: 659.25, duration: 1.0, gain: 0.45),
-  _PluckNote(start: 11.4, frequency: 587.33, duration: 1.2, gain: 0.45),
-  _PluckNote(start: 12.2, frequency: 523.25, duration: 1.4, gain: 0.45),
-  _PluckNote(start: 13.2, frequency: 440.00, duration: 1.0),
-  _PluckNote(start: 13.8, frequency: 392.00, duration: 1.2),
-  _PluckNote(start: 14.6, frequency: 440.00, duration: 0.8, gain: 0.35),
-  _PluckNote(start: 15.2, frequency: 523.25, duration: 0.8),
+  _PluckNote(0, 130.81, 7.6, 0.30, 0.55),
+  _PluckNote(4, 196.00, 3.6, 0.24, 0.75),
+  _PluckNote(8, 130.81, 7.6, 0.30, 0.55),
+  _PluckNote(12, 196.00, 3.6, 0.24, 0.75),
+  _PluckNote(0.0, 392.00, 1.2, 0.46),
+  _PluckNote(0.6, 523.25, 1.2, 0.50),
+  _PluckNote(1.4, 587.33, 1.2, 0.50),
+  _PluckNote(2.2, 659.25, 1.0, 0.50),
+  _PluckNote(3.0, 587.33, 1.2, 0.45),
+  _PluckNote(3.8, 523.25, 1.4, 0.45),
+  _PluckNote(4.8, 440.00, 1.0),
+  _PluckNote(5.4, 392.00, 1.2),
+  _PluckNote(6.2, 440.00, 1.0),
+  _PluckNote(6.8, 523.25, 1.4, 0.45),
+  _PluckNote(7.8, 587.33, 1.0),
+  _PluckNote(8.4, 659.25, 1.4, 0.50),
+  _PluckNote(9.4, 783.99, 1.6, 0.48),
+  _PluckNote(10.6, 659.25, 1.0, 0.45),
+  _PluckNote(11.4, 587.33, 1.2, 0.45),
+  _PluckNote(12.2, 523.25, 1.4, 0.45),
+  _PluckNote(13.2, 440.00, 1.0),
+  _PluckNote(13.8, 392.00, 1.2),
+  _PluckNote(14.6, 440.00, 0.8, 0.35),
+  _PluckNote(15.2, 523.25, 0.8),
 ];
 
 /// 合成背景音乐：古筝质感的拨弦叠加低音，首尾淡入淡出后无缝循环。

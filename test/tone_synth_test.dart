@@ -10,9 +10,7 @@ void main() {
 
   group('音效合成', () {
     test('输出合法的 16 位单声道 WAV', () {
-      final wav = synthesizeWav([
-        const SynthNote(frequency: 880, start: 0, duration: 0.1),
-      ]);
+      final wav = synthesizeWav([const SynthNote(880, 0, 0.1)]);
       expect(_ascii(wav, 0, 4), 'RIFF');
       expect(_ascii(wav, 8, 4), 'WAVE');
       expect(_ascii(wav, 12, 4), 'fmt ');

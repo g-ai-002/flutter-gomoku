@@ -33,35 +33,23 @@ class SoundService {
   /// 四级音效的乐音配方：落子轻脆、威胁上行、胜利明亮、失利下沉。
   static const Map<MoveFeedback, List<SynthNote>> _presets = {
     MoveFeedback.place: [
-      SynthNote(
-        frequency: 1180,
-        start: 0,
-        duration: 0.055,
-        gain: 0.55,
-        noise: 0.14,
-      ),
-      SynthNote(
-        frequency: 720,
-        start: 0.004,
-        duration: 0.09,
-        gain: 0.34,
-        noise: 0.06,
-      ),
+      SynthNote(1180, 0, 0.055, 0.55, 0.14),
+      SynthNote(720, 0.004, 0.09, 0.34, 0.06),
     ],
     MoveFeedback.threat: [
-      SynthNote(frequency: 760, start: 0, duration: 0.09),
-      SynthNote(frequency: 1015, start: 0.075, duration: 0.13),
+      SynthNote(760, 0, 0.09),
+      SynthNote(1015, 0.075, 0.13),
     ],
     MoveFeedback.win: [
-      SynthNote(frequency: 523.25, start: 0, duration: 0.14),
-      SynthNote(frequency: 659.25, start: 0.11, duration: 0.14),
-      SynthNote(frequency: 783.99, start: 0.22, duration: 0.18),
-      SynthNote(frequency: 1046.5, start: 0.34, duration: 0.34),
+      SynthNote(523.25, 0, 0.14),
+      SynthNote(659.25, 0.11, 0.14),
+      SynthNote(783.99, 0.22, 0.18),
+      SynthNote(1046.5, 0.34, 0.34),
     ],
     MoveFeedback.lose: [
-      SynthNote(frequency: 659.25, start: 0, duration: 0.16),
-      SynthNote(frequency: 523.25, start: 0.13, duration: 0.18),
-      SynthNote(frequency: 349.23, start: 0.27, duration: 0.34, gain: 0.55),
+      SynthNote(659.25, 0, 0.16),
+      SynthNote(523.25, 0.13, 0.18),
+      SynthNote(349.23, 0.27, 0.34, 0.55),
     ],
   };
 
