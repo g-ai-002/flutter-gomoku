@@ -156,15 +156,17 @@ class _PuzzlePageState extends State<PuzzlePage> {
         status: (_) => PuzzleStatusBar(controller: _controller),
         board: BoardStage(game: _game, gameKey: const ValueKey('puzzle-board')),
         actions: (_, showMoves) => _buildActions(showMoves: showMoves),
-        sidePanel: (_) => MovePanel(
-          history: _controller.history,
-          footer:
-              '${widget.puzzle.goal} · '
-              '白棋由本地 AI 应对，点击交叉点落子。',
-        ),
+        sidePanel: (_) => _buildSidePanel(),
+        footer: (_) => _buildSidePanel(dense: true),
       ),
     );
   }
+
+  Widget _buildSidePanel({bool dense = false}) => MovePanel(
+    history: _controller.history,
+    dense: dense,
+    footer: '${widget.puzzle.goal} · 白棋由本地 AI 应对，点击交叉点落子。',
+  );
 
   Widget _buildActions({required bool showMoves}) {
     return BoardActions(

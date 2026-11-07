@@ -4,20 +4,23 @@ import '../../models/move_record.dart';
 import 'move_list.dart';
 
 /// 棋谱侧栏：标题、手数、棋谱列表与底部说明，对局页与复盘页共用。
+/// [dense] 用于竖向窗口的常驻棋谱：收紧留白并省略底部说明，把高度让给列表。
 class MovePanel extends StatelessWidget {
   const MovePanel({
     super.key,
     required this.history,
     required this.footer,
+    this.dense = false,
     this.highlightIndex,
     this.onTapIndex,
   });
 
   final List<MoveRecord> history;
 
-  /// 底部说明文字，随对局或复盘进度变化。
+  /// 底部说明文字，随对局或复盘进度变化；[dense] 时不展示。
   final String footer;
 
+  final bool dense;
   final int? highlightIndex;
   final ValueChanged<int>? onTapIndex;
 
@@ -34,7 +37,9 @@ class MovePanel extends StatelessWidget {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+            padding: dense
+                ? const EdgeInsets.fromLTRB(12, 9, 12, 8)
+                : const EdgeInsets.fromLTRB(16, 14, 16, 12),
             child: Row(
               children: [
                 Icon(Icons.menu_book_outlined, size: 17, color: colors.primary),
@@ -59,16 +64,18 @@ class MovePanel extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 6),
             ),
           ),
-          Divider(color: colors.outline.withValues(alpha: 0.5)),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-            child: Text(
-              footer,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colors.onSurfaceVariant,
+          if (!dense) ...[
+            Divider(color: colors.outline.withValues(alpha: 0.5)),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+              child: Text(
+                footer,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );

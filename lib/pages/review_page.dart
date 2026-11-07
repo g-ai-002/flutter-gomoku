@@ -16,7 +16,6 @@ import '../utils/formatters.dart';
 import 'widgets/app_snack.dart';
 import 'widgets/board_page_scaffold.dart';
 import 'widgets/board_stage.dart';
-import 'widgets/move_list.dart';
 import 'widgets/move_panel.dart';
 import 'widgets/play_layout.dart';
 
@@ -144,27 +143,15 @@ class _ReviewPageState extends State<ReviewPage> {
         controller: _replay,
         board: _buildBoard(),
         actions: (_, _) => _buildControls(),
-        compactBottom: (_) => Column(
-          children: [
-            _buildControls(),
-            SizedBox(
-              height: 132,
-              child: MoveList(
-                history: widget.moves,
-                highlightIndex: _replay.cursor - 1,
-                onTapIndex: (index) => _replay.jumpTo(index + 1),
-                padding: const EdgeInsets.only(bottom: 6),
-              ),
-            ),
-          ],
-        ),
         sidePanel: (_) => _buildSidePanel(),
+        footer: (_) => _buildSidePanel(dense: true),
       ),
     );
   }
 
-  Widget _buildSidePanel() => MovePanel(
+  Widget _buildSidePanel({bool dense = false}) => MovePanel(
     history: widget.moves,
+    dense: dense,
     highlightIndex: _replay.cursor - 1,
     onTapIndex: (index) => _replay.jumpTo(index + 1),
     footer: _summaryText(),
@@ -184,24 +171,21 @@ class _ReviewPageState extends State<ReviewPage> {
 
   Widget _buildControls() {
     final theme = Theme.of(context);
-    final colors = theme.colorScheme;
     final total = _replay.total;
+    Widget step(IconData icon, String tip, bool enabled, VoidCallback onTap) =>
+        IconButton(
+          tooltip: tip,
+          onPressed: enabled ? onTap : null,
+          icon: Icon(icon),
+        );
     return Column(
       children: [
         Wrap(
           alignment: WrapAlignment.center,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            IconButton(
-              tooltip: '回到开局',
-              onPressed: _replay.canPrevious ? _replay.first : null,
-              icon: const Icon(Icons.first_page_rounded),
-            ),
-            IconButton(
-              tooltip: '上一步',
-              onPressed: _replay.canPrevious ? _replay.previous : null,
-              icon: const Icon(Icons.chevron_left_rounded),
-            ),
+            step(Icons.first_page_rounded, '回到开局', _replay.canPrevious, _replay.first),
+            step(Icons.chevron_left_rounded, '上一步', _replay.canPrevious, _replay.previous),
             IconButton.filledTonal(
               tooltip: _playing ? '暂停回放' : '自动回放',
               onPressed: total == 0 ? null : _togglePlay,
@@ -210,21 +194,13 @@ class _ReviewPageState extends State<ReviewPage> {
                 size: 22,
               ),
             ),
-            IconButton(
-              tooltip: '下一步',
-              onPressed: _replay.canNext ? _replay.next : null,
-              icon: const Icon(Icons.chevron_right_rounded),
-            ),
-            IconButton(
-              tooltip: '跳到终局',
-              onPressed: _replay.canNext ? _replay.last : null,
-              icon: const Icon(Icons.last_page_rounded),
-            ),
+            step(Icons.chevron_right_rounded, '下一步', _replay.canNext, _replay.next),
+            step(Icons.last_page_rounded, '跳到终局', _replay.canNext, _replay.last),
             const SizedBox(width: 4),
             Text(
               _replay.progressText,
               style: theme.textTheme.labelMedium?.copyWith(
-                color: colors.onSurfaceVariant,
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
           ],

@@ -137,34 +137,26 @@ class _PuzzleEditorPageState extends State<PuzzleEditorPage> {
           game: _game,
           gameKey: const ValueKey('puzzle-editor-board'),
         ),
-        sidePanel: (_) => Column(
-          children: [
-            _panel(compact: false),
-            const SizedBox(height: 12),
-            Text(
-              '黑棋先行，在限定手数内连成五子即通关。'
-              '点击已落下的棋子可将其移除，至少摆放一枚黑棋才能保存。',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                height: 1.5,
-              ),
-            ),
-          ],
+        sidePanel: (_) => Text(
+          '黑棋先行，在限定手数内连成五子即通关。'
+          '点击已落下的棋子可将其移除，至少摆放一枚黑棋才能保存。',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            height: 1.5,
+          ),
         ),
-        compactBottom: (_) => _panel(compact: true),
+        actions: (_, _) => _panel(),
       ),
     );
   }
 
-  Widget _panel({required bool compact}) {
+  Widget _panel() {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final reason = _controller.invalidReason;
     final stones = _controller.blackCount + _controller.whiteCount;
     return Padding(
-      padding: compact
-          ? const EdgeInsets.fromLTRB(12, 2, 12, 8)
-          : EdgeInsets.zero,
+      padding: const EdgeInsets.fromLTRB(12, 2, 12, 8),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -203,7 +195,9 @@ class _PuzzleEditorPageState extends State<PuzzleEditorPage> {
               ),
             ],
           ),
-          Row(
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(
                 '黑 ${_controller.blackCount} · 白 ${_controller.whiteCount}',
@@ -211,7 +205,6 @@ class _PuzzleEditorPageState extends State<PuzzleEditorPage> {
                   color: colors.onSurfaceVariant,
                 ),
               ),
-              const Spacer(),
               TextButton.icon(
                 onPressed: stones == 0 ? null : _controller.clear,
                 icon: const Icon(Icons.clear_all_rounded, size: 18),

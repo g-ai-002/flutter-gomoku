@@ -12,7 +12,7 @@ Future<void> setupDesktopWindow() async {
     await windowManager.ensureInitialized();
     const options = WindowOptions(
       size: Size(1120, 820),
-      minimumSize: Size(420, 640),
+      minimumSize: Size(400, 360),
       center: true,
       skipTaskbar: false,
       titleBarStyle: TitleBarStyle.normal,

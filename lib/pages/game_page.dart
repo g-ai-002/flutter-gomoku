@@ -251,6 +251,7 @@ class _GamePageState extends State<GamePage> {
         board: _buildBoard(),
         actions: (_, showMoves) => _buildActions(showMoves: showMoves),
         sidePanel: (_) => _buildSidePanel(),
+        footer: (_) => _buildSidePanel(dense: true),
       ),
     );
   }
@@ -303,6 +304,9 @@ class _GamePageState extends State<GamePage> {
     );
   }
 
-  Widget _buildSidePanel() =>
-      MovePanel(history: _controller.history, footer: '提示：点击交叉点直接落子，圆点标记最后一手。');
+  Widget _buildSidePanel({bool dense = false}) => MovePanel(
+    history: _controller.history,
+    dense: dense,
+    footer: '提示：点击交叉点直接落子，圆点标记最后一手。',
+  );
 }

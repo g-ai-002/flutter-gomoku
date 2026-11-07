@@ -3,18 +3,21 @@ import 'package:flutter/material.dart';
 /// 状态胶囊：淡底细边的圆角标语，对局状态条与棋钟条共用。
 ///
 /// [active] 控制淡底与描边的浓度，[padding] 供不同信息密度微调。
+/// [overlay] 换成不透明的表面色底并加投影，用于压在棋盘交叉点上的浮层提示。
 class StatusChip extends StatelessWidget {
   const StatusChip({
     super.key,
     required this.accent,
     required this.child,
     this.active = true,
+    this.overlay = false,
     this.padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
   });
 
   final Color accent;
   final Widget child;
   final bool active;
+  final bool overlay;
   final EdgeInsets padding;
 
   @override
@@ -23,13 +26,22 @@ class StatusChip extends StatelessWidget {
     return Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: accent.withValues(alpha: active ? 0.10 : 0.04),
+        color: overlay
+            ? colors.surface.withValues(alpha: 0.9)
+            : accent.withValues(alpha: active ? 0.10 : 0.04),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: active
-              ? accent.withValues(alpha: 0.45)
-              : colors.outline.withValues(alpha: 0.6),
+          color: accent.withValues(alpha: overlay || active ? 0.45 : 0.6),
         ),
+        boxShadow: overlay
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : null,
       ),
       child: child,
     );
