@@ -26,12 +26,15 @@ Future<void> main() async {
     return true;
   };
 
-  await setupDesktopWindow();
-  await initLogging();
+  // 窗口设置、日志与偏好互不依赖，并行准备以缩短首帧前的等待。
+  final storageFuture = StorageService.instance;
+  await Future.wait([setupDesktopWindow(), initLogging()]);
 
-  final storage = await StorageService.instance;
-  await GameHistoryService.instance.load();
-  await PuzzleProgressService.instance.load();
+  final storage = await storageFuture;
+  await Future.wait([
+    GameHistoryService.instance.load(),
+    PuzzleProgressService.instance.load(),
+  ]);
   LogService.info('应用启动: ${AppConstants.appName} v${AppConstants.version}');
   MusicService.enabled = storage.musicEnabled;
 
