@@ -56,3 +56,39 @@ class StatusSpinner extends StatelessWidget {
     );
   }
 }
+
+/// 对局与残局状态条共用的骨架：行棋方胶囊、状态说明与右侧信息。
+///
+/// 固定 30 高，中间区域单行省略，文案变化不会推动棋盘；
+/// 两页只需提供强调色、胶囊内容、状态文案与右侧补充信息。
+class BoardStatusBar extends StatelessWidget {
+  const BoardStatusBar({
+    super.key,
+    required this.accent,
+    required this.leading,
+    required this.status,
+    this.trailing,
+  });
+
+  final Color accent;
+  final Widget leading;
+  final Widget status;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 30,
+      child: Row(
+        children: [
+          StatusChip(accent: accent, child: leading),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Align(alignment: Alignment.centerLeft, child: status),
+          ),
+          if (trailing != null) ...[const SizedBox(width: 10), trailing!],
+        ],
+      ),
+    );
+  }
+}

@@ -90,6 +90,28 @@ void main() {
     expect(tapped, isTrue);
   });
 
+  testWidgets('状态条统一高度并排列行棋方、状态与右侧信息', (tester) async {
+    await tester.pumpWidget(
+      _host(
+        const SizedBox(
+          width: 420,
+          child: BoardStatusBar(
+            accent: appInk,
+            leading: Text('黑方行棋'),
+            status: Text('AI 思考中…'),
+            trailing: Text('第 1 手 H8'),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('黑方行棋'), findsOneWidget);
+    expect(find.text('AI 思考中…'), findsOneWidget);
+    expect(find.text('第 1 手 H8'), findsOneWidget);
+    expect(tester.getSize(find.byType(BoardStatusBar)).height, 30);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('限宽列表居中且不超过最大宽度', (tester) async {
     tester.view.physicalSize = const Size(1200, 900);
     tester.view.devicePixelRatio = 1.0;

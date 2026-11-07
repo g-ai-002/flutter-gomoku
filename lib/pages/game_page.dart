@@ -15,6 +15,7 @@ import '../services/game_history_service.dart';
 import '../services/log_service.dart';
 import '../services/move_feedback_tracker.dart';
 import '../services/sound_service.dart';
+import '../utils/navigation.dart';
 import 'review_page.dart';
 import 'widgets/app_snack.dart';
 import 'widgets/board_actions.dart';
@@ -177,15 +178,14 @@ class _GamePageState extends State<GamePage> {
   /// 终局后进入复盘，棋谱快照一并带过去。
   void _openReview() {
     final result = _controller.result;
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => ReviewPage(
-          title: _gameTitle,
-          result: result == null ? null : '${result.title}（${result.reason}）',
-          moves: List.of(_controller.history),
-          date: _endedAt ?? DateTime.now(),
-          handicap: _controller.handicap,
-        ),
+    pushScreen<void>(
+      context,
+      ReviewPage(
+        title: _gameTitle,
+        result: result == null ? null : '${result.title}（${result.reason}）',
+        moves: List.of(_controller.history),
+        date: _endedAt ?? DateTime.now(),
+        handicap: _controller.handicap,
       ),
     );
   }

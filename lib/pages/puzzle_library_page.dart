@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../game/custom_puzzles.dart';
 import '../game/puzzles.dart';
 import '../services/puzzle_progress_service.dart';
+import '../utils/navigation.dart';
 import 'puzzle_editor_page.dart';
 import 'puzzle_page.dart';
 import 'widgets/app_snack.dart';
@@ -32,19 +33,11 @@ class _PuzzleLibraryPageState extends State<PuzzleLibraryPage> {
     _custom.load();
   }
 
-  void _open(GomokuPuzzle puzzle) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute<void>(builder: (_) => PuzzlePage(puzzle: puzzle)));
-  }
+  void _open(GomokuPuzzle puzzle) =>
+      pushScreen<void>(context, PuzzlePage(puzzle: puzzle));
 
-  void _openEditor([CustomPuzzle? initial]) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => PuzzleEditorPage(initial: initial),
-      ),
-    );
-  }
+  void _openEditor([CustomPuzzle? initial]) =>
+      pushScreen<void>(context, PuzzleEditorPage(initial: initial));
 
   Future<void> _clearProgress() async {
     final confirmed = await showConfirmDialog(

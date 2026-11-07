@@ -22,33 +22,25 @@ class PuzzleStatusBar extends StatelessWidget {
       PuzzleStatus.playing =>
         controller.thinking ? colors.primary : sideAccentOf(context, black),
     };
-    return SizedBox(
-      height: 30,
-      child: Row(
-        children: [
-          StatusChip(accent: accent, child: _label(theme, accent)),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              controller.status == PuzzleStatus.failed
-                  ? (controller.failureReason ?? '挑战失败')
-                  : controller.puzzle.tip,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colors.onSurfaceVariant,
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Text(
-            controller.progressText,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: colors.onSurfaceVariant,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
-          ),
-        ],
+    return BoardStatusBar(
+      accent: accent,
+      leading: _label(theme, accent),
+      status: Text(
+        controller.status == PuzzleStatus.failed
+            ? (controller.failureReason ?? '挑战失败')
+            : controller.puzzle.tip,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: colors.onSurfaceVariant,
+        ),
+      ),
+      trailing: Text(
+        controller.progressText,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: colors.onSurfaceVariant,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
       ),
     );
   }

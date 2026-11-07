@@ -9,6 +9,7 @@ import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
 import '../theme/board_painting.dart';
 import '../utils/constants.dart';
+import '../utils/navigation.dart';
 import 'game_history_page.dart';
 import 'game_page.dart';
 import 'puzzle_library_page.dart';
@@ -102,29 +103,23 @@ class HomePage extends StatelessWidget {
     SettingsProvider settings,
     GameMode mode,
   ) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => GamePage(
-          mode: mode,
-          difficulty: settings.difficulty,
-          humanSide: mode == GameMode.vsAi ? settings.humanSide : black,
-        ),
+    pushScreen<void>(
+      context,
+      GamePage(
+        mode: mode,
+        difficulty: settings.difficulty,
+        humanSide: mode == GameMode.vsAi ? settings.humanSide : black,
       ),
     );
   }
 
   /// 棋谱库：最近 20 局回放与导入导出入口。
-  void _openArchives(BuildContext context) {
-    Navigator.of(context)
-        .push(MaterialPageRoute<void>(builder: (_) => const GameHistoryPage()));
-  }
+  void _openArchives(BuildContext context) =>
+      pushScreen<void>(context, const GameHistoryPage());
 
   /// 残局挑战：十道内置杀法，按难度分组。
-  void _openPuzzles(BuildContext context) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute<void>(builder: (_) => const PuzzleLibraryPage()));
-  }
+  void _openPuzzles(BuildContext context) =>
+      pushScreen<void>(context, const PuzzleLibraryPage());
 
   /// 首页模式入口，宽屏两列、窄屏堆叠都复用同一份定义。
   List<Widget> _modeCards(
@@ -232,9 +227,7 @@ class _TopBar extends StatelessWidget {
         ),
         IconButton(
           tooltip: '设置',
-          onPressed: () => Navigator.of(
-            context,
-          ).push(MaterialPageRoute<void>(builder: (_) => const SettingsPage())),
+          onPressed: () => pushScreen<void>(context, const SettingsPage()),
           icon: const Icon(Icons.settings_outlined, size: 21),
         ),
       ],

@@ -26,32 +26,25 @@ class GameStatusBar extends StatelessWidget {
     final accent = sideAccentOf(context, side);
     final last = controller.history.isEmpty ? null : controller.history.last;
 
-    return SizedBox(
-      height: 30,
-      child: Row(
+    return BoardStatusBar(
+      accent: accent,
+      leading: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          StatusChip(
-            accent: accent,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                StoneDot(side: side),
-                const SizedBox(width: 7),
-                Text(
-                  '${sideName(side)}行棋',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: accent,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
+          StoneDot(side: side),
+          const SizedBox(width: 7),
+          Text(
+            '${sideName(side)}行棋',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: accent,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(width: 10),
-          Flexible(flex: 4, child: _status(theme)),
-          const Spacer(),
-          if (last != null)
-            StatusChip(
+        ],
+      ),
+      status: _status(theme),
+      trailing: last != null
+          ? StatusChip(
               accent: colors.outline,
               active: false,
               child: Text(
@@ -62,8 +55,7 @@ class GameStatusBar extends StatelessWidget {
                 ),
               ),
             )
-          else
-            Text(
+          : Text(
               switch (controller.mode) {
                 GameMode.vsAi => humanSide == black ? '你执黑' : '你执白',
                 GameMode.aiSelf => '双方 AI',
@@ -73,8 +65,6 @@ class GameStatusBar extends StatelessWidget {
                 color: colors.onSurfaceVariant,
               ),
             ),
-        ],
-      ),
     );
   }
 

@@ -6,6 +6,7 @@ import '../game/engine/board_utils.dart';
 import '../game/puzzle_editor_controller.dart';
 import '../services/log_service.dart';
 import '../services/puzzle_progress_service.dart';
+import '../utils/navigation.dart';
 import 'puzzle_page.dart';
 import 'widgets/app_snack.dart';
 import 'widgets/board_page_scaffold.dart';
@@ -87,11 +88,7 @@ class _PuzzleEditorPageState extends State<PuzzleEditorPage> {
       whiteStones: _controller.whiteStones,
     );
     if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(
-        builder: (_) => PuzzlePage(puzzle: saved.toPuzzle()),
-      ),
-    );
+    replaceScreen<void>(context, PuzzlePage(puzzle: saved.toPuzzle()));
   }
 
   Future<void> _delete() async {

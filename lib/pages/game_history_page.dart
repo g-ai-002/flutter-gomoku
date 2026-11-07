@@ -5,6 +5,7 @@ import '../models/saved_game.dart';
 import '../services/game_history_service.dart';
 import '../services/log_service.dart';
 import '../utils/formatters.dart';
+import '../utils/navigation.dart';
 import 'review_page.dart';
 import 'widgets/app_snack.dart';
 import 'widgets/entry_tile.dart';
@@ -17,15 +18,14 @@ class GameHistoryPage extends StatelessWidget {
   const GameHistoryPage({super.key});
 
   void _openReview(BuildContext context, SavedGame game) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => ReviewPage(
-          title: game.title,
-          result: game.result,
-          moves: game.moves,
-          date: game.endedAt,
-          handicap: game.handicap,
-        ),
+    pushScreen<void>(
+      context,
+      ReviewPage(
+        title: game.title,
+        result: game.result,
+        moves: game.moves,
+        date: game.endedAt,
+        handicap: game.handicap,
       ),
     );
   }

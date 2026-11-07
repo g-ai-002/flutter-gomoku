@@ -9,6 +9,7 @@ import '../services/log_service.dart';
 import '../services/move_feedback_tracker.dart';
 import '../services/puzzle_progress_service.dart';
 import '../services/sound_service.dart';
+import '../utils/navigation.dart';
 import 'widgets/board_actions.dart';
 import 'widgets/board_page_scaffold.dart';
 import 'widgets/board_play_layout.dart';
@@ -87,9 +88,7 @@ class _PuzzlePageState extends State<PuzzlePage> {
         _controller.restart();
       case PuzzleResultAction.next:
         final next = kGomokuPuzzles[index + 1];
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute<void>(builder: (_) => PuzzlePage(puzzle: next)),
-        );
+        replaceScreen<void>(context, PuzzlePage(puzzle: next));
       case PuzzleResultAction.close:
         Navigator.of(context).pop();
     }
