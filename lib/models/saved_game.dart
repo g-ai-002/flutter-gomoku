@@ -60,8 +60,8 @@ class SavedGame {
     final handicap = Handicap.byName(
       rawHandicap is String ? rawHandicap : null,
     );
-    final board = GomokuBoard(handicap: handicap);
-    if (!board.replay(indices)) return null;
+    final moves = _replay(indices, handicap);
+    if (moves.length != indices.length) return null;
     final endedAt =
         DateTime.tryParse('${json['endedAt']}') ??
         DateTime.fromMillisecondsSinceEpoch(0);
@@ -71,7 +71,7 @@ class SavedGame {
           ? json['title'] as String
           : '对局回放',
       endedAt: endedAt,
-      moves: board.history,
+      moves: moves,
       result: json['result'] is String && (json['result'] as String).isNotEmpty
           ? json['result'] as String
           : null,
@@ -82,15 +82,20 @@ class SavedGame {
   /// 把导入的棋谱转成棋谱库条目，日期缺失时用当前时间。
   factory SavedGame.fromArchive(ArchivedGame archive) {
     final now = DateTime.now();
-    final board = GomokuBoard(handicap: archive.handicap);
-    board.replay(archive.moves);
     return SavedGame(
       id: 'import_${now.microsecondsSinceEpoch}',
       title: archive.title,
       endedAt: DateTime.tryParse(archive.date ?? '') ?? now,
-      moves: board.history,
+      moves: _replay(archive.moves, archive.handicap),
       result: archive.result,
       handicap: archive.handicap,
     );
+  }
+
+  /// 按让子方案重演着法，返回棋谱记录；非法着法会提前截断。
+  static List<MoveRecord> _replay(List<int> indices, Handicap handicap) {
+    final board = GomokuBoard(handicap: handicap);
+    board.replay(indices);
+    return board.history;
   }
 }

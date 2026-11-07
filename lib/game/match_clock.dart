@@ -1,19 +1,16 @@
 import '../models/game_models.dart';
-import 'engine/board_utils.dart';
 
 /// 对局棋钟：只扣除当前行棋方的剩余时间，扣到 0 即超时。
 class MatchClock {
-  MatchClock(this.control)
-    : _blackMs = control.millis,
-      _whiteMs = control.millis;
+  MatchClock(this.control) : _remaining = [control.millis, control.millis];
 
   final TimeControl control;
 
-  int _blackMs;
-  int _whiteMs;
+  /// 黑、白双方剩余毫秒，下标为 [side] 减一。
+  final List<int> _remaining;
   int? _active;
 
-  int remainingMs(int side) => side == black ? _blackMs : _whiteMs;
+  int remainingMs(int side) => _remaining[side - 1];
 
   int? get activeSide => _active;
 
@@ -24,8 +21,7 @@ class MatchClock {
   void stop() => _active = null;
 
   void reset() {
-    _blackMs = control.millis;
-    _whiteMs = control.millis;
+    _remaining.fillRange(0, _remaining.length, control.millis);
     _active = null;
   }
 
@@ -33,23 +29,19 @@ class MatchClock {
   int? charge(Duration delta) {
     final active = _active;
     if (active == null) return null;
-    final left = remainingMs(active) - delta.inMilliseconds;
-    if (active == black) {
-      _blackMs = left.clamp(0, control.millis);
-    } else {
-      _whiteMs = left.clamp(0, control.millis);
-    }
+    final index = active - 1;
+    final left = _remaining[index] - delta.inMilliseconds;
+    _remaining[index] = left.clamp(0, control.millis);
     if (left > 0) return null;
     _active = null;
     return active;
   }
 
   /// 落子前的时间快照，供悔棋还原。
-  List<int> snapshot() => [_blackMs, _whiteMs];
+  List<int> snapshot() => List.of(_remaining);
 
   void restore(List<int> snapshot, {required int side}) {
-    _blackMs = snapshot[0];
-    _whiteMs = snapshot[1];
+    _remaining.setAll(0, snapshot);
     _active = side;
   }
 }

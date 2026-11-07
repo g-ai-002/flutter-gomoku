@@ -6,7 +6,9 @@ import '../services/log_service.dart';
 import 'ai_player.dart';
 import 'board_state.dart';
 import 'board_view_adapter.dart';
+import 'engine/board_utils.dart';
 import 'hint_session.dart';
+import 'notation.dart';
 
 /// 对局与残局控制器共用的棋盘状态与异步生命周期。
 ///
@@ -64,6 +66,51 @@ abstract class BoardSession extends ChangeNotifier with BoardViewAdapter {
     cancelPending();
     clearHint(notify: false);
     endThinking();
+  }
+
+  /// 请求一次走子提示，统一加载态、回包竞态与合法着法校验。
+  ///
+  /// [side] 是发起请求时的行棋方；搜索期间局面变化或提示点被占用时，
+  /// 通过 [HintSession.isValid] 丢弃结果。返回展示的交叉点，失败时为 null。
+  @protected
+  Future<int?> requestMoveHint({
+    required int side,
+    required Future<int?> Function() search,
+    required String label,
+  }) async {
+    if (!canInteract || hintLoading) return null;
+    final move = await hint.request(
+      search,
+      isValid: (move) =>
+          move >= 0 &&
+          move < cellCount &&
+          board.cells[move] == empty &&
+          board.sideToMove == side &&
+          board.forbiddenAt(move) == null &&
+          canInteract,
+      onError: (error, stack) => LogService.error('$label失败', error, stack),
+    );
+    if (move == null) return null;
+    LogService.info('$label: ${MoveNotation.describe(move)}');
+    return move;
+  }
+
+  /// 执行一次 AI 回合：进入思考态、等待搜索并在回包仍有效时交给 [onReply]。
+  ///
+  /// 重开、悔棋或新请求会作废搜索，此时直接返回，不调用 [onReply]；
+  /// 搜索异常由 [searchAi] 记录，[onReply] 收到 null 时可走兜底着法。
+  @protected
+  Future<void> runAiTurn({
+    required Future<AiReply> Function() search,
+    required String label,
+    required void Function(AiReply? reply) onReply,
+  }) async {
+    if (thinking) return;
+    final serial = beginThinking();
+    final reply = await searchAi(serial: serial, search: search, label: label);
+    if (!isCurrent(serial)) return;
+    endThinking();
+    onReply(reply);
   }
 
   /// 执行一次 AI 搜索，统一 Web 首帧让步、异常日志与回包竞态校验。

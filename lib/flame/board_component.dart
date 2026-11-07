@@ -79,7 +79,7 @@ class BoardComponent extends PositionComponent
   void _syncMoves() {
     final count = view.history.length;
     if (count == _seenMoves) return;
-    if (_seenMoves < 0 || count != _seenMoves + 1) {
+    if (count != _seenMoves + 1) {
       _anim = null;
       _seenMoves = count;
       _invalidateStones();

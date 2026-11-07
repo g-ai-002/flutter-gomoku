@@ -24,13 +24,7 @@ class PuzzleEditorController extends ChangeNotifier implements BoardView {
     for (final index in source.whiteStones) {
       cells[index] = white;
     }
-    for (final side in cells) {
-      if (side == black) {
-        _blackCount++;
-      } else if (side == white) {
-        _whiteCount++;
-      }
-    }
+    _refreshCounts();
     _rebuildHistory();
   }
 
@@ -46,8 +40,6 @@ class PuzzleEditorController extends ChangeNotifier implements BoardView {
   int _whiteCount = 0;
   bool _invalidDirty = true;
   String? _invalidReason;
-
-  bool get isEditing => initial != null;
 
   int get blackCount => _blackCount;
 
@@ -117,8 +109,7 @@ class PuzzleEditorController extends ChangeNotifier implements BoardView {
   void clear() {
     cells.fillRange(0, cellCount, empty);
     _history.clear();
-    _blackCount = 0;
-    _whiteCount = 0;
+    _refreshCounts();
     _revision++;
     _invalidDirty = true;
     notifyListeners();
@@ -127,27 +118,22 @@ class PuzzleEditorController extends ChangeNotifier implements BoardView {
   @override
   void tapCell(int index) {
     if (index < 0 || index >= cellCount) return;
-    final current = cells[index];
-    if (current != empty) {
+    if (cells[index] != empty) {
       cells[index] = empty;
-      if (current == black) {
-        _blackCount--;
-      } else {
-        _whiteCount--;
-      }
       _rebuildHistory();
     } else {
       cells[index] = brush;
-      if (brush == black) {
-        _blackCount++;
-      } else {
-        _whiteCount++;
-      }
       _history.add(_record(index, brush));
     }
+    _refreshCounts();
     _revision++;
     _invalidDirty = true;
     notifyListeners();
+  }
+
+  void _refreshCounts() {
+    _blackCount = _indices(black).length;
+    _whiteCount = _indices(white).length;
   }
 
   List<int> _indices(int side) => [

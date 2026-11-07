@@ -10,7 +10,6 @@ import 'board_session.dart';
 import 'board_state.dart';
 import 'engine/board_utils.dart';
 import 'engine/rules.dart';
-import 'notation.dart';
 import 'puzzles.dart';
 
 /// 残局进度：进行中、通关或失败。
@@ -89,18 +88,11 @@ class PuzzleController extends BoardSession {
   }
 
   Future<void> requestHint() async {
-    if (!canInteract || hintLoading) return;
-    final move = await hint.request(
-      () => _hintMove(Uint8List.fromList(board.cells), black),
-      isValid: (move) =>
-          move >= 0 &&
-          move < cellCount &&
-          board.cells[move] == empty &&
-          canInteract,
-      onError: (error, stack) => LogService.error('残局提示搜索失败', error, stack),
+    await requestMoveHint(
+      side: black,
+      label: '残局提示',
+      search: () => _hintMove(Uint8List.fromList(board.cells), black),
     );
-    if (move == null) return;
-    LogService.info('残局提示: ${MoveNotation.describe(move)}');
   }
 
   void _play(int index) {
@@ -137,23 +129,19 @@ class PuzzleController extends BoardSession {
   }
 
   Future<void> _defend() async {
-    if (thinking) return;
-    final serial = beginThinking();
-    final reply = await searchAi(
-      serial: serial,
+    await runAiTurn(
+      label: '残局 AI 应手',
       search: () =>
           _aiMove(Uint8List.fromList(board.cells), white, Difficulty.normal),
-      label: '残局 AI 应手',
+      onReply: (reply) {
+        final move = GomokuRules.pickMove(board.cells, white, reply?.move);
+        if (move == null) {
+          _fail('白棋已无子可下');
+          return;
+        }
+        _play(move);
+      },
     );
-    if (!isCurrent(serial)) return;
-
-    endThinking();
-    final move = GomokuRules.pickMove(board.cells, white, reply?.move);
-    if (move == null) {
-      _fail('白棋已无子可下');
-      return;
-    }
-    _play(move);
   }
 
   void _finish() {

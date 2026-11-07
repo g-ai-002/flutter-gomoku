@@ -113,13 +113,16 @@ class GameController extends BoardSession {
   /// 最后一手的行棋方，空盘时为 null。
   int? get lastSide => history.isEmpty ? null : history.last.side;
 
+  /// 当前棋谱的交叉点序列，供开局库匹配与应手使用。
+  List<int> get _moveIndices => [
+    for (final record in board.history) record.index,
+  ];
+
   /// 当前棋谱命中的开局，未使用开局库或已脱谱时为 null。
   OpeningMatch? get openingMatch {
     final book = openingBook;
     if (book == null) return null;
-    return book.match([
-      for (final record in board.history) record.index,
-    ], preferred: _bookLine);
+    return book.match(_moveIndices, preferred: _bookLine);
   }
 
   /// 前三手定型后的开局名，供界面展示；脱谱后自动消失。
@@ -129,7 +132,7 @@ class GameController extends BoardSession {
   int? _bookMove() {
     final book = openingBook;
     if (book == null) return null;
-    final moves = [for (final record in board.history) record.index];
+    final moves = _moveIndices;
     final candidates = book.candidates(moves);
     if (candidates.isEmpty) {
       _bookLine = null;
@@ -226,6 +229,7 @@ class GameController extends BoardSession {
   /// 为当前行棋方请求一条走子提示，结果在棋盘上展示 6 秒。
   Future<void> requestHint() async {
     if (!canInteractive || hintLoading) return;
+    final side = board.sideToMove;
     final bookMove = _bookMove();
     if (bookMove != null) {
       hint.show(bookMove);
@@ -235,24 +239,15 @@ class GameController extends BoardSession {
       );
       return;
     }
-    final side = board.sideToMove;
-    final move = await hint.request(
-      () => _hintMove(
+    await requestMoveHint(
+      side: side,
+      label: '走子提示',
+      search: () => _hintMove(
         Uint8List.fromList(board.cells),
         side,
         forbidBlack: forbidBlack,
       ),
-      isValid: (move) =>
-          move >= 0 &&
-          move < cellCount &&
-          board.cells[move] == empty &&
-          side == board.sideToMove &&
-          board.forbiddenAt(move) == null &&
-          canInteractive,
-      onError: (error, stack) => LogService.error('提示搜索失败', error, stack),
     );
-    if (move == null) return;
-    LogService.info('走子提示: ${MoveNotation.describe(move)}');
   }
 
   void _play(int index) {
@@ -309,12 +304,12 @@ class GameController extends BoardSession {
 
   Future<void> _think() async {
     if (thinking || result != null) return;
-    final serial = beginThinking();
     final side = board.sideToMove;
 
     // 开局前几手优先走内置棋谱，略作停顿让落子动画衔接。
     final bookMove = _bookMove();
     if (bookMove != null) {
+      final serial = beginThinking();
       await Future<void>.delayed(const Duration(milliseconds: 260));
       if (!isCurrent(serial)) return;
       endThinking();
@@ -327,43 +322,41 @@ class GameController extends BoardSession {
     }
 
     final stopwatch = Stopwatch()..start();
-    final reply = await searchAi(
-      serial: serial,
+    await runAiTurn(
+      label: 'AI 搜索',
       search: () => _aiMove(
         Uint8List.fromList(board.cells),
         side,
         difficulty,
         forbidBlack: forbidBlack,
       ),
-      label: 'AI 搜索',
-    );
-    if (!isCurrent(serial)) return;
+      onReply: (reply) {
+        stopwatch.stop();
+        if (reply != null) {
+          aiInsight = AiInsight.of(reply, stopwatch.elapsed);
+          LogService.info(
+            'AI 完成: 深度 ${reply.depth}, 节点 ${reply.nodes}, '
+            '评分 ${reply.score}, 用时 ${stopwatch.elapsedMilliseconds}ms',
+          );
+        }
 
-    endThinking();
-    stopwatch.stop();
-    if (reply != null) {
-      aiInsight = AiInsight.of(reply, stopwatch.elapsed);
-      LogService.info(
-        'AI 完成: 深度 ${reply.depth}, 节点 ${reply.nodes}, '
-        '评分 ${reply.score}, 用时 ${stopwatch.elapsedMilliseconds}ms',
-      );
-    }
-
-    final move = GomokuRules.pickMove(
-      board.cells,
-      board.sideToMove,
-      reply?.move,
-      forbidden: forbidBlack && board.sideToMove == black
-          ? GomokuForbidden.points(board.cells)
-          : const {},
+        final move = GomokuRules.pickMove(
+          board.cells,
+          board.sideToMove,
+          reply?.move,
+          forbidden: forbidBlack && board.sideToMove == black
+              ? GomokuForbidden.points(board.cells)
+              : const {},
+        );
+        if (move == null) {
+          _afterMove();
+          return;
+        }
+        if (move != reply?.move) {
+          LogService.warning('AI 未返回合法着法，改用兜底着法');
+        }
+        _play(move);
+      },
     );
-    if (move == null) {
-      _afterMove();
-      return;
-    }
-    if (move != reply?.move) {
-      LogService.warning('AI 未返回合法着法，改用兜底着法');
-    }
-    _play(move);
   }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../game/engine/board_utils.dart';
+
 /// 棋面配色：黑棋冷润、白棋暖玉，用光影差异强化辨识。
 class StoneFace {
   const StoneFace({required this.light, required this.dark, required this.ink});
@@ -30,4 +32,4 @@ const StoneFace kWhiteStone = StoneFace(
   ink: Color(0xFF8A8274),
 );
 
-StoneFace faceOf(int side) => side == 1 ? kBlackStone : kWhiteStone;
+StoneFace faceOf(int side) => side == black ? kBlackStone : kWhiteStone;

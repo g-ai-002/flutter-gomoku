@@ -21,8 +21,4 @@ class MoveNotation {
     if (!inBoard(row, col)) return null;
     return indexOf(row, col);
   }
-
-  /// 带行棋方的完整描述，例如 `黑 H8`。
-  static String describeWithSide(int index, int side) =>
-      '${side == black ? '黑' : '白'} ${describe(index)}';
 }

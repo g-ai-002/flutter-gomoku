@@ -30,14 +30,11 @@ class AiInsight {
   final AiReply reply;
   final int millis;
 
-  int get depth => reply.depth;
-  int get nodes => reply.nodes;
-  int get score => reply.score;
-
   /// 状态条上的紧凑文案，例如 `AI 第 4 层 · 1.2s`。
-  String get label => 'AI 第 $depth 层 · ${(millis / 1000).toStringAsFixed(1)}s';
+  String get label =>
+      'AI 第 ${reply.depth} 层 · ${(millis / 1000).toStringAsFixed(1)}s';
 
-  String get detail => '节点 $nodes · 评分 $score';
+  String get detail => '节点 ${reply.nodes} · 评分 ${reply.score}';
 }
 
 class AiPlayer {

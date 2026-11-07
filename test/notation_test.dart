@@ -29,10 +29,5 @@ void main() {
       expect(MoveNotation.parse('H'), isNull);
       expect(MoveNotation.parse('88'), isNull);
     });
-
-    test('带行棋方的描述', () {
-      expect(MoveNotation.describeWithSide(centerIndex, black), '黑 H8');
-      expect(MoveNotation.describeWithSide(centerIndex, white), '白 H8');
-    });
   });
 }
