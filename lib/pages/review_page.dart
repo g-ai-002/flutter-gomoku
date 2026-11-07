@@ -54,7 +54,7 @@ class _ReviewPageState extends State<ReviewPage> {
   void initState() {
     super.initState();
     _replay = ReplayController(moves: widget.moves, handicap: widget.handicap);
-    _game = GomokuGame(view: _replay);
+    _game = GomokuGame(view: _replay, repaint: _replay);
     LogService.info('进入复盘: ${widget.title}, 共 ${_replay.total} 手');
   }
 

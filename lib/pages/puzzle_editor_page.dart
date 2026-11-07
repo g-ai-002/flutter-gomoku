@@ -33,7 +33,7 @@ class _PuzzleEditorPageState extends State<PuzzleEditorPage> {
   void initState() {
     super.initState();
     _controller = PuzzleEditorController(initial: widget.initial);
-    _game = GomokuGame(view: _controller);
+    _game = GomokuGame(view: _controller, repaint: _controller);
     LogService.info(widget.initial == null ? '进入残局编辑器' : '编辑自定义残局');
   }
 

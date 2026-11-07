@@ -39,7 +39,7 @@ class _PuzzlePageState extends State<PuzzlePage> {
   void initState() {
     super.initState();
     _controller = PuzzleController(puzzle: widget.puzzle);
-    _game = GomokuGame(view: _controller);
+    _game = GomokuGame(view: _controller, repaint: _controller);
     _feedback = MoveFeedbackTracker(_controller);
     _controller.addListener(_onChanged);
     LogService.info('进入残局: ${widget.puzzle.id} ${widget.puzzle.title}');

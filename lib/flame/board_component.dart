@@ -19,18 +19,28 @@ const double _animDuration = 0.26;
 /// Web 端也能保持流畅。
 class BoardComponent extends PositionComponent
     with TapCallbacks, PointerMoveCallbacks {
-  BoardComponent({required this.view});
+  BoardComponent({required this.view, this.onIdle, this.onWake});
 
   final BoardView view;
+
+  /// 静止后回调暂停渲染，需要重绘时回调唤醒，由 [GomokuGame] 接管。
+  final VoidCallback? onIdle;
+  final VoidCallback? onWake;
 
   double _cell = 0;
   double _originX = 0;
   double _originY = 0;
   double _time = 0;
+  double _idle = 0;
   int _seenMoves = 0;
   int _seenRevision = 0;
   _StoneAnim? _anim;
   int? _hoverIndex;
+
+  static const double _idlePauseAfter = 0.5;
+
+  bool get needsFrames =>
+      _anim != null || _hoverIndex != null || view.hintIndex != null;
 
   final Map<String, TextPainter> _coordPainters = {};
   final _PictureLayer _boardLayer = _PictureLayer();
@@ -72,6 +82,12 @@ class BoardComponent extends PositionComponent
         _anim = null;
         _invalidateStones();
       }
+    }
+    if (needsFrames) {
+      _idle = 0;
+    } else if ((_idle += dt) >= _idlePauseAfter) {
+      _idle = 0;
+      onIdle?.call();
     }
   }
 
@@ -130,6 +146,7 @@ class BoardComponent extends PositionComponent
     if (index == null) return;
     if (!view.canInteract) return;
     if (view.cells[index] != empty && !view.allowsReplace) return;
+    onWake?.call();
     SoundService.tap();
     view.tapCell(index);
   }
@@ -140,12 +157,18 @@ class BoardComponent extends PositionComponent
     final next = index != null && view.cells[index] == empty && view.canInteract
         ? index
         : null;
-    if (next != _hoverIndex) _hoverIndex = next;
+    if (next == _hoverIndex) return;
+    _hoverIndex = next;
+    _idle = 0;
+    onWake?.call();
   }
 
   @override
   void onPointerMoveStop(PointerMoveEvent event) {
+    if (_hoverIndex == null) return;
     _hoverIndex = null;
+    _idle = 0;
+    onWake?.call();
   }
 
   @override

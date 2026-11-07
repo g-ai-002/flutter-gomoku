@@ -81,7 +81,7 @@ class _GamePageState extends State<GamePage> {
           ? settings.learnedBook.applyTo(OpeningBook.standard)
           : null,
     );
-    _game = GomokuGame(view: _controller);
+    _game = GomokuGame(view: _controller, repaint: _controller);
     _feedback = MoveFeedbackTracker(_controller);
     _controller.addListener(_onControllerChanged);
     final clock = _controller.timeControl;
