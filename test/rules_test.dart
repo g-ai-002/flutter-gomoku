@@ -90,41 +90,13 @@ void main() {
       final wins = GomokuRules.immediateWins(cells, black);
       expect(wins.length, 2);
       expect(wins, containsAll([indexOf(7, 2), indexOf(7, 7)]));
-      expect(
-        GomokuRules.immediateWin(cells, black),
-        anyOf(indexOf(7, 2), indexOf(7, 7)),
-      );
+      expect(wins, containsAll([indexOf(7, 2), indexOf(7, 7)]));
     });
 
     test('没有立即获胜点时返回 null', () {
       final cells = emptyCells();
       _place(cells, black, [(7, 3), (7, 4), (7, 5)]);
       expect(GomokuRules.immediateWins(cells, black), isEmpty);
-      expect(GomokuRules.immediateWin(cells, black), isNull);
-    });
-
-    test('战术兜底优先自己成五，其次封堵对手', () {
-      final cells = emptyCells();
-      _place(cells, black, [(7, 3), (7, 4), (7, 5), (7, 6)]);
-      _place(cells, white, [(9, 3), (9, 4), (9, 5), (9, 6)]);
-      expect(
-        GomokuRules.tacticalMove(cells, black),
-        anyOf(indexOf(7, 2), indexOf(7, 7)),
-      );
-      expect(
-        GomokuRules.tacticalMove(cells, white),
-        anyOf(indexOf(9, 2), indexOf(9, 7)),
-      );
-    });
-
-    test('自己无胜点时封堵对手成五', () {
-      final cells = emptyCells();
-      _place(cells, black, [(7, 3), (7, 4), (7, 5)]);
-      _place(cells, white, [(9, 3), (9, 4), (9, 5), (9, 6)]);
-      expect(
-        GomokuRules.tacticalMove(cells, black),
-        anyOf(indexOf(9, 2), indexOf(9, 7)),
-      );
     });
 
     test('兜底着法跳过禁手点并继续封堵对手', () {

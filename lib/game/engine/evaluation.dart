@@ -4,7 +4,8 @@ import 'board_utils.dart';
 
 /// 棋型评估：按四个方向的所有直线累计连子与空位形态。
 ///
-/// 评估只读取棋盘，不修改；分数对双方对称，便于 Alpha-Beta 直接做差。
+/// 评估只读取棋盘，不修改；一次遍历同时累计黑白双方的分数，
+/// 叶节点只扫描一遍直线，为 Alpha-Beta 搜索节省一半的评估开销。
 class GomokuEvaluation {
   GomokuEvaluation._();
 
@@ -16,54 +17,37 @@ class GomokuEvaluation {
 
   static List<List<int>> _buildLines() {
     final result = <List<int>>[];
-    for (var row = 0; row < boardSize; row++) {
-      result.add([for (var col = 0; col < boardSize; col++) indexOf(row, col)]);
-    }
-    for (var col = 0; col < boardSize; col++) {
-      result.add([for (var row = 0; row < boardSize; row++) indexOf(row, col)]);
-    }
     for (var start = 0; start < boardSize; start++) {
-      final downRight = <int>[];
-      for (var step = 0; start + step < boardSize; step++) {
-        downRight.add(indexOf(start + step, step));
-      }
-      if (downRight.length >= 5) result.add(downRight);
-      if (start == 0) continue;
-      final downRightTop = <int>[];
-      for (var step = 0; start + step < boardSize; step++) {
-        downRightTop.add(indexOf(step, start + step));
-      }
-      if (downRightTop.length >= 5) result.add(downRightTop);
+      result
+        ..add(_line(start, 0, 0, 1))
+        ..add(_line(0, start, 1, 0))
+        ..add(_line(start, 0, 1, 1))
+        ..add(_line(start, boardSize - 1, 1, -1));
+      if (start > 0) result.add(_line(0, start, 1, 1));
+      if (start < boardSize - 1) result.add(_line(0, start, 1, -1));
     }
-    for (var start = 0; start < boardSize; start++) {
-      final downLeft = <int>[];
-      for (var step = 0; start + step < boardSize; step++) {
-        downLeft.add(indexOf(start + step, boardSize - 1 - step));
-      }
-      if (downLeft.length >= 5) result.add(downLeft);
-      if (start == 0) continue;
-      final downLeftTop = <int>[];
-      for (var step = 0; start + step < boardSize; step++) {
-        downLeftTop.add(indexOf(step, boardSize - 1 - start - step));
-      }
-      if (downLeftTop.length >= 5) result.add(downLeftTop);
-    }
-    return result;
+    return [
+      for (final line in result)
+        if (line.length >= 5) line,
+    ];
   }
 
-  /// [side] 在整盘上的棋型总分。
-  static int scoreOf(Uint8List cells, int side) {
-    var total = 0;
-    for (final line in lines) {
-      total += _lineScore(cells, line, side);
+  static List<int> _line(int row, int col, int dr, int dc) {
+    final cells = <int>[];
+    for (; inBoard(row, col); row += dr, col += dc) {
+      cells.add(indexOf(row, col));
     }
-    return total;
+    return cells;
   }
 
   /// 从 [side] 视角评估局面，进攻略高于防守。
   static int evaluate(Uint8List cells, int side) {
-    final own = scoreOf(cells, side);
-    final other = scoreOf(cells, opponentOf(side));
+    final scores = Int32List(2);
+    for (final line in lines) {
+      _lineScores(cells, line, scores);
+    }
+    final own = scores[side - 1];
+    final other = scores[opponentOf(side) - 1];
     return own - (other * 1.05).round();
   }
 
@@ -108,39 +92,43 @@ class GomokuEvaluation {
     return 0;
   }
 
-  static int _lineScore(Uint8List cells, List<int> line, int side) {
+  /// 累加一条直线对黑、白双方的分数，写入长度为 2 的 [scores]。
+  ///
+  /// 五格窗口内只可能有一方的棋子，逐个窗口同时判断双方；
+  /// 连子段按颜色分段累计，黑白的分数不会互相干扰。
+  static void _lineScores(Uint8List cells, List<int> line, Int32List scores) {
     final n = line.length;
-    var score = 0;
-
     for (var start = 0; start + 4 < n; start++) {
-      var own = 0;
-      var blocked = false;
+      var blackCount = 0;
+      var whiteCount = 0;
       var gapPos = -1;
       for (var offset = 0; offset < 5; offset++) {
         final value = cells[line[start + offset]];
-        if (value == side) {
-          own++;
-        } else if (value != empty) {
-          blocked = true;
-          break;
+        if (value == black) {
+          blackCount++;
+        } else if (value == white) {
+          whiteCount++;
         } else {
           gapPos = offset;
         }
       }
-      if (blocked) continue;
-      score += _windowWeights[own];
+      if (blackCount > 0 && whiteCount > 0) continue;
+      final count = blackCount > 0 ? blackCount : whiteCount;
+      final index = blackCount > 0 ? 0 : 1;
+      scores[index] += _windowWeights[count];
       // 内部空隙的四连（如 XX_XX）比普通四连更接近成五。
-      if (own == 4 && gapPos > 0 && gapPos < 4) score += 60000;
+      if (count == 4 && gapPos > 0 && gapPos < 4) scores[index] += 60000;
     }
 
     var index = 0;
     while (index < n) {
-      if (cells[line[index]] != side) {
+      final value = cells[line[index]];
+      if (value == empty) {
         index++;
         continue;
       }
       var end = index + 1;
-      while (end < n && cells[line[end]] == side) {
+      while (end < n && cells[line[end]] == value) {
         end++;
       }
       final run = end - index;
@@ -149,16 +137,14 @@ class GomokuEvaluation {
         final rightOpen = end < n && cells[line[end]] == empty;
         final open = (leftOpen ? 1 : 0) + (rightOpen ? 1 : 0);
         if (run == 4) {
-          score += open == 2 ? 180000 : (open == 1 ? 18000 : 0);
+          scores[value - 1] += open == 2 ? 180000 : (open == 1 ? 18000 : 0);
         } else if (run == 3) {
-          score += open == 2 ? 12000 : (open == 1 ? 800 : 0);
-        } else if (run == 2) {
-          score += open == 2 ? 320 : (open == 1 ? 30 : 0);
+          scores[value - 1] += open == 2 ? 12000 : (open == 1 ? 800 : 0);
+        } else {
+          scores[value - 1] += open == 2 ? 320 : (open == 1 ? 30 : 0);
         }
       }
       index = end;
     }
-
-    return score;
   }
 }

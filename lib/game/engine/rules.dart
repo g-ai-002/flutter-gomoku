@@ -6,6 +6,10 @@ import 'board_utils.dart';
 class GomokuRules {
   GomokuRules._();
 
+  /// 候选点标记的代际数组，复用以避免每个搜索节点分配整盘缓冲。
+  static final Uint32List _near = Uint32List(cellCount);
+  static int _generation = 0;
+
   /// 若 [index] 处的落子构成五连，返回构成连线的所有交叉点（可能长于五子）。
   static List<int> winningLineAt(Uint8List cells, int index, int side) {
     if (index < 0 || index >= cellCount || cells[index] != side) {
@@ -83,9 +87,14 @@ class GomokuRules {
 
   /// 空盘返回中心点，其余返回棋子附近 [radius] 格内的空点。
   ///
-  /// 以棋子为中心向外标记，避免逐个空点重复检查邻域。
+  /// 以棋子为中心向外标记，避免逐个空点重复检查邻域；标记数组按代际复用，
+  /// 搜索中每个节点生成候选点时不再分配与清空整盘缓冲区。
   static List<int> candidateMoves(Uint8List cells, {int radius = 2}) {
-    final near = Uint8List(cellCount);
+    if (++_generation == 0x7FFFFFFF) {
+      _near.fillRange(0, cellCount, 0);
+      _generation = 1;
+    }
+    final generation = _generation;
     var hasStone = false;
     for (var index = 0; index < cellCount; index++) {
       if (cells[index] == empty) continue;
@@ -99,7 +108,7 @@ class GomokuRules {
       for (var r = minRow; r <= maxRow; r++) {
         final base = r * boardSize;
         for (var c = minCol; c <= maxCol; c++) {
-          if (cells[base + c] == empty) near[base + c] = 1;
+          if (cells[base + c] == empty) _near[base + c] = generation;
         }
       }
     }
@@ -108,17 +117,9 @@ class GomokuRules {
     }
     final moves = <int>[];
     for (var index = 0; index < cellCount; index++) {
-      if (near[index] == 1) moves.add(index);
+      if (_near[index] == generation) moves.add(index);
     }
     return moves;
-  }
-
-  /// 当前局面下 [side] 的立即获胜点，没有则为 null。
-  static int? immediateWin(Uint8List cells, int side, {List<int>? candidates}) {
-    for (final index in candidates ?? candidateMoves(cells)) {
-      if (_isWinningMove(cells, index, side)) return index;
-    }
-    return null;
   }
 
   /// 当前局面下 [side] 的全部立即获胜点，用于识别双杀。
@@ -142,14 +143,6 @@ class GomokuRules {
     final win = hasFive(cells, index, side);
     cells[index] = empty;
     return win;
-  }
-
-  /// 战术兜底：优先自己立即成五，其次封堵对手的成五点。
-  static int? tacticalMove(Uint8List cells, int side) {
-    final candidates = candidateMoves(cells);
-    final win = immediateWin(cells, side, candidates: candidates);
-    if (win != null) return win;
-    return immediateWin(cells, opponentOf(side), candidates: candidates);
   }
 
   /// 校验 AI 搜索返回的着法：合法时原样返回，否则改用 [fallbackMove]。
