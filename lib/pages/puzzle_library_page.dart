@@ -123,18 +123,13 @@ class _PuzzleLibraryPageState extends State<PuzzleLibraryPage> {
     accent: Theme.of(context).colorScheme.secondary,
     solved: _progress.isSolved(puzzle.id),
     onTap: () => _open(puzzle.toPuzzle()),
-    trailing: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        TextButton(
-          onPressed: () => _openEditor(puzzle),
-          style: TextButton.styleFrom(
-            visualDensity: VisualDensity.compact,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-          ),
-          child: const Text('编辑'),
-        ),
-      ],
+    trailing: TextButton(
+      onPressed: () => _openEditor(puzzle),
+      style: TextButton.styleFrom(
+        visualDensity: VisualDensity.compact,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+      ),
+      child: const Text('编辑'),
     ),
   );
 

@@ -284,9 +284,6 @@ class _Hero extends StatelessWidget {
     );
   }
 
-  Widget _ornament(ColorScheme colors) => Container(
-    width: 36,
-    height: 1,
-    color: colors.outline.withValues(alpha: 0.9),
-  );
+  Widget _ornament(ColorScheme colors) =>
+      Container(width: 36, height: 1, color: colors.outline);
 }

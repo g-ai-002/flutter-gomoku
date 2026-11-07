@@ -69,6 +69,9 @@ class _MoveListState extends State<MoveList> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final subtle = theme.textTheme.bodySmall?.copyWith(
+      color: colors.onSurfaceVariant,
+    );
     if (widget.history.isEmpty) {
       return Center(
         child: Column(
@@ -80,12 +83,7 @@ class _MoveListState extends State<MoveList> {
               color: colors.onSurfaceVariant.withValues(alpha: 0.4),
             ),
             const SizedBox(height: 10),
-            Text(
-              '尚未落子',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colors.onSurfaceVariant,
-              ),
-            ),
+            Text('尚未落子', style: subtle),
           ],
         ),
       );
@@ -115,15 +113,7 @@ class _MoveListState extends State<MoveList> {
           ),
           child: Row(
             children: [
-              SizedBox(
-                width: 30,
-                child: Text(
-                  '${row + 1}.',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colors.onSurfaceVariant,
-                  ),
-                ),
-              ),
+              SizedBox(width: 30, child: Text('${row + 1}.', style: subtle)),
               Expanded(
                 child: _NotationText(
                   record: blackMove,
@@ -147,11 +137,9 @@ class _MoveListState extends State<MoveList> {
     );
   }
 
-  VoidCallback? _tapHandler(int index) {
-    final onTap = widget.onTapIndex;
-    if (onTap == null) return null;
-    return () => onTap(index);
-  }
+  VoidCallback? _tapHandler(int index) => widget.onTapIndex == null
+      ? null
+      : () => widget.onTapIndex!(index);
 }
 
 class _NotationText extends StatelessWidget {

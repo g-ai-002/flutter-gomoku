@@ -30,37 +30,31 @@ class BoardActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final buttons = [
+      (
+        Icons.undo_rounded,
+        '悔棋',
+        canUndo ? onUndo : null,
+      ),
+      (Icons.refresh_rounded, '重开', onRestart),
+      if (onMoves != null) (Icons.format_list_bulleted_rounded, '棋谱', onMoves),
+      if (onHint != null)
+        (
+          Icons.lightbulb_outline,
+          hintLoading ? '思考中' : '提示',
+          hintEnabled && !hintLoading ? onHint : null,
+        ),
+      if (onResign != null) (Icons.flag_outlined, '认输', onResign),
+    ];
     return Wrap(
       alignment: WrapAlignment.center,
       spacing: 2,
       children: [
-        BoardActionButton(
-          icon: Icons.undo_rounded,
-          label: '悔棋',
-          onPressed: canUndo ? onUndo : null,
-        ),
-        BoardActionButton(
-          icon: Icons.refresh_rounded,
-          label: '重开',
-          onPressed: onRestart,
-        ),
-        if (onMoves != null)
+        for (final (icon, label, onPressed) in buttons)
           BoardActionButton(
-            icon: Icons.format_list_bulleted_rounded,
-            label: '棋谱',
-            onPressed: onMoves,
-          ),
-        if (onHint != null)
-          BoardActionButton(
-            icon: Icons.lightbulb_outline,
-            label: hintLoading ? '思考中' : '提示',
-            onPressed: hintEnabled && !hintLoading ? onHint : null,
-          ),
-        if (onResign != null)
-          BoardActionButton(
-            icon: Icons.flag_outlined,
-            label: '认输',
-            onPressed: onResign,
+            icon: icon,
+            label: label,
+            onPressed: onPressed,
           ),
       ],
     );
