@@ -42,13 +42,19 @@ class GomokuEvaluation {
 
   /// 从 [side] 视角评估局面，进攻略高于防守。
   static int evaluate(Uint8List cells, int side) {
+    final scores = totalScores(cells);
+    final own = scores[side - 1];
+    final other = scores[opponentOf(side) - 1];
+    return own - (other * 1.05).round();
+  }
+
+  /// 一次扫描得到黑白双方的棋型总分，供形势判断复用。
+  static Int32List totalScores(Uint8List cells) {
     final scores = Int32List(2);
     for (final line in lines) {
       _lineScores(cells, line, scores);
     }
-    final own = scores[side - 1];
-    final other = scores[opponentOf(side) - 1];
-    return own - (other * 1.05).round();
+    return scores;
   }
 
   /// 单点在 [side] 手中的形态分，用于候选着法排序。

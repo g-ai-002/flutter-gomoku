@@ -100,6 +100,10 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('switch-forbidden')));
     await tester.pumpAndSettle();
     expect(settings.forbiddenRule, isTrue);
+
+    await tester.tap(find.byKey(const ValueKey('switch-position')));
+    await tester.pumpAndSettle();
+    expect(settings.showPosition, isFalse);
   });
 
   testWidgets('查看日志弹窗可打开', (tester) async {

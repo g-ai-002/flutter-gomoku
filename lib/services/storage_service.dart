@@ -62,6 +62,12 @@ class StorageService {
   Future<void> setShowCoordinates(bool value) =>
       _setBool(AppConstants.prefKeyShowCoordinates, value);
 
+  /// 棋盘浮层的实时形势判断，默认开启。
+  bool get showPosition =>
+      _bool(AppConstants.prefKeyShowPosition, fallback: true);
+  Future<void> setShowPosition(bool value) =>
+      _setBool(AppConstants.prefKeyShowPosition, value);
+
   bool get soundEnabled => _bool(AppConstants.prefKeySound, fallback: true);
   Future<void> setSoundEnabled(bool value) =>
       _setBool(AppConstants.prefKeySound, value);

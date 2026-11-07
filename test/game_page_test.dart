@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gomoku/flame/gomoku_game.dart';
 import 'package:gomoku/models/game_models.dart';
 import 'package:gomoku/pages/game_page.dart';
+import 'package:gomoku/utils/constants.dart';
 
 import 'support/helpers.dart';
 
@@ -143,6 +144,55 @@ void main() {
     expect(find.text('棋谱'), findsOneWidget);
     expect(find.text('黑方行棋'), findsOneWidget);
     expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('落子后棋盘浮层展示实时胜率', (tester) async {
+    _useDesktopView(tester);
+    final settings = await createSettings();
+    await tester.pumpWidget(
+      wrapPage(
+        const GamePage(
+          mode: GameMode.twoPlayers,
+          difficulty: Difficulty.expert,
+          humanSide: 1,
+        ),
+        settings,
+      ),
+    );
+    await _pumpGame(tester);
+    expect(find.textContaining('%'), findsNothing);
+
+    final board = find.byType(GameWidget<GomokuGame>);
+    await tester.tapAt(tester.getCenter(board));
+    await _pumpGame(tester);
+
+    expect(find.text('形势 · 黑 50% · 白 50%'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('关闭形势判断后不显示胜率浮层', (tester) async {
+    _useDesktopView(tester);
+    final settings = await createSettings(
+      values: {AppConstants.prefKeyShowPosition: false},
+    );
+    await tester.pumpWidget(
+      wrapPage(
+        const GamePage(
+          mode: GameMode.twoPlayers,
+          difficulty: Difficulty.expert,
+          humanSide: 1,
+        ),
+        settings,
+      ),
+    );
+    await _pumpGame(tester);
+
+    final board = find.byType(GameWidget<GomokuGame>);
+    await tester.tapAt(tester.getCenter(board));
+    await _pumpGame(tester);
+
+    expect(find.textContaining('%'), findsNothing);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 

@@ -15,6 +15,7 @@ import 'handicap.dart';
 import 'match_clock.dart';
 import 'notation.dart';
 import 'opening_book.dart';
+import 'position_insight.dart';
 
 /// 对局控制器：落子、AI 回合、悔棋、棋钟与终局判定。
 class GameController extends BoardSession {
@@ -79,6 +80,18 @@ class GameController extends BoardSession {
 
   /// 最近一次 AI 搜索摘要，供界面展示引擎层数与用时。
   AiInsight? aiInsight;
+
+  PositionInsight? _insight;
+  int _insightMoves = -1;
+
+  /// 当前形势判断，按手数缓存，避免棋钟每秒刷新时重复评估。
+  PositionInsight get positionInsight {
+    if (_insight == null || _insightMoves != board.history.length) {
+      _insightMoves = board.history.length;
+      _insight = PositionInsight.of(board.cells);
+    }
+    return _insight!;
+  }
 
   /// 当前黑棋的禁手点，仅在人类可以落子时计算并缓存。
   @override

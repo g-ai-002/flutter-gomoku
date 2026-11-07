@@ -14,12 +14,13 @@ class AppConstants {
   AppConstants._();
 
   static const String appName = '五子棋';
-  static const String version = '0.8.2';
+  static const String version = '0.9.0';
 
   static const String prefKeyDarkMode = 'dark_mode';
   static const String prefKeyDifficulty = 'difficulty';
   static const String prefKeyHumanSide = 'human_side';
   static const String prefKeyShowCoordinates = 'show_coordinates';
+  static const String prefKeyShowPosition = 'show_position';
   static const String prefKeySound = 'sound_enabled';
   static const String prefKeyMusic = 'music_enabled';
   static const String prefKeyHaptics = 'haptics_enabled';

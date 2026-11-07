@@ -51,6 +51,7 @@ class _GamePageState extends State<GamePage> {
   late final MoveFeedbackTracker _feedback;
   late DateTime _startedAt;
   late String _gameId;
+  late final bool _showPosition;
   DateTime? _endedAt;
   bool _resultShown = false;
   int _seenViolations = 0;
@@ -60,6 +61,7 @@ class _GamePageState extends State<GamePage> {
     super.initState();
     _resetGameIdentity();
     final settings = context.read<SettingsProvider>();
+    _showPosition = settings.showPosition;
     final selfPlay = widget.mode == GameMode.aiSelf;
     final handicap = widget.mode == GameMode.vsAi && widget.humanSide == black
         ? settings.handicap
@@ -275,6 +277,12 @@ class _GamePageState extends State<GamePage> {
         animation: _controller,
         builder: (context, _) => BoardHintOverlay(
           opening: _controller.openingName,
+          insight:
+              _showPosition &&
+                  _controller.history.isNotEmpty &&
+                  _controller.result == null
+              ? _controller.positionInsight
+              : null,
           showForbiddenLegend: _controller.forbiddenPoints.isNotEmpty,
         ),
       ),

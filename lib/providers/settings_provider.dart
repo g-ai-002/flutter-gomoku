@@ -57,6 +57,11 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> setShowCoordinates(bool value) =>
       _update(() => _storage.setShowCoordinates(value));
 
+  /// 棋盘浮层的实时形势判断。
+  bool get showPosition => _storage.showPosition;
+  Future<void> setShowPosition(bool value) =>
+      _update(() => _storage.setShowPosition(value));
+
   TimeControl get timeControl => _storage.timeControl;
   Future<void> setTimeControl(TimeControl value) =>
       _update(() => _storage.setTimeControl(value));
