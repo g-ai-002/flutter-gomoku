@@ -36,7 +36,7 @@
 
 ## 短期目标
 
-- 0.9.0 新增实时形势判断：棋盘浮层显示黑白胜率，设置页可关闭（开发中）。
+- 0.9.0 新增实时形势判断：棋盘浮层显示黑白胜率，设置页可关闭（已发布）。
 - 0.8.2 暂停静止棋盘渲染、加速棋型评估，延后音频合成并收敛设置页重建（已发布）。
 - 0.8.1 收敛提示请求、AI 回合与状态条布局，统一页面跳转并压缩数据表（已发布）。
 - 0.8.0 新增 AI 精研：自对弈训练本地开局库，训练结果参与开局应手（已发布）。
@@ -64,7 +64,7 @@
 - [x] 设置页开关改用 `SwitchListTile`，统一标题、副标题与间距
 - [x] 新增 7 项测试，255 项测试全部通过
 - [x] `flutter analyze` 无告警，lib 代码量 9973 行，低于 10000 行上限
-- [ ] Gitea Actions 在 v0.9.0 Tag 上完成 Android / Windows / Web 构建并发布 Release
+- [x] Gitea Actions 在 v0.9.0 Tag 上完成 Android / Windows / Web 构建并发布 Release
 
 ---
 
@@ -183,7 +183,7 @@ AI 合法着法校验、异步收尾与状态条样式，并修正终局后未�
 
 ### v0.9.0 (MINOR) — 2026-11-07
 
-- **状态**: 构建中 🚧
+- **状态**: 已发布 ✅（[Gitea Release](http://192.168.31.120:3020/GTech/flutter-gomoku/releases/tag/v0.9.0)）
 - **目标**: 新增对局中的实时形势判断与胜率提示，胜率仅作参考且可关闭。
 - **任务**:
   - [x] 新增 `PositionInsight`，一次扫描黑白棋型总分并折算为黑棋胜率
@@ -195,7 +195,7 @@ AI 合法着法校验、异步收尾与状态条样式，并修正终局后未�
   - [x] 收敛设置页四个选项组件并删除重复文件，开关改用 `SwitchListTile`
   - [x] 新增 7 项测试，255 项测试全部通过
   - [x] `flutter analyze` 无告警，lib 代码量 9973 行，低于 10000 行上限
-  - [ ] Gitea Actions 在 v0.9.0 Tag 上完成 Android / Windows / Web 构建并发布 Release
+  - [x] Gitea Actions 在 v0.9.0 Tag 上完成 Android / Windows / Web 构建并发布 Release
 
 ### v0.8.2 (PATCH) — 2026-11-07
 
