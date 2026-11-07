@@ -12,8 +12,8 @@ import '../services/sound_service.dart';
 import '../utils/navigation.dart';
 import 'widgets/board_actions.dart';
 import 'widgets/board_page_scaffold.dart';
-import 'widgets/board_play_layout.dart';
 import 'widgets/board_stage.dart';
+import 'widgets/play_layout.dart';
 import 'widgets/game_dialogs.dart';
 import 'widgets/move_panel.dart';
 import 'widgets/move_sheet.dart';
@@ -151,7 +151,7 @@ class _PuzzlePageState extends State<PuzzlePage> {
           icon: const Icon(Icons.help_outline, size: 21),
         ),
       ],
-      body: BoardPlayLayout(
+      body: PlayLayout(
         controller: _controller,
         status: (_) => PuzzleStatusBar(controller: _controller),
         board: BoardStage(game: _game, gameKey: const ValueKey('puzzle-board')),

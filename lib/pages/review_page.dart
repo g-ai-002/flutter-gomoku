@@ -140,27 +140,25 @@ class _ReviewPageState extends State<ReviewPage> {
             icon: const Icon(Icons.save_alt, size: 21),
           ),
       ],
-      body: AnimatedBuilder(
-        animation: _replay,
-        builder: (context, _) => PlayLayout(
-          board: _buildBoard(),
-          actions: _buildControls(),
-          compactBottom: Column(
-            children: [
-              _buildControls(),
-              SizedBox(
-                height: 132,
-                child: MoveList(
-                  history: widget.moves,
-                  highlightIndex: _replay.cursor - 1,
-                  onTapIndex: (index) => _replay.jumpTo(index + 1),
-                  padding: const EdgeInsets.only(bottom: 6),
-                ),
+      body: PlayLayout(
+        controller: _replay,
+        board: _buildBoard(),
+        actions: (_, _) => _buildControls(),
+        compactBottom: (_) => Column(
+          children: [
+            _buildControls(),
+            SizedBox(
+              height: 132,
+              child: MoveList(
+                history: widget.moves,
+                highlightIndex: _replay.cursor - 1,
+                onTapIndex: (index) => _replay.jumpTo(index + 1),
+                padding: const EdgeInsets.only(bottom: 6),
               ),
-            ],
-          ),
-          sidePanel: _buildSidePanel(),
+            ),
+          ],
         ),
+        sidePanel: (_) => _buildSidePanel(),
       ),
     );
   }

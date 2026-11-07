@@ -54,8 +54,8 @@ class StatusSpinner extends StatelessWidget {
 
 /// 对局与残局状态条共用的骨架：行棋方胶囊、状态说明与右侧信息。
 ///
-/// 固定 30 高，中间区域单行省略，文案变化不会推动棋盘；
-/// 两页只需提供强调色、胶囊内容、状态文案与右侧补充信息。
+/// 宽处固定 30 高单行排布，中间区域单行省略，文案变化不会推动棋盘；
+/// 窄栏（横屏竖栏、侧边棋谱栏）里改为纵向堆叠，同样保持整块高度稳定。
 class BoardStatusBar extends StatelessWidget {
   const BoardStatusBar({
     super.key,
@@ -65,6 +65,9 @@ class BoardStatusBar extends StatelessWidget {
     this.trailing,
   });
 
+  /// 低于该宽度改为纵向堆叠，避免胶囊与文字互相挤压。
+  static const double _compactWidth = 260;
+
   final Color accent;
   final Widget leading;
   final Widget status;
@@ -72,18 +75,36 @@ class BoardStatusBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 30,
-      child: Row(
-        children: [
-          StatusChip(accent: accent, child: leading),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Align(alignment: Alignment.centerLeft, child: status),
-          ),
-          if (trailing != null) ...[const SizedBox(width: 10), trailing!],
-        ],
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) => constraints.maxWidth < _compactWidth
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                StatusChip(accent: accent, child: leading),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: status,
+                ),
+                ?trailing,
+              ],
+            )
+          : SizedBox(
+              height: 30,
+              child: Row(
+                children: [
+                  StatusChip(accent: accent, child: leading),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Align(alignment: Alignment.centerLeft, child: status),
+                  ),
+                  if (trailing != null) ...[
+                    const SizedBox(width: 10),
+                    trailing!,
+                  ],
+                ],
+              ),
+            ),
     );
   }
 }

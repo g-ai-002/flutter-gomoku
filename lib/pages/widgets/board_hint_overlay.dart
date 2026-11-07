@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../game/position_insight.dart';
 
-/// 棋盘浮层提示：开局名、形势判断与禁手图例叠在棋盘上方。
+/// 棋盘浮层提示：开局名、形势判断与禁手图例分居棋盘四角。
 ///
 /// 浮层不参与状态区的高度计算，提示出现、消失或换行都不会改变棋盘尺寸；
 /// 由调用方包在 [IgnorePointer] 里，落子手势仍直达棋盘。
@@ -26,43 +26,45 @@ class BoardHintOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final chips = <Widget>[
+    final chips = <(Alignment, Widget)>[
       if (opening != null)
-        _HintChip(
-          icon: Icons.auto_stories_outlined,
-          text: '开局 · $opening',
-          accent: colors.primary,
+        (
+          Alignment.topLeft,
+          _HintChip(
+            icon: Icons.auto_stories_outlined,
+            text: '开局 · $opening',
+            accent: colors.primary,
+          ),
         ),
       if (insight != null)
-        _HintChip(
-          icon: Icons.insights_outlined,
-          text:
-              '形势 · 黑 ${insight!.blackPercent}% · 白 ${insight!.whitePercent}%',
-          accent: colors.primary,
+        (
+          Alignment.topRight,
+          _HintChip(
+            icon: Icons.insights_outlined,
+            text:
+                '形势 · 黑 ${insight!.blackPercent}% · 白 ${insight!.whitePercent}%',
+            accent: colors.primary,
+          ),
         ),
       if (showForbiddenLegend)
-        const _HintChip(
-          icon: Icons.block_outlined,
-          text: '红圈为黑棋禁手点',
-          accent: _forbiddenAccent,
+        (
+          Alignment.bottomLeft,
+          const _HintChip(
+            icon: Icons.block_outlined,
+            text: '红圈为黑棋禁手点',
+            accent: _forbiddenAccent,
+          ),
         ),
     ];
     if (chips.isEmpty) return const SizedBox.shrink();
-    return Align(
-      alignment: Alignment.topLeft,
-      child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            for (var i = 0; i < chips.length; i++) ...[
-              if (i > 0) const SizedBox(height: 6),
-              chips[i],
-            ],
-          ],
-        ),
-      ),
+    return Stack(
+      children: [
+        for (final (alignment, chip) in chips)
+          Align(
+            alignment: alignment,
+            child: Padding(padding: const EdgeInsets.all(10), child: chip),
+          ),
+      ],
     );
   }
 }

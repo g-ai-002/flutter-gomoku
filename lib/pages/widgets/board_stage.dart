@@ -5,6 +5,13 @@ import 'package:flutter/material.dart';
 
 import '../../flame/gomoku_game.dart';
 
+/// 棋盘边长上限：超大屏避免棋盘无限放大，同时控制重绘面积。
+const double kBoardMaxSide = 860;
+
+/// 可用空间内棋盘占用的边长：取短边并限幅，页面布局与棋盘共用同一份几何。
+double boardSideFor(Size available) =>
+    math.min(math.min(available.width, available.height), kBoardMaxSide);
+
 /// 棋盘舞台：统一圆角、投影与 Flame 容器，对局、残局与复盘页共用。
 ///
 /// 棋盘保持 1:1 的宽高比，按可用空间取最大尺寸；棋盘本体自带重绘边界，
@@ -28,19 +35,14 @@ class BoardStage extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        var width = math.min(constraints.maxWidth, 680.0);
-        var height = width;
-        if (height > constraints.maxHeight) {
-          height = constraints.maxHeight;
-          width = height;
-        }
+        final side = boardSideFor(constraints.biggest);
         return Center(
           child: Stack(
             children: [
               RepaintBoundary(
                 child: Container(
-                  width: width,
-                  height: height,
+                  width: side,
+                  height: side,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(18),
                     boxShadow: [

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gomoku/pages/widgets/board_hint_overlay.dart';
-import 'package:gomoku/pages/widgets/board_play_layout.dart';
+import 'package:gomoku/pages/widgets/play_layout.dart';
 import 'package:gomoku/pages/widgets/choice_pill.dart';
 import 'package:gomoku/pages/widgets/entry_tile.dart';
 import 'package:gomoku/pages/widgets/highlight_panel.dart';
@@ -165,6 +165,12 @@ void main() {
 
     expect(find.text('开局 · 直指·斜连'), findsOneWidget);
     expect(find.text('红圈为黑棋禁手点'), findsOneWidget);
+    // 提示分居棋盘四角，不再堆叠在同一侧压住交叉点。
+    final overlay = tester.getRect(find.byType(BoardHintOverlay));
+    final opening = tester.getRect(find.text('开局 · 直指·斜连'));
+    final legend = tester.getRect(find.text('红圈为黑棋禁手点'));
+    expect(opening.top, lessThan(overlay.center.dy));
+    expect(legend.top, greaterThan(overlay.center.dy));
     expect(tester.takeException(), isNull);
 
     await tester.pumpWidget(
@@ -185,7 +191,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: BoardPlayLayout(
+          body: PlayLayout(
             controller: controller,
             status: (_) => Text('状态 ${controller.value}'),
             board: const SizedBox.expand(),
@@ -228,7 +234,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: BoardPlayLayout(
+          body: PlayLayout(
             controller: controller,
             status: (_) => const Text('状态'),
             board: const SizedBox.expand(),

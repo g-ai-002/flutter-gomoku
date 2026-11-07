@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// 首页与设置页共用的胶囊选项按钮。
+import 'status_chip.dart';
+
+/// 首页与设置页共用的胶囊选项按钮，与状态胶囊共用同一套描边与淡底。
 class ChoicePill extends StatelessWidget {
   const ChoicePill({
     super.key,
@@ -18,28 +20,19 @@ class ChoicePill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colors = theme.colorScheme;
     return Material(
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
+        child: StatusChip(
+          accent: accent,
+          active: selected,
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-          decoration: BoxDecoration(
-            color: selected
-                ? accent.withValues(alpha: 0.10)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: selected ? accent.withValues(alpha: 0.55) : colors.outline,
-            ),
-          ),
           child: Text(
             label,
             style: theme.textTheme.labelMedium?.copyWith(
-              color: selected ? accent : colors.onSurfaceVariant,
+              color: selected ? accent : theme.colorScheme.onSurfaceVariant,
               fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
             ),
           ),

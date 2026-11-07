@@ -132,31 +132,26 @@ class _PuzzleEditorPageState extends State<PuzzleEditorPage> {
         ),
       ],
       body: PlayLayout(
+        controller: _controller,
         board: BoardStage(
           game: _game,
           gameKey: const ValueKey('puzzle-editor-board'),
         ),
-        sidePanel: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, _) => Column(
-            children: [
-              _panel(compact: false),
-              const SizedBox(height: 12),
-              Text(
-                '黑棋先行，在限定手数内连成五子即通关。'
-                '点击已落下的棋子可将其移除，至少摆放一枚黑棋才能保存。',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  height: 1.5,
-                ),
+        sidePanel: (_) => Column(
+          children: [
+            _panel(compact: false),
+            const SizedBox(height: 12),
+            Text(
+              '黑棋先行，在限定手数内连成五子即通关。'
+              '点击已落下的棋子可将其移除，至少摆放一枚黑棋才能保存。',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                height: 1.5,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-        compactBottom: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, _) => _panel(compact: true),
-        ),
+        compactBottom: (_) => _panel(compact: true),
       ),
     );
   }

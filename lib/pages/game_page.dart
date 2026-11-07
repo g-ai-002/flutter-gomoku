@@ -21,8 +21,8 @@ import 'widgets/app_snack.dart';
 import 'widgets/board_actions.dart';
 import 'widgets/board_hint_overlay.dart';
 import 'widgets/board_page_scaffold.dart';
-import 'widgets/board_play_layout.dart';
 import 'widgets/board_stage.dart';
+import 'widgets/play_layout.dart';
 import 'widgets/clock_bar.dart';
 import 'widgets/game_dialogs.dart';
 import 'widgets/game_status_bar.dart';
@@ -245,7 +245,7 @@ class _GamePageState extends State<GamePage> {
           icon: const Icon(Icons.help_outline, size: 21),
         ),
       ],
-      body: BoardPlayLayout(
+      body: PlayLayout(
         controller: _controller,
         status: (_) => _buildStatus(),
         board: _buildBoard(),

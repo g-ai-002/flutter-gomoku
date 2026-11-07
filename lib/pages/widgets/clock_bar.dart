@@ -47,17 +47,17 @@ class _ClockBarState extends State<ClockBar> {
     final clock = widget.controller.clock;
     if (clock == null) return const SizedBox.shrink();
     final active = widget.controller.result == null ? clock.activeSide : null;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 10,
+      runSpacing: 6,
       children: [
-        for (final side in const [black, white]) ...[
-          if (side != black) const SizedBox(width: 10),
+        for (final side in const [black, white])
           _ClockChip(
             side: side,
             remainingMs: clock.remainingMs(side),
             active: active == side,
           ),
-        ],
       ],
     );
   }

@@ -21,8 +21,8 @@ class BoardActionButton extends StatelessWidget {
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
-        minimumSize: const Size(64, 52),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        minimumSize: const Size(56, 48),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         foregroundColor: enabled ? colors.onSurface : colors.onSurfaceVariant,
       ),
       child: Column(
