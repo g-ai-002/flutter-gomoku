@@ -192,7 +192,7 @@ void main() {
     board.size = Vector2(480, 480);
     board.render(Canvas(PictureRecorder()));
 
-    // 棋盘中部的交叉点：悬停后需要逐帧绘制预览棋子。
+    // 棋盘中部的交叉点：悬停后立即重绘一次预览棋子。
     final move = PointerMoveEvent(
       1,
       game,
@@ -203,11 +203,34 @@ void main() {
     )..renderingTrace.add(Vector2(240, 240));
     board.onPointerMove(move);
     expect(wakes, 1);
-    expect(board.needsFrames, isTrue);
+    expect(board.needsFrames, isFalse, reason: '悬停预览静止，无需逐帧重绘');
 
     board.onPointerMoveStop(move);
     expect(wakes, 2);
     expect(board.needsFrames, isFalse);
+  });
+
+  test('悬停不阻止棋盘在静止半秒后进入空闲', () {
+    final view = _FakeView();
+    var idle = 0;
+    final board = BoardComponent(view: view, onIdle: () => idle++);
+    board.size = Vector2(480, 480);
+    board.render(Canvas(PictureRecorder()));
+    final game = GomokuGame(view: view);
+    final move = PointerMoveEvent(
+      1,
+      game,
+      const PointerHoverEvent(
+        position: Offset(240, 240),
+        kind: PointerDeviceKind.mouse,
+      ),
+    )..renderingTrace.add(Vector2(240, 240));
+
+    board.onPointerMove(move);
+    board.update(0.3);
+    expect(idle, 0);
+    board.update(0.25);
+    expect(idle, 1);
   });
 
   test('暂停后点击棋盘仍然落子并唤醒', () {

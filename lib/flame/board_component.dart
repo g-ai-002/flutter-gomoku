@@ -39,19 +39,18 @@ class BoardComponent extends PositionComponent
 
   static const double _idlePauseAfter = 0.5;
 
-  bool get needsFrames =>
-      _anim != null || _hoverIndex != null || view.hintIndex != null;
+  bool get needsFrames => _anim != null || view.hintIndex != null;
 
-  final Map<String, TextPainter> _coordPainters = {};
+  List<TextPainter>? _coordPainters;
   final _PictureLayer _boardLayer = _PictureLayer();
   final _PictureLayer _stoneLayer = _PictureLayer();
 
   /// 坐标文字按尺寸缓存，缩放后须整体释放，避免按尺寸累积。
   void _disposeCoordPainters() {
-    for (final painter in _coordPainters.values) {
+    for (final painter in _coordPainters ?? const <TextPainter>[]) {
       painter.dispose();
     }
-    _coordPainters.clear();
+    _coordPainters = null;
   }
 
   /// 释放录制图层与坐标文字缓存；页面销毁时由 [GomokuGame] 调用。
@@ -239,9 +238,14 @@ class BoardComponent extends PositionComponent
   }
 
   void _drawCoords(Canvas canvas) {
+    final painters = _coordPainters ??= [
+      for (var index = 0; index < boardSize; index++)
+        _coordPainter(String.fromCharCode(65 + index)),
+      for (var index = 0; index < boardSize; index++)
+        _coordPainter('${index + 1}'),
+    ];
     for (var index = 0; index < boardSize; index++) {
-      final letter = String.fromCharCode(65 + index);
-      final columnPainter = _coordPainter(letter);
+      final columnPainter = painters[index];
       columnPainter.paint(
         canvas,
         Offset(
@@ -249,7 +253,7 @@ class BoardComponent extends PositionComponent
           _originY + (boardSize - 1) * _cell + _cell * 0.72,
         ),
       );
-      final rowPainter = _coordPainter('${index + 1}');
+      final rowPainter = painters[boardSize + index];
       rowPainter.paint(
         canvas,
         Offset(
@@ -260,23 +264,17 @@ class BoardComponent extends PositionComponent
     }
   }
 
-  TextPainter _coordPainter(String text) {
-    final key = '$text|${_cell.toStringAsFixed(2)}';
-    return _coordPainters.putIfAbsent(
-      key,
-      () => TextPainter(
-        text: TextSpan(
-          text: text,
-          style: TextStyle(
-            fontSize: math.max(7, _cell * 0.34),
-            color: kBoardLine.withValues(alpha: 0.55),
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout(),
-    );
-  }
+  TextPainter _coordPainter(String text) => TextPainter(
+    text: TextSpan(
+      text: text,
+      style: TextStyle(
+        fontSize: math.max(7, _cell * 0.34),
+        color: kBoardLine.withValues(alpha: 0.55),
+        fontWeight: FontWeight.w500,
+      ),
+    ),
+    textDirection: TextDirection.ltr,
+  )..layout();
 
   ui.Picture _stonePicture() {
     final animating = _anim?.index;
