@@ -83,20 +83,16 @@ class _PuzzleLibraryPageState extends State<PuzzleLibraryPage> {
       ),
       title: title,
       subtitle: subtitle,
-      trailing:
-          trailing ??
+      trailing: trailing ??
           (solved
               ? StatusChip(
                   accent: colors.tertiary,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 7,
-                    vertical: 2,
-                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   child: Text(
                     '已通关',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: colors.tertiary,
-                    ),
+                    style: theme.textTheme.labelSmall
+                        ?.copyWith(color: colors.tertiary),
                   ),
                 )
               : null),

@@ -353,7 +353,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  /// 开关行：统一上下间距，省去每处重复的 SizedBox。
+  /// 开关行：统一上下间距与紧凑密度，省去每处重复的 SizedBox。
   Widget _switch(
     String key,
     String title,
@@ -362,37 +362,10 @@ class _SettingsPageState extends State<SettingsPage> {
     ValueChanged<bool> onChanged,
   ) => Padding(
     padding: const EdgeInsets.only(top: 10),
-    child: _SwitchRow(
-      title: title,
-      subtitle: subtitle,
-      value: value,
-      onChanged: onChanged,
-      switchKey: ValueKey(key),
-    ),
-  );
-}
-
-class _SwitchRow extends StatelessWidget {
-  const _SwitchRow({
-    required this.title,
-    required this.subtitle,
-    required this.value,
-    required this.onChanged,
-    this.switchKey,
-  });
-
-  final String title;
-  final String subtitle;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-  final Key? switchKey;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
+    child: Material(
       type: MaterialType.transparency,
       child: SwitchListTile.adaptive(
-        key: switchKey,
+        key: ValueKey(key),
         contentPadding: EdgeInsets.zero,
         visualDensity: VisualDensity.compact,
         title: Text(title),
@@ -401,6 +374,6 @@ class _SwitchRow extends StatelessWidget {
         onChanged: onChanged,
         activeTrackColor: Theme.of(context).colorScheme.primary,
       ),
-    );
-  }
+    ),
+  );
 }

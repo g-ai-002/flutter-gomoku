@@ -177,7 +177,6 @@ class _NotationText extends StatelessWidget {
         ),
       ],
     );
-    if (onTap == null) return text;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(6),

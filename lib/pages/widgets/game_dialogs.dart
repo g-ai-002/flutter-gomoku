@@ -115,7 +115,6 @@ Future<bool> showConfirmDialog(
   return confirmed == true;
 }
 
-/// 认输二次确认，返回 true 表示确认认输。
 Future<bool> confirmResign(BuildContext context) => showConfirmDialog(
   context,
   title: '认输',
@@ -206,26 +205,18 @@ class _RuleLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(top: 6),
-            child: Container(
-              width: 4,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                shape: BoxShape.circle,
-              ),
-            ),
+            padding: const EdgeInsets.only(top: 7),
+            child: Icon(Icons.circle, size: 4, color: theme.colorScheme.primary),
           ),
           const SizedBox(width: 8),
-          Expanded(
-            child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
-          ),
+          Expanded(child: Text(text, style: theme.textTheme.bodyMedium)),
         ],
       ),
     );

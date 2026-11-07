@@ -46,30 +46,34 @@ class PuzzleStatusBar extends StatelessWidget {
   }
 
   Widget _label(ThemeData theme, Color accent) {
-    final style = theme.textTheme.labelMedium?.copyWith(
-      color: accent,
-      fontWeight: FontWeight.w600,
-    );
-    Widget chip(Widget icon, String text) => Row(
+    final (icon, text) = switch (controller.status) {
+      PuzzleStatus.solved => (
+        Icon(Icons.emoji_events_outlined, size: 15, color: accent),
+        '已通关',
+      ),
+      PuzzleStatus.failed => (
+        Icon(Icons.close_rounded, size: 15, color: accent),
+        '挑战失败',
+      ),
+      PuzzleStatus.playing when controller.thinking => (
+        StatusSpinner(color: accent),
+        '白棋应对中…',
+      ),
+      PuzzleStatus.playing => (const StoneDot(side: black), '轮到你落子'),
+    };
+    return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         icon,
         const SizedBox(width: 6),
-        Text(text, style: style),
+        Text(
+          text,
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: accent,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ],
     );
-    if (controller.status == PuzzleStatus.solved) {
-      return chip(
-        Icon(Icons.emoji_events_outlined, size: 15, color: accent),
-        '已通关',
-      );
-    }
-    if (controller.status == PuzzleStatus.failed) {
-      return chip(Icon(Icons.close_rounded, size: 15, color: accent), '挑战失败');
-    }
-    if (controller.thinking) {
-      return chip(StatusSpinner(color: accent), '白棋应对中…');
-    }
-    return chip(const StoneDot(side: black), '轮到你落子');
   }
 }
