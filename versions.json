@@ -1,0 +1,14 @@
+[
+  {
+    "version": "v0.9.0",
+    "url": "./v0.9.0/",
+    "latest": true,
+    "debug": false
+  },
+  {
+    "version": "v0.8.0",
+    "url": "./v0.8.0/",
+    "latest": false,
+    "debug": false
+  }
+]
