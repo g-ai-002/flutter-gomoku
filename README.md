@@ -10,6 +10,7 @@
 - 🤖 人机对战：入门 / 普通 / 高手三档（默认高手），本地棋型评估 + Alpha-Beta 搜索，可选执黑或执白
 - 👀 AI 对演：黑白双方由本地 AI 按当前难度自动落子，可观察攻防思路并随时重开
 - 💡 走子提示：人机对战中一键请求推荐着法，棋盘高亮 6 秒
+- 📊 实时形势判断：棋盘浮层显示黑白胜率，随每手棋更新，设置页可关闭
 - 🧩 残局挑战：十道内置杀局，分入门 / 进阶 / 挑战三档，限手数通关并记录进度
 - 🛠️ 残局编辑器：自由摆放黑白棋子、设置限手数与名称，保存后直接挑战，支持编辑与删除
 - 🀄 开局提示：六条直指 / 斜指参考棋谱，人机执黑时 AI 走棋谱应手，可在设置中关闭
@@ -31,26 +32,27 @@
 
 ## 下载
 
-v0.8.2（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-gomoku/releases/tag/v0.8.2)
+v0.9.0（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-gomoku/releases/tag/v0.9.0)
 
 | 平台 | 产物 |
 | --- | --- |
-| Android (arm64) | `flutter-gomoku-0.8.2-android-aarch64.apk` |
-| Windows (x64, Win10+) | `flutter-gomoku-0.8.2-windows-x86_64.zip` |
-| Web | `flutter-gomoku-0.8.2-web.zip`（解压后起静态服务器） |
+| Android (arm64) | `flutter-gomoku-0.9.0-android-aarch64.apk` |
+| Windows (x64, Win10+) | `flutter-gomoku-0.9.0-windows-x86_64.zip` |
+| Web | `flutter-gomoku-0.9.0-web.zip`（解压后起静态服务器） |
 
 | 版本 | 说明 |
 | --- | --- |
+| v0.9.0 | 新增实时形势判断：棋盘浮层显示黑白胜率，可随每手棋更新 |
 | v0.8.2 | 性能优化：静止棋盘暂停渲染、评估单次扫描、音频延后合成，搜索约快 18% |
 | v0.8.1 | 重构提示请求、AI 回合与状态条布局，统一页面跳转并压缩数据表 |
 | v0.8.0 | 新增 AI 精研：自对弈训练本地开局库，开局应手自动采用精研延伸 |
 | v0.7.1 | 重构棋盘只读视图与 AI 合法着法校验，收敛异步收尾并修复终局回包竞态 |
-| v0.7.0 | 新增 AI 对演模式，双方 AI 自动对弈可观战；完善禁手递归活三判定 |
 
 ### 更早版本
 
 | 版本 | 说明 |
 | --- | --- |
+| v0.7.0 | 新增 AI 对演模式，双方 AI 自动对弈可观战；完善禁手递归活三判定 |
 | v0.6.1 | 重构棋盘视图、五连扫描与偏好读写，收敛控制器重复状态 |
 | v0.6.0 | 新增让子对局：天元与星位预置 1–4 枚黑子，白方先行，棋谱与棋钟同步适配 |
 | v0.5.1 | 收敛持久化与 AI 回合实现，修复加载竞态并主动释放棋盘图层 |
@@ -93,6 +95,7 @@ lib/
 │   ├── engine/     # 棋型评估、Alpha-Beta 搜索、五连规则与禁手判定
 │   ├── board_state.dart / game_controller.dart
 │   ├── hint_session.dart      # 提示加载态与请求竞态
+│   ├── position_insight.dart  # 实时形势判断与胜率折算
 │   ├── match_clock.dart / replay_controller.dart / game_archive.dart
 │   ├── handicap.dart          # 让子方案与天元 / 星位预置
 │   ├── opening_book.dart      # 六条开局棋谱与匹配
