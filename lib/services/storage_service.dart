@@ -2,6 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../game/engine/board_utils.dart';
 import '../game/handicap.dart';
+import '../game/logic_rate.dart';
 import '../models/game_models.dart';
 import '../utils/constants.dart';
 
@@ -79,6 +80,12 @@ class StorageService {
   bool get hapticsEnabled => _bool(AppConstants.prefKeyHaptics, fallback: true);
   Future<void> setHapticsEnabled(bool value) =>
       _setBool(AppConstants.prefKeyHaptics, value);
+
+  /// 棋盘逻辑更新速率，未设置或未知值回退到 60Hz。
+  LogicRate get logicRate =>
+      LogicRate.byName(_string(AppConstants.prefKeyLogicRate));
+  Future<void> setLogicRate(LogicRate value) =>
+      _setString(AppConstants.prefKeyLogicRate, value.name);
 
   /// 棋钟方案，未设置或未知值回退到不限时。
   TimeControl get timeControl =>

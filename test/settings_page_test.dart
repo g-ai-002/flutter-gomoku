@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gomoku/game/engine/board_utils.dart';
 import 'package:gomoku/game/handicap.dart';
+import 'package:gomoku/game/logic_rate.dart';
 import 'package:gomoku/models/game_models.dart';
 import 'package:gomoku/pages/settings_page.dart';
 import 'package:gomoku/utils/constants.dart';
@@ -74,6 +75,26 @@ void main() {
     await tester.tap(find.text('10 分钟'));
     await tester.pumpAndSettle();
     expect(settings.timeControl, TimeControl.rapid);
+  });
+
+  testWidgets('逻辑更新速率可切换并写入偏好，默认 60Hz', (tester) async {
+    _useTallView(tester);
+    final settings = await createSettings();
+    expect(settings.logicRate, LogicRate.hz60);
+    await tester.pumpWidget(wrapPage(const SettingsPage(), settings));
+
+    await tester.scrollUntilVisible(
+      find.text('120 Hz 顺滑'),
+      160,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('120 Hz 顺滑'));
+    await tester.pumpAndSettle();
+    expect(settings.logicRate, LogicRate.hz120);
+
+    await tester.tap(find.text('30 Hz 省电'));
+    await tester.pumpAndSettle();
+    expect(settings.logicRate, LogicRate.hz30);
   });
 
   testWidgets('开关写入偏好', (tester) async {

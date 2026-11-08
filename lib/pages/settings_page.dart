@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../game/engine/board_utils.dart';
 import '../game/handicap.dart';
 import '../game/learned_book.dart';
+import '../game/logic_rate.dart';
 import '../game/self_play_trainer.dart';
 import '../models/game_models.dart';
 import '../providers/settings_provider.dart';
@@ -97,17 +98,44 @@ class _SettingsPageState extends State<SettingsPage> {
               title: '对局',
               icon: Icons.tune_rounded,
               children: [
-                _choices('AI 难度', Difficulty.values, settings.difficulty,
-                    (value) => value.label, settings.setDifficulty),
-                _choices('默认执子', const [black, white], settings.humanSide,
-                    (value) => value == black ? '执黑先行' : '执白后行',
-                    settings.setHumanSide,
-                    (value) => value == black ? colors.onSurface : colors.secondary),
-                _choices('让子（执黑时·白方先行）', Handicap.values,
-                    settings.handicap, (value) => value.label,
-                    settings.setHandicap, (_) => colors.tertiary),
-                _choices('棋钟', TimeControl.values, settings.timeControl,
-                    (value) => value.label, settings.setTimeControl),
+                _choices(
+                  'AI 难度',
+                  Difficulty.values,
+                  settings.difficulty,
+                  (value) => value.label,
+                  settings.setDifficulty,
+                ),
+                _choices(
+                  '默认执子',
+                  const [black, white],
+                  settings.humanSide,
+                  (value) => value == black ? '执黑先行' : '执白后行',
+                  settings.setHumanSide,
+                  (value) =>
+                      value == black ? colors.onSurface : colors.secondary,
+                ),
+                _choices(
+                  '让子（执黑时·白方先行）',
+                  Handicap.values,
+                  settings.handicap,
+                  (value) => value.label,
+                  settings.setHandicap,
+                  (_) => colors.tertiary,
+                ),
+                _choices(
+                  '棋钟',
+                  TimeControl.values,
+                  settings.timeControl,
+                  (value) => value.label,
+                  settings.setTimeControl,
+                ),
+                _choices(
+                  '逻辑更新速率',
+                  LogicRate.values,
+                  settings.logicRate,
+                  (value) => value.label,
+                  settings.setLogicRate,
+                ),
                 _switch(
                   'switch-opening',
                   '开局提示',

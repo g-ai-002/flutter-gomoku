@@ -5,7 +5,7 @@ import 'package:gomoku/flame/gomoku_game.dart';
 import 'package:gomoku/models/game_models.dart';
 import 'package:gomoku/pages/game_page.dart';
 import 'package:gomoku/pages/widgets/board_actions.dart';
-import 'package:gomoku/pages/widgets/move_panel.dart';
+import 'package:gomoku/pages/widgets/move_list.dart';
 import 'package:gomoku/pages/widgets/status_chip.dart';
 
 import 'support/helpers.dart';
@@ -44,95 +44,67 @@ Rect _board(WidgetTester tester) =>
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('宽屏棋盘独占左列并吃满可用高度', (tester) async {
+  testWidgets('宽屏棋盘居中，状态在上方、操作在下方', (tester) async {
     await _pumpGameAt(tester, const Size(1280, 900));
 
     final board = _board(tester);
+    final status = tester.getRect(find.byType(BoardStatusBar));
+    final actions = tester.getRect(find.byType(BoardActions));
+
     expect(board.width, board.height);
-    expect(board.height, greaterThanOrEqualTo(800));
-    // 棋谱栏仍在右侧，状态与操作区不再挤占棋盘所在列。
+    expect(board.center.dx, closeTo(640, 1));
+    expect(status.bottom, lessThanOrEqualTo(board.top));
+    expect(actions.top, greaterThanOrEqualTo(board.bottom));
+    // 棋谱不再常驻侧栏，改由底部操作区的按钮弹出。
+    expect(find.byType(MoveList), findsNothing);
     expect(find.text('棋谱'), findsOneWidget);
-    expect(tester.getRect(find.text('黑方行棋').first).left, greaterThan(board.right));
-    expect(tester.getRect(find.text('悔棋')).left, greaterThan(board.right));
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
-  testWidgets('横屏手机改用窄竖栏，棋盘接近满高且不与竖栏重叠', (tester) async {
-    await _pumpGameAt(tester, const Size(844, 390));
-
-    final board = _board(tester);
-    expect(board.height, greaterThanOrEqualTo(330));
-    final panel = tester.getRect(find.byType(MovePanel));
-    expect(panel.width, 200);
-    expect(panel.left, greaterThan(board.right));
-    expect(tester.getRect(find.text('悔棋')).left, greaterThan(board.right));
-    expect(tester.takeException(), isNull);
-    await tester.pumpWidget(const SizedBox.shrink());
-  });
-
-  testWidgets('横屏小窗口 640×360 的棋盘不再被悬浮信息压缩', (tester) async {
-    await _pumpGameAt(tester, const Size(640, 360));
-
-    final board = _board(tester);
-    // 0.9.1 在此尺寸只给棋盘 216，竖栏布局应恢复到 300 以上。
-    expect(board.height, greaterThanOrEqualTo(300));
-    expect(tester.getRect(find.byType(MovePanel)).width, 200);
-    expect(tester.takeException(), isNull);
-    await tester.pumpWidget(const SizedBox.shrink());
-  });
-
-  testWidgets('竖屏手机状态贴棋盘上沿、操作贴下沿，富余高度常驻棋谱', (tester) async {
+  testWidgets('竖屏手机棋盘吃满宽度并保持居中', (tester) async {
     await _pumpGameAt(tester, const Size(390, 844));
 
     final board = _board(tester);
     final status = tester.getRect(find.byType(BoardStatusBar));
     final actions = tester.getRect(find.byType(BoardActions));
-    final panel = tester.getRect(find.byType(MovePanel));
 
-    // 棋盘吃满宽度，信息不再漂到页面上下边缘。
     expect(board.width, 366);
+    expect(board.center.dx, closeTo(195, 1));
+    // 棋盘居中，状态在上方、操作在下方，彼此不重叠。
     expect(status.bottom, lessThanOrEqualTo(board.top));
-    expect(board.top - status.bottom, lessThan(20));
-    expect(actions.top - board.bottom, lessThan(20));
-    expect(panel.top, greaterThan(board.bottom));
-    expect(panel.width, board.width);
-    expect(panel.bottom, 844);
+    expect(actions.top, greaterThanOrEqualTo(board.bottom));
+    expect(
+      board.center.dy,
+      closeTo(status.bottom + (actions.top - status.bottom) / 2, 1),
+    );
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
-  testWidgets('小屏手机保留常驻棋谱且不溢出', (tester) async {
+  testWidgets('横屏手机棋盘按高度取满且不溢出', (tester) async {
+    await _pumpGameAt(tester, const Size(844, 390));
+
+    final board = _board(tester);
+    expect(board.width, board.height);
+    expect(board.height, greaterThanOrEqualTo(200));
+    expect(board.center.dx, closeTo(422, 1));
+    expect(
+      tester.getRect(find.byType(BoardActions)).top,
+      greaterThanOrEqualTo(board.bottom),
+    );
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('小屏手机无溢出且操作按钮完整可见', (tester) async {
     await _pumpGameAt(tester, const Size(360, 640));
 
     final board = _board(tester);
-    final panel = tester.getRect(find.byType(MovePanel));
     expect(board.width, 336);
-    expect(panel.width, board.width);
-    expect(panel.height, greaterThanOrEqualTo(108));
-    expect(tester.takeException(), isNull);
-    await tester.pumpWidget(const SizedBox.shrink());
-  });
-
-  testWidgets('竖屏平板棋盘优先，不为棋谱让出高度', (tester) async {
-    await _pumpGameAt(tester, const Size(768, 1024));
-
-    final board = _board(tester);
-    expect(board.height, greaterThanOrEqualTo(730));
-    expect(find.byType(MovePanel), findsNothing);
-    // 棋谱改由操作区按钮弹出。
+    expect(find.text('悔棋'), findsOneWidget);
+    expect(find.text('重开'), findsOneWidget);
     expect(find.text('棋谱'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-    await tester.pumpWidget(const SizedBox.shrink());
-  });
-
-  testWidgets('近方形窗口改走竖栏，棋盘明显大于悬浮预留方案', (tester) async {
-    await _pumpGameAt(tester, const Size(700, 500));
-
-    final board = _board(tester);
-    // 0.9.1 在此尺寸只给棋盘 356，竖栏布局应超过 440。
-    expect(board.height, greaterThanOrEqualTo(440));
-    expect(tester.getRect(find.byType(MovePanel)).left, greaterThan(board.right));
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
@@ -167,6 +139,19 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
+  testWidgets('棋谱按钮弹出底部棋谱面板', (tester) async {
+    await _pumpGameAt(tester, const Size(390, 844));
+    await tester.tapAt(_board(tester).center);
+    await _pumpGame(tester);
+
+    await tester.tap(find.text('棋谱'));
+    await tester.pumpAndSettle();
+    expect(find.byType(MoveList), findsOneWidget);
+    expect(find.text('尚未落子'), findsNothing);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   testWidgets('放大字体时棋盘与状态条不溢出', (tester) async {
     tester.platformDispatcher.textScaleFactorTestValue = 1.5;
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
@@ -175,29 +160,5 @@ void main() {
     expect(_board(tester).width, 336);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
-  });
-
-  testWidgets('窄栏内的状态条改为纵向堆叠且不溢出', (tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(
-          body: Center(
-            child: SizedBox(
-              width: 200,
-              child: BoardStatusBar(
-                accent: Colors.black,
-                leading: Text('黑方行棋'),
-                status: Text('点击交叉点落子'),
-                trailing: Text('第 1 手 H8'),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    expect(find.text('黑方行棋'), findsOneWidget);
-    expect(tester.getSize(find.byType(BoardStatusBar)).height, greaterThan(30));
-    expect(tester.takeException(), isNull);
   });
 }

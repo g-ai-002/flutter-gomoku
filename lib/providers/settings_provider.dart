@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../game/handicap.dart';
 import '../game/learned_book.dart';
+import '../game/logic_rate.dart';
 import '../models/game_models.dart';
 import '../services/music_service.dart';
 import '../services/sound_service.dart';
@@ -61,6 +62,11 @@ class SettingsProvider extends ChangeNotifier {
   bool get showPosition => _storage.showPosition;
   Future<void> setShowPosition(bool value) =>
       _update(() => _storage.setShowPosition(value));
+
+  /// 棋盘逻辑更新速率：30 / 60 / 120Hz，默认 60Hz。
+  LogicRate get logicRate => _storage.logicRate;
+  Future<void> setLogicRate(LogicRate value) =>
+      _update(() => _storage.setLogicRate(value));
 
   TimeControl get timeControl => _storage.timeControl;
   Future<void> setTimeControl(TimeControl value) =>

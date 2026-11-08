@@ -26,7 +26,6 @@ import 'widgets/play_layout.dart';
 import 'widgets/clock_bar.dart';
 import 'widgets/game_dialogs.dart';
 import 'widgets/game_status_bar.dart';
-import 'widgets/move_panel.dart';
 import 'widgets/move_sheet.dart';
 
 class GamePage extends StatefulWidget {
@@ -83,7 +82,11 @@ class _GamePageState extends State<GamePage> {
           ? settings.learnedBook.applyTo(OpeningBook.standard)
           : null,
     );
-    _game = GomokuGame(view: _controller, repaint: _controller);
+    _game = GomokuGame(
+      view: _controller,
+      repaint: _controller,
+      logicRate: settings.logicRate,
+    );
     _feedback = MoveFeedbackTracker(_controller);
     _controller.addListener(_onControllerChanged);
     final clock = _controller.timeControl;
@@ -94,7 +97,7 @@ class _GamePageState extends State<GamePage> {
     final handicapText = handicap.enabled ? '，${handicap.label}' : '';
     LogService.info(
       '开始对局: ${widget.mode.label}, 难度 ${widget.difficulty.label}, '
-      '$sideText$clockText$handicapText',
+      '$sideText$clockText$handicapText，逻辑 ${settings.logicRate.label}',
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _controller.start();
@@ -228,6 +231,7 @@ class _GamePageState extends State<GamePage> {
 
   @override
   void dispose() {
+    _game.stop();
     _controller.removeListener(_onControllerChanged);
     _controller.dispose();
     super.dispose();
@@ -249,9 +253,7 @@ class _GamePageState extends State<GamePage> {
         controller: _controller,
         status: (_) => _buildStatus(),
         board: _buildBoard(),
-        actions: (_, showMoves) => _buildActions(showMoves: showMoves),
-        sidePanel: (_) => _buildSidePanel(),
-        footer: (_) => _buildSidePanel(dense: true),
+        actions: (_) => _buildActions(),
       ),
     );
   }
@@ -290,23 +292,17 @@ class _GamePageState extends State<GamePage> {
     ),
   );
 
-  Widget _buildActions({required bool showMoves}) {
+  Widget _buildActions() {
     final isAi = widget.mode == GameMode.vsAi;
     return BoardActions(
       canUndo: _controller.canUndo,
       onUndo: _controller.undo,
       onRestart: _restart,
-      onMoves: showMoves ? _showMoveSheet : null,
+      onMoves: _showMoveSheet,
       onHint: isAi ? _controller.requestHint : null,
       hintEnabled: _controller.canInteractive,
       hintLoading: _controller.hintLoading,
       onResign: isAi && _controller.result == null ? _confirmResign : null,
     );
   }
-
-  Widget _buildSidePanel({bool dense = false}) => MovePanel(
-    history: _controller.history,
-    dense: dense,
-    footer: '提示：点击交叉点直接落子，圆点标记最后一手。',
-  );
 }

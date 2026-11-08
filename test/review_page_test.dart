@@ -50,7 +50,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
 
     expect(find.text('第 0 / 9 手'), findsOneWidget);
-    expect(find.textContaining('共 9 手'), findsOneWidget);
+    // 棋谱改由操作区的按钮弹出，不再常驻侧栏。
+    expect(find.byTooltip('棋谱'), findsOneWidget);
 
     await tester.tap(find.byTooltip('下一步'));
     await tester.pump();

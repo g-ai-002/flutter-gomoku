@@ -4,19 +4,21 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 import '../flame/gomoku_game.dart';
 import '../game/game_archive.dart';
 import '../game/handicap.dart';
 import '../game/replay_controller.dart';
 import '../models/move_record.dart';
+import '../providers/settings_provider.dart';
 import '../services/file_system_service.dart';
 import '../services/log_service.dart';
 import '../utils/formatters.dart';
 import 'widgets/app_snack.dart';
 import 'widgets/board_page_scaffold.dart';
 import 'widgets/board_stage.dart';
-import 'widgets/move_panel.dart';
+import 'widgets/move_sheet.dart';
 import 'widgets/play_layout.dart';
 
 /// 复盘页：逐手回放一局棋谱，并支持导出为文本棋谱。
@@ -53,13 +55,18 @@ class _ReviewPageState extends State<ReviewPage> {
   void initState() {
     super.initState();
     _replay = ReplayController(moves: widget.moves, handicap: widget.handicap);
-    _game = GomokuGame(view: _replay, repaint: _replay);
+    _game = GomokuGame(
+      view: _replay,
+      repaint: _replay,
+      logicRate: context.read<SettingsProvider>().logicRate,
+    );
     LogService.info('进入复盘: ${widget.title}, 共 ${_replay.total} 手');
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _game.stop();
     _replay.dispose();
     super.dispose();
   }
@@ -142,29 +149,21 @@ class _ReviewPageState extends State<ReviewPage> {
       body: PlayLayout(
         controller: _replay,
         board: _buildBoard(),
-        actions: (_, _) => _buildControls(),
-        sidePanel: (_) => _buildSidePanel(),
-        footer: (_) => _buildSidePanel(dense: true),
+        actions: (_) => _buildControls(),
       ),
     );
   }
 
-  Widget _buildSidePanel({bool dense = false}) => MovePanel(
-    history: widget.moves,
-    dense: dense,
-    highlightIndex: _replay.cursor - 1,
-    onTapIndex: (index) => _replay.jumpTo(index + 1),
-    footer: _summaryText(),
+  /// 棋谱面板：点任意一手跳转，面板随后自动收起。
+  void _showMoveSheet() => showMoveSheet(
+    context,
+    listenable: _replay,
+    moves: widget.moves,
+    onTapIndex: (index) {
+      _stop();
+      _replay.jumpTo(index + 1);
+    },
   );
-
-  String _summaryText() {
-    final parts = [
-      if (widget.result != null && widget.result!.isNotEmpty) widget.result!,
-      '共 ${_replay.total} 手',
-      '点击棋谱可跳转到对应手数',
-    ];
-    return parts.join(' · ');
-  }
 
   Widget _buildBoard() =>
       BoardStage(game: _game, gameKey: const ValueKey('review-board'));
@@ -184,8 +183,18 @@ class _ReviewPageState extends State<ReviewPage> {
           alignment: WrapAlignment.center,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            step(Icons.first_page_rounded, '回到开局', _replay.canPrevious, _replay.first),
-            step(Icons.chevron_left_rounded, '上一步', _replay.canPrevious, _replay.previous),
+            step(
+              Icons.first_page_rounded,
+              '回到开局',
+              _replay.canPrevious,
+              _replay.first,
+            ),
+            step(
+              Icons.chevron_left_rounded,
+              '上一步',
+              _replay.canPrevious,
+              _replay.previous,
+            ),
             IconButton.filledTonal(
               tooltip: _playing ? '暂停回放' : '自动回放',
               onPressed: total == 0 ? null : _togglePlay,
@@ -194,8 +203,24 @@ class _ReviewPageState extends State<ReviewPage> {
                 size: 22,
               ),
             ),
-            step(Icons.chevron_right_rounded, '下一步', _replay.canNext, _replay.next),
-            step(Icons.last_page_rounded, '跳到终局', _replay.canNext, _replay.last),
+            step(
+              Icons.chevron_right_rounded,
+              '下一步',
+              _replay.canNext,
+              _replay.next,
+            ),
+            step(
+              Icons.last_page_rounded,
+              '跳到终局',
+              _replay.canNext,
+              _replay.last,
+            ),
+            step(
+              Icons.format_list_bulleted_rounded,
+              '棋谱',
+              total > 0,
+              _showMoveSheet,
+            ),
             const SizedBox(width: 4),
             Text(
               _replay.progressText,

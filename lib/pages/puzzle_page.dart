@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../flame/gomoku_game.dart';
 import '../game/puzzle_controller.dart';
 import '../game/puzzles.dart';
+import '../providers/settings_provider.dart';
 import '../services/log_service.dart';
 import '../services/move_feedback_tracker.dart';
 import '../services/puzzle_progress_service.dart';
@@ -15,7 +17,6 @@ import 'widgets/board_page_scaffold.dart';
 import 'widgets/board_stage.dart';
 import 'widgets/play_layout.dart';
 import 'widgets/game_dialogs.dart';
-import 'widgets/move_panel.dart';
 import 'widgets/move_sheet.dart';
 import 'widgets/puzzle_status_bar.dart';
 
@@ -39,7 +40,11 @@ class _PuzzlePageState extends State<PuzzlePage> {
   void initState() {
     super.initState();
     _controller = PuzzleController(puzzle: widget.puzzle);
-    _game = GomokuGame(view: _controller, repaint: _controller);
+    _game = GomokuGame(
+      view: _controller,
+      repaint: _controller,
+      logicRate: context.read<SettingsProvider>().logicRate,
+    );
     _feedback = MoveFeedbackTracker(_controller);
     _controller.addListener(_onChanged);
     LogService.info('进入残局: ${widget.puzzle.id} ${widget.puzzle.title}');
@@ -132,6 +137,7 @@ class _PuzzlePageState extends State<PuzzlePage> {
 
   @override
   void dispose() {
+    _game.stop();
     _controller.removeListener(_onChanged);
     _controller.dispose();
     super.dispose();
@@ -155,25 +161,17 @@ class _PuzzlePageState extends State<PuzzlePage> {
         controller: _controller,
         status: (_) => PuzzleStatusBar(controller: _controller),
         board: BoardStage(game: _game, gameKey: const ValueKey('puzzle-board')),
-        actions: (_, showMoves) => _buildActions(showMoves: showMoves),
-        sidePanel: (_) => _buildSidePanel(),
-        footer: (_) => _buildSidePanel(dense: true),
+        actions: (_) => _buildActions(),
       ),
     );
   }
 
-  Widget _buildSidePanel({bool dense = false}) => MovePanel(
-    history: _controller.history,
-    dense: dense,
-    footer: '${widget.puzzle.goal} · 白棋由本地 AI 应对，点击交叉点落子。',
-  );
-
-  Widget _buildActions({required bool showMoves}) {
+  Widget _buildActions() {
     return BoardActions(
       canUndo: _controller.canUndo,
       onUndo: _controller.undo,
       onRestart: _controller.restart,
-      onMoves: showMoves ? _showMoveSheet : null,
+      onMoves: _showMoveSheet,
       onHint: _controller.requestHint,
       hintEnabled: _controller.canInteract,
       hintLoading: _controller.hintLoading,

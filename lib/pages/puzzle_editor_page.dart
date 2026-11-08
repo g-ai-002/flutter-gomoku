@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../flame/gomoku_game.dart';
 import '../game/custom_puzzles.dart';
 import '../game/engine/board_utils.dart';
 import '../game/puzzle_editor_controller.dart';
+import '../providers/settings_provider.dart';
 import '../services/log_service.dart';
 import '../services/puzzle_progress_service.dart';
 import '../utils/navigation.dart';
@@ -33,7 +35,11 @@ class _PuzzleEditorPageState extends State<PuzzleEditorPage> {
   void initState() {
     super.initState();
     _controller = PuzzleEditorController(initial: widget.initial);
-    _game = GomokuGame(view: _controller, repaint: _controller);
+    _game = GomokuGame(
+      view: _controller,
+      repaint: _controller,
+      logicRate: context.read<SettingsProvider>().logicRate,
+    );
     LogService.info(widget.initial == null ? '进入残局编辑器' : '编辑自定义残局');
   }
 
@@ -109,6 +115,7 @@ class _PuzzleEditorPageState extends State<PuzzleEditorPage> {
 
   @override
   void dispose() {
+    _game.stop();
     _controller.dispose();
     super.dispose();
   }
@@ -137,15 +144,7 @@ class _PuzzleEditorPageState extends State<PuzzleEditorPage> {
           game: _game,
           gameKey: const ValueKey('puzzle-editor-board'),
         ),
-        sidePanel: (_) => Text(
-          '黑棋先行，在限定手数内连成五子即通关。'
-          '点击已落下的棋子可将其移除，至少摆放一枚黑棋才能保存。',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            height: 1.5,
-          ),
-        ),
-        actions: (_, _) => _panel(),
+        actions: (_) => _panel(),
       ),
     );
   }
@@ -161,6 +160,13 @@ class _PuzzleEditorPageState extends State<PuzzleEditorPage> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Text(
+            '黑棋先行，在限定手数内连成五子即通关；点击已落下的棋子可移除。',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colors.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 6),
           SegmentedButton<int>(
             segments: const [
               ButtonSegment(value: black, label: Text('黑子')),

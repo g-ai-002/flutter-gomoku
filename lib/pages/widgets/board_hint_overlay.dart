@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../game/position_insight.dart';
 import 'status_chip.dart';
 
-/// 棋盘浮层提示：开局名、形势判断与禁手图例分居棋盘四角。
+/// 棋盘浮层提示：开局名与禁手图例悬浮在棋盘左上，形势判断悬浮在右上。
 ///
 /// 浮层不参与状态区的高度计算，提示出现、消失或换行都不会改变棋盘尺寸；
 /// 由调用方包在 [IgnorePointer] 里，落子手势仍直达棋盘。
@@ -26,64 +26,70 @@ class BoardHintOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
+    final colors = Theme.of(context).colorScheme;
+    final labelStyle = Theme.of(context).textTheme.labelSmall
+        ?.copyWith(color: colors.onSurface);
 
-    Widget chip(Alignment alignment, IconData icon, String text, Color accent) {
-      return Align(
-        alignment: alignment,
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: StatusChip(
-            accent: accent,
-            overlay: true,
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, size: 13, color: accent),
-                const SizedBox(width: 5),
-                Flexible(
-                  child: Text(
-                    text,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: colors.onSurface,
-                    ),
-                  ),
-                ),
-              ],
+    Widget chip(IconData icon, String text, Color accent) => StatusChip(
+      accent: accent,
+      overlay: true,
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: accent),
+          const SizedBox(width: 5),
+          Flexible(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: labelStyle,
             ),
           ),
-        ),
-      );
-    }
+        ],
+      ),
+    );
 
-    final hints = [
-      if (opening != null)
-        chip(
-          Alignment.topLeft,
-          Icons.auto_stories_outlined,
-          '开局 · $opening',
-          colors.primary,
-        ),
-      if (insight != null)
-        chip(
-          Alignment.topRight,
-          Icons.insights_outlined,
-          '形势 · 黑 ${insight!.blackPercent}% · 白 ${insight!.whitePercent}%',
-          colors.primary,
-        ),
-      if (showForbiddenLegend)
-        chip(
-          Alignment.bottomLeft,
-          Icons.block_outlined,
-          '红圈为黑棋禁手点',
-          _forbiddenAccent,
-        ),
-    ];
-    return hints.isEmpty ? const SizedBox.shrink() : Stack(children: hints);
+    return Stack(
+      children: [
+        if (opening != null || showForbiddenLegend)
+          Align(
+            alignment: Alignment.topLeft,
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (opening != null)
+                    chip(
+                      Icons.auto_stories_outlined,
+                      '开局 · $opening',
+                      colors.primary,
+                    ),
+                  if (showForbiddenLegend) ...[
+                    if (opening != null) const SizedBox(height: 6),
+                    chip(Icons.block_outlined, '红圈为黑棋禁手点', _forbiddenAccent),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        if (insight != null)
+          Align(
+            alignment: Alignment.topRight,
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: chip(
+                Icons.insights_outlined,
+                '形势 · 黑 ${insight!.blackPercent}% · 白 ${insight!.whitePercent}%',
+                colors.primary,
+              ),
+            ),
+          ),
+      ],
+    );
   }
 }
 

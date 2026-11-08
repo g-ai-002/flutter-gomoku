@@ -7,6 +7,7 @@ import 'package:flutter/material.dart' hide PointerMoveEvent;
 
 import '../game/board_view.dart';
 import '../game/engine/board_utils.dart';
+import '../game/logic_rate.dart';
 import '../services/sound_service.dart';
 import '../theme/board_painting.dart';
 import '../theme/board_skin.dart';
@@ -19,13 +20,21 @@ const double _animDuration = 0.26;
 /// Web 端也能保持流畅。
 class BoardComponent extends PositionComponent
     with TapCallbacks, PointerMoveCallbacks {
-  BoardComponent({required this.view, this.onIdle, this.onWake});
+  BoardComponent({
+    required this.view,
+    this.onIdle,
+    this.onWake,
+    LogicRate logicRate = LogicRate.hz60,
+  }) : _stepper = FixedStepClock(logicRate.step);
 
   final BoardView view;
 
   /// 静止后回调暂停渲染，需要重绘时回调唤醒，由 [GomokuGame] 接管。
   final VoidCallback? onIdle;
   final VoidCallback? onWake;
+
+  /// 落子动画与脉冲时间的推进步长，由设置页的逻辑更新速率决定。
+  final FixedStepClock _stepper;
 
   double _cell = 0;
   double _originX = 0;
@@ -66,7 +75,19 @@ class BoardComponent extends PositionComponent
   @override
   void update(double dt) {
     super.update(dt);
-    _time += dt;
+    _stepper.advance(dt, _stepLogic);
+    // 空闲判定用真实时间：低刷新率下暂停时机与视觉一致。
+    if (needsFrames) {
+      _idle = 0;
+    } else if ((_idle += dt) >= _idlePauseAfter) {
+      _idle = 0;
+      onIdle?.call();
+    }
+  }
+
+  /// 推进一个逻辑步：局面 revision、着法与落子动画都按固定步长前进。
+  void _stepLogic(double span) {
+    _time += span;
     if (view.revision != _seenRevision) {
       _seenRevision = view.revision;
       _anim = null;
@@ -75,18 +96,11 @@ class BoardComponent extends PositionComponent
     }
     _syncMoves();
     final anim = _anim;
-    if (anim != null) {
-      anim.elapsed += dt;
-      if (anim.elapsed >= _animDuration) {
-        _anim = null;
-        _invalidateStones();
-      }
-    }
-    if (needsFrames) {
-      _idle = 0;
-    } else if ((_idle += dt) >= _idlePauseAfter) {
-      _idle = 0;
-      onIdle?.call();
+    if (anim == null) return;
+    anim.elapsed += span;
+    if (anim.elapsed >= _animDuration) {
+      _anim = null;
+      _invalidateStones();
     }
   }
 

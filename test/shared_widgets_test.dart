@@ -165,12 +165,13 @@ void main() {
 
     expect(find.text('开局 · 直指·斜连'), findsOneWidget);
     expect(find.text('红圈为黑棋禁手点'), findsOneWidget);
-    // 提示分居棋盘四角，不再堆叠在同一侧压住交叉点。
+    // 提示悬浮在棋盘上方：左侧开局与禁手图例，右侧形势判断。
     final overlay = tester.getRect(find.byType(BoardHintOverlay));
     final opening = tester.getRect(find.text('开局 · 直指·斜连'));
     final legend = tester.getRect(find.text('红圈为黑棋禁手点'));
     expect(opening.top, lessThan(overlay.center.dy));
-    expect(legend.top, greaterThan(overlay.center.dy));
+    expect(legend.top, lessThan(overlay.center.dy));
+    expect(legend.left, lessThan(overlay.center.dx));
     expect(tester.takeException(), isNull);
 
     await tester.pumpWidget(
@@ -180,82 +181,79 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('宽屏棋盘布局只构建宽屏操作区并随通知重建', (tester) async {
+  testWidgets('棋盘布局把状态放上方、操作放下方并随通知重建', (tester) async {
     tester.view.physicalSize = const Size(1200, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     final controller = ValueNotifier(0);
-    var wideBuilds = 0;
-    var compactBuilds = 0;
+    var actionBuilds = 0;
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: PlayLayout(
             controller: controller,
             status: (_) => Text('状态 ${controller.value}'),
-            board: const SizedBox.expand(),
-            actions: (_, showMoves) {
-              if (showMoves) {
-                compactBuilds++;
-              } else {
-                wideBuilds++;
-              }
-              return Text(showMoves ? '窄屏操作' : '宽屏操作');
+            board: const Center(
+              child: SizedBox(key: ValueKey('board'), width: 300, height: 300),
+            ),
+            actions: (_) {
+              actionBuilds++;
+              return const Text('操作区');
             },
-            sidePanel: (_) => const Text('棋谱栏'),
           ),
         ),
       ),
     );
 
     expect(find.text('状态 0'), findsOneWidget);
-    expect(find.text('宽屏操作'), findsOneWidget);
-    expect(find.text('窄屏操作'), findsNothing);
-    expect(find.text('棋谱栏'), findsOneWidget);
-    expect(wideBuilds, 1);
-    expect(compactBuilds, 0);
+    expect(find.text('操作区'), findsOneWidget);
+    expect(actionBuilds, 1);
+    final board = tester.getRect(find.byKey(const ValueKey('board')));
+    expect(
+      tester.getRect(find.text('状态 0')).bottom,
+      lessThanOrEqualTo(board.top),
+    );
+    expect(
+      tester.getRect(find.text('操作区')).top,
+      greaterThanOrEqualTo(board.bottom),
+    );
+    expect(board.center.dx, closeTo(600, 1));
 
     controller.value = 1;
     await tester.pump();
     expect(find.text('状态 1'), findsOneWidget);
-    expect(wideBuilds, 2);
+    expect(actionBuilds, 2);
     controller.dispose();
   });
 
-  testWidgets('窄屏棋盘布局使用紧凑操作区', (tester) async {
+  testWidgets('窄屏棋盘布局仍把操作按钮放在棋盘下方', (tester) async {
     tester.view.physicalSize = const Size(420, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     final controller = ValueNotifier(0);
-    var wideBuilds = 0;
-    var compactBuilds = 0;
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: PlayLayout(
             controller: controller,
             status: (_) => const Text('状态'),
-            board: const SizedBox.expand(),
-            actions: (_, showMoves) {
-              if (showMoves) {
-                compactBuilds++;
-              } else {
-                wideBuilds++;
-              }
-              return Text(showMoves ? '窄屏操作' : '宽屏操作');
-            },
-            sidePanel: (_) => const Text('棋谱栏'),
+            board: const Center(
+              child: SizedBox(key: ValueKey('board'), width: 300, height: 300),
+            ),
+            actions: (_) => const Text('操作区'),
           ),
         ),
       ),
     );
 
-    expect(find.text('窄屏操作'), findsOneWidget);
-    expect(find.text('宽屏操作'), findsNothing);
-    expect(wideBuilds, 0);
-    expect(compactBuilds, 1);
+    final board = tester.getRect(find.byKey(const ValueKey('board')));
+    expect(
+      tester.getRect(find.text('操作区')).top,
+      greaterThanOrEqualTo(board.bottom),
+    );
+    expect(board.center.dx, closeTo(210, 1));
     expect(tester.takeException(), isNull);
     controller.dispose();
   });

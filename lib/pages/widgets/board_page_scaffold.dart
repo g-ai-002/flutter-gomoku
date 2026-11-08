@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
-/// 对局页与复盘页共用的页面骨架：单行紧凑标题栏与安全区内容。
+import '../../utils/board_display_mode.dart';
+
+/// 对局、残局与复盘页共用的页面骨架：单行紧凑标题栏与安全区内容。
 ///
-/// 标题与副标题同处一行，标题栏只占 46 高，把纵向空间尽量留给棋盘。
+/// 标题与副标题同处一行，标题栏只占 46 高，把纵向空间尽量留给棋盘；
+/// 窄屏设备按网格比例决定是否自动横屏全屏，否则保持竖屏显示。
 class BoardPageScaffold extends StatelessWidget {
   const BoardPageScaffold({
     super.key,
@@ -45,7 +48,7 @@ class BoardPageScaffold extends StatelessWidget {
         ),
         actions: [...actions, const SizedBox(width: 4)],
       ),
-      body: SafeArea(child: body),
+      body: SafeArea(child: BoardDisplayMode(child: body)),
     );
   }
 }

@@ -11,6 +11,7 @@ import 'package:gomoku/flame/gomoku_game.dart';
 import 'package:gomoku/game/board_view.dart';
 import 'package:gomoku/game/engine/board_utils.dart';
 import 'package:gomoku/game/game_controller.dart';
+import 'package:gomoku/game/logic_rate.dart';
 import 'package:gomoku/models/game_models.dart';
 import 'package:gomoku/models/move_record.dart';
 import 'package:gomoku/services/sound_service.dart';
@@ -298,5 +299,42 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     game.onDispose();
     controller.dispose();
+  });
+
+  group('逻辑刷新率', () {
+    test('30Hz 下落子动画按固定步长推进并按时结束', () {
+      final view = _FakeView();
+      final board = BoardComponent(view: view, logicRate: LogicRate.hz30);
+
+      view.addMove(centerIndex);
+      board.update(1 / 30);
+      expect(board.needsFrames, isTrue);
+
+      for (var i = 0; i < 8; i++) {
+        board.update(1 / 30);
+      }
+      expect(board.needsFrames, isFalse, reason: '0.26 秒动画应在 9 步内结束');
+    });
+
+    test('页面关闭后停止渲染循环并解绑局面监听', () {
+      final controller = GameController(
+        mode: GameMode.twoPlayers,
+        difficulty: Difficulty.entry,
+        humanSide: black,
+      );
+      final game = GomokuGame(view: controller, repaint: controller);
+
+      game.pauseForIdle();
+      expect(game.paused, isTrue);
+      game.stop();
+      expect(game.paused, isTrue);
+
+      controller.tapCell(centerIndex);
+      expect(controller.history.length, 1);
+      expect(game.paused, isTrue, reason: '停止后不应再被局面变化唤醒');
+
+      game.stop();
+      controller.dispose();
+    });
   });
 }
