@@ -69,7 +69,7 @@
 - [x] 对局日志记录本次逻辑刷新率，便于定位卡顿与耗电问题
 - [x] 新增固定步长、布局居中、横屏判定与页面释放测试，278 项测试全部通过
 - [x] `flutter analyze` 无告警，lib 代码量 9979 行，低于 10000 行上限
-- [ ] Gitea Actions 在 v0.10.0 Tag 上完成 Android / Windows / Web 构建并发布 Release
+- [x] Gitea Actions 在 v0.10.0 Tag 上完成 Android / Windows / Web 构建并发布 Release
 
 ---
 
