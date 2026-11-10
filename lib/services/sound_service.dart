@@ -61,6 +61,22 @@ class SoundService {
   /// 预合成音效并载入 SoLoud 音源；失败时保持静默，不影响对局。
   static Future<void> init() => _ensureLoaded();
 
+  /// 退出应用前释放 SoLoud 引擎（音效与背景音乐共用同一个引擎）。
+  ///
+  /// 引擎必须 deinit 之后再让进程退出：带着音频设备直接退时，Windows 上窗口
+  /// 销毁后引擎的拆除会卡住，宿主进程留在任务管理器里不退出。
+  static Future<void> shutdown() async {
+    _sources.clear();
+    _loading = null;
+    _loadFailed = true;
+    if (!SoLoud.instance.isInitialized) return;
+    try {
+      await SoLoud.instance.deinitAsync();
+    } catch (error) {
+      debugPrint('[SoundService] 音频引擎释放失败: $error');
+    }
+  }
+
   static Future<void> _ensureLoaded() {
     if (_loadFailed || _sources.isNotEmpty) return Future.value();
     return _loading ??= _load();
