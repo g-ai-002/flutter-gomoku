@@ -1,3 +1,5 @@
+import 'dart:ui' show AppExitResponse;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -6,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'pages/home_page.dart';
 import 'providers/settings_provider.dart';
 import 'services/music_service.dart';
+import 'services/sound_service.dart';
 import 'services/storage_service.dart';
 import 'theme/app_theme.dart';
 import 'utils/constants.dart';
@@ -47,6 +50,19 @@ class _GomokuAppState extends State<GomokuApp> with WidgetsBindingObserver {
       case AppLifecycleState.detached:
         break;
     }
+  }
+
+  /// Windows 关窗时引擎会先问框架是否允许退出，借这个时机释放 SoLoud。
+  ///
+  /// 带着音频设备直接退出时，窗口销毁后引擎的拆除会卡住，进程留在任务管理器里
+  /// 不退出。这里不能走 window_manager 的关窗监听：它的异步监听会在 Android
+  /// 的 AOT 快照阶段报 `Class with illegal cid`，构建直接失败。
+  @override
+  Future<AppExitResponse> didRequestAppExit() async {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.windows) {
+      await SoundService.shutdown();
+    }
+    return AppExitResponse.exit;
   }
 
   @override
