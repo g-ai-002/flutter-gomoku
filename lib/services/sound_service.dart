@@ -69,11 +69,17 @@ class SoundService {
     _sources.clear();
     _loading = null;
     _loadFailed = true;
-    if (!SoLoud.instance.isInitialized) return;
+    if (!SoLoud.instance.isInitialized) {
+      LogService.info('音频引擎未初始化，跳过释放');
+      return;
+    }
+    final watch = Stopwatch()..start();
     try {
-      await SoLoud.instance.deinitAsync();
+      // 原生拆除有卡住的历史，别让关窗无限等下去。
+      await SoLoud.instance.deinitAsync().timeout(const Duration(seconds: 2));
+      LogService.info('音频引擎已释放，耗时 ${watch.elapsedMilliseconds}ms');
     } catch (error) {
-      debugPrint('[SoundService] 音频引擎释放失败: $error');
+      LogService.warning('音频引擎释放失败: $error');
     }
   }
 
