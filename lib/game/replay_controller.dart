@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../models/move_record.dart';
 import 'board_state.dart';
-import 'board_view_adapter.dart';
+import 'board_session.dart';
 import 'handicap.dart';
 
 /// 复盘控制器：按步回放一局棋谱，棋盘从开局局面逐着重演。

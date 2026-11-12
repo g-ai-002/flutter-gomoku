@@ -43,6 +43,7 @@ class BoardComponent extends PositionComponent
   double _idle = 0;
   int _seenMoves = 0;
   int _seenRevision = 0;
+  int _layoutToken = 0;
   _StoneAnim? _anim;
   int? _hoverIndex;
 
@@ -53,6 +54,12 @@ class BoardComponent extends PositionComponent
   List<TextPainter>? _coordPainters;
   final _PictureLayer _boardLayer = _PictureLayer();
   final _PictureLayer _stoneLayer = _PictureLayer();
+
+  // 浮层与标记每帧重绘，复用描边/填充画笔，避免逐帧创建 Paint。
+  final Paint _stroke = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeCap = StrokeCap.round;
+  final Paint _fill = Paint();
 
   /// 坐标文字按尺寸缓存，缩放后须整体释放，避免按尺寸累积。
   void _disposeCoordPainters() {
@@ -131,12 +138,9 @@ class BoardComponent extends PositionComponent
     _cell = cell;
     _originX = width / 2 - _cell * 7;
     _originY = height / 2 - _cell * 7;
+    // 图层缓存键用整数哈希：逐帧渲染不再构造字符串，减少 GC 压力。
+    _layoutToken = Object.hash(width, height, cell);
   }
-
-  /// 录制图层的缓存键：尺寸与格距共同决定棋盘与棋子的位置。
-  String get _layoutKey =>
-      '${size.x.toStringAsFixed(1)}x${size.y.toStringAsFixed(1)}|'
-      '${_cell.toStringAsFixed(2)}';
 
   Offset _centerOf(int index) =>
       Offset(_originX + colOf(index) * _cell, _originY + rowOf(index) * _cell);
@@ -201,7 +205,7 @@ class BoardComponent extends PositionComponent
   }
 
   ui.Picture _boardPicture() {
-    final key = '$_layoutKey|${view.showCoordinates}';
+    final key = Object.hash(_layoutToken, view.showCoordinates);
     return _boardLayer.paint(key, (canvas) {
       canvas.drawRect(
         Rect.fromLTWH(0, 0, size.x, size.y),
@@ -291,11 +295,15 @@ class BoardComponent extends PositionComponent
   )..layout();
 
   ui.Picture _stonePicture() {
-    final animating = _anim?.index;
-    final key =
-        '$_layoutKey|${view.history.length}|${view.lastIndex}|$animating';
+    final key = Object.hash(
+      _layoutToken,
+      view.history.length,
+      view.lastIndex,
+      _anim?.index,
+    );
     return _stoneLayer.paint(key, (canvas) {
       final radius = _cell * 0.46;
+      final animating = _anim?.index;
       for (var index = 0; index < cellCount; index++) {
         final side = view.cells[index];
         if (side == empty) continue;
@@ -325,11 +333,10 @@ class BoardComponent extends PositionComponent
       opacity: math.min(1, progress * 4),
       highlight: progress > 0.6,
     );
-    final ripple = Paint()
-      ..style = PaintingStyle.stroke
+    _stroke
       ..strokeWidth = math.max(1, _cell * 0.035)
       ..color = kBoardAccent.withValues(alpha: (1 - progress) * 0.45);
-    canvas.drawCircle(center, radius * (1 + progress * 0.9), ripple);
+    canvas.drawCircle(center, radius * (1 + progress * 0.9), _stroke);
   }
 
   void _drawLastMarker(Canvas canvas) {
@@ -337,12 +344,10 @@ class BoardComponent extends PositionComponent
     if (index == null || _anim != null) return;
     final side = view.cells[index];
     if (side == empty) return;
-    final center = _centerOf(index);
-    final radius = _cell * 0.46;
-    final marker = side == black
+    _fill.color = side == black
         ? kWhiteStone.light.withValues(alpha: 0.92)
         : kBlackStone.dark.withValues(alpha: 0.8);
-    canvas.drawCircle(center, radius * 0.16, Paint()..color = marker);
+    canvas.drawCircle(_centerOf(index), _cell * 0.46 * 0.16, _fill);
   }
 
   void _drawHint(Canvas canvas) {
@@ -351,40 +356,30 @@ class BoardComponent extends PositionComponent
     final center = _centerOf(index);
     final radius = _cell * 0.46;
     final pulse = 0.92 + 0.08 * math.sin(_time * 4.2);
-    const color = kBoardAccent;
-    canvas.drawCircle(
-      center,
-      radius * 0.78 * pulse,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = math.max(1.4, _cell * 0.05)
-        ..color = color.withValues(alpha: 0.85),
-    );
-    canvas.drawCircle(
-      center,
-      radius * 0.22,
-      Paint()..color = color.withValues(alpha: 0.7),
-    );
+    _stroke
+      ..strokeWidth = math.max(1.4, _cell * 0.05)
+      ..color = kBoardAccent.withValues(alpha: 0.85);
+    canvas.drawCircle(center, radius * 0.78 * pulse, _stroke);
+    _fill.color = kBoardAccent.withValues(alpha: 0.7);
+    canvas.drawCircle(center, radius * 0.22, _fill);
   }
 
   /// 禁手点：细红圈加斜杠，与提示圆环区分。
   void _drawForbidden(Canvas canvas) {
     final points = view.forbiddenPoints;
     if (points.isEmpty) return;
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
+    _stroke
       ..strokeWidth = math.max(1.1, _cell * 0.042)
-      ..strokeCap = StrokeCap.round
       ..color = const Color(0xFFB23A2B).withValues(alpha: 0.62);
     for (final index in points) {
       final center = _centerOf(index);
       final radius = _cell * 0.30;
-      canvas.drawCircle(center, radius, paint);
+      canvas.drawCircle(center, radius, _stroke);
       final offset = radius * 0.68;
       canvas.drawLine(
         center + Offset(-offset, -offset),
         center + Offset(offset, offset),
-        paint,
+        _stroke,
       );
     }
   }
@@ -409,29 +404,17 @@ class BoardComponent extends PositionComponent
     final start = _centerOf(line.first);
     final end = _centerOf(line.last);
     final pulse = 0.75 + 0.25 * math.sin(_time * 3.2);
-    const accent = kBoardAccent;
-    canvas.drawLine(
-      start,
-      end,
-      Paint()
-        ..strokeWidth = _cell * 0.5
-        ..strokeCap = StrokeCap.round
-        ..color = accent.withValues(alpha: 0.16 * pulse),
-    );
-    canvas.drawLine(
-      start,
-      end,
-      Paint()
-        ..strokeWidth = math.max(2, _cell * 0.11)
-        ..strokeCap = StrokeCap.round
-        ..color = accent.withValues(alpha: 0.9 * pulse),
-    );
+    _stroke
+      ..strokeWidth = _cell * 0.5
+      ..color = kBoardAccent.withValues(alpha: 0.16 * pulse);
+    canvas.drawLine(start, end, _stroke);
+    _stroke
+      ..strokeWidth = math.max(2, _cell * 0.11)
+      ..color = kBoardAccent.withValues(alpha: 0.9 * pulse);
+    canvas.drawLine(start, end, _stroke);
+    _fill.color = kBoardAccent.withValues(alpha: 0.9);
     for (final index in [line.first, line.last]) {
-      canvas.drawCircle(
-        _centerOf(index),
-        _cell * 0.2,
-        Paint()..color = accent.withValues(alpha: 0.9),
-      );
+      canvas.drawCircle(_centerOf(index), _cell * 0.2, _fill);
     }
   }
 }
@@ -447,9 +430,9 @@ class _StoneAnim {
 /// 按 key 缓存的录制图层，key 变化时释放旧图片并重新录制。
 class _PictureLayer {
   ui.Picture? _picture;
-  String _key = '';
+  int? _key;
 
-  ui.Picture paint(String key, void Function(Canvas canvas) draw) {
+  ui.Picture paint(int key, void Function(Canvas canvas) draw) {
     final cached = _picture;
     if (cached != null && _key == key) return cached;
     _picture?.dispose();
@@ -464,6 +447,6 @@ class _PictureLayer {
   void clear() {
     _picture?.dispose();
     _picture = null;
-    _key = '';
+    _key = null;
   }
 }

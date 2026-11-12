@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gomoku/utils/board_display_mode.dart';
+import 'package:gomoku/pages/widgets/board_page_scaffold.dart';
 
 void main() {
   test('正方形网格在竖屏窄屏上保持竖屏', () {

@@ -2,19 +2,19 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../models/move_record.dart';
 import '../services/log_service.dart';
 import 'ai_player.dart';
 import 'board_state.dart';
-import 'board_view_adapter.dart';
+import 'board_view.dart';
 import 'engine/board_utils.dart';
 import 'hint_session.dart';
 import 'notation.dart';
 
 /// 对局与残局控制器共用的棋盘状态与异步生命周期。
 ///
-/// 统一持有提示会话、AI 思考态、请求序号与释放状态：重开、悔棋或发起
-/// 新请求时，旧搜索的回包通过 [isCurrent] 丢弃，避免各控制器重复维护
-/// 一套标志位。子类只需提供 [board]，棋盘与棋谱的只读状态由这里映射。
+/// 统一持有提示会话、AI 思考态、请求序号与释放状态：重开、悔棋或新请求时，
+/// 旧搜索的回包通过 [isCurrent] 丢弃，子类只需提供 [board]。
 abstract class BoardSession extends ChangeNotifier with BoardViewAdapter {
   /// 当前棋局；对局控制器持有固定实例，残局控制器在重开时替换。
   @override
@@ -70,8 +70,7 @@ abstract class BoardSession extends ChangeNotifier with BoardViewAdapter {
 
   /// 请求一次走子提示，统一加载态、回包竞态与合法着法校验。
   ///
-  /// [side] 是发起请求时的行棋方；搜索期间局面变化或提示点被占用时，
-  /// 通过 [HintSession.isValid] 丢弃结果。返回展示的交叉点，失败时为 null。
+  /// [side] 是发起请求时的行棋方；搜索期间局面变化或提示点被占用时丢弃结果。
   @protected
   Future<int?> requestMoveHint({
     required int side,
@@ -97,8 +96,7 @@ abstract class BoardSession extends ChangeNotifier with BoardViewAdapter {
 
   /// 执行一次 AI 回合：进入思考态、等待搜索并在回包仍有效时交给 [onReply]。
   ///
-  /// 重开、悔棋或新请求会作废搜索，此时直接返回，不调用 [onReply]；
-  /// 搜索异常由 [searchAi] 记录，[onReply] 收到 null 时可走兜底着法。
+  /// 重开、悔棋或新请求会作废搜索，此时直接返回且不复位思考态——新流程已接管。
   @protected
   Future<void> runAiTurn({
     required Future<AiReply> Function() search,
@@ -115,8 +113,7 @@ abstract class BoardSession extends ChangeNotifier with BoardViewAdapter {
 
   /// 执行一次 AI 搜索，统一 Web 首帧让步、异常日志与回包竞态校验。
   ///
-  /// 返回 null 表示请求已被重开、悔棋或新请求取代，调用方应直接返回，
-  /// 不要复位思考态——新流程已经接管了它。
+  /// 返回 null 表示请求已被重开、悔棋或新请求取代，调用方应直接返回。
   @protected
   Future<AiReply?> searchAi({
     required int serial,
@@ -150,4 +147,36 @@ abstract class BoardSession extends ChangeNotifier with BoardViewAdapter {
     hint.dispose();
     super.dispose();
   }
+}
+
+/// 把 [GomokuBoard] 的只读状态映射为 [BoardView]，省去各控制器重复转发 getter。
+mixin BoardViewAdapter implements BoardView {
+  GomokuBoard get board;
+
+  @override
+  Uint8List get cells => board.cells;
+
+  @override
+  List<MoveRecord> get history => board.history;
+
+  @override
+  int? get lastIndex => board.lastIndex;
+
+  @override
+  List<int> get winningLine => board.winningLine;
+
+  @override
+  int get sideToMove => board.sideToMove;
+
+  @override
+  int? get hintIndex => null;
+
+  @override
+  Set<int> get forbiddenPoints => const {};
+
+  @override
+  int get revision => 0;
+
+  @override
+  bool get allowsReplace => false;
 }
