@@ -1,0 +1,26 @@
+[
+  {
+    "version": "debug",
+    "url": "./debug/",
+    "latest": false,
+    "debug": true
+  },
+  {
+    "version": "v0.10.1",
+    "url": "./v0.10.1/",
+    "latest": true,
+    "debug": false
+  },
+  {
+    "version": "v0.9.4",
+    "url": "./v0.9.4/",
+    "latest": false,
+    "debug": false
+  },
+  {
+    "version": "v0.8.2",
+    "url": "./v0.8.2/",
+    "latest": false,
+    "debug": false
+  }
+]
