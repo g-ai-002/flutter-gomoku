@@ -120,9 +120,4 @@ class StorageService {
       Handicap.byName(_string(AppConstants.prefKeyHandicap));
   Future<void> setHandicap(Handicap value) =>
       _setString(AppConstants.prefKeyHandicap, value.name);
-
-  /// 自对弈训练得到的精研开局，未训练时为空。
-  String? get learnedBook => _string(AppConstants.prefKeyLearnedBook);
-  Future<void> setLearnedBook(String value) =>
-      _setString(AppConstants.prefKeyLearnedBook, value);
 }
