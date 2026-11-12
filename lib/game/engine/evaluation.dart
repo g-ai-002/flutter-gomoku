@@ -15,6 +15,9 @@ class GomokuEvaluation {
   /// 全部长度不小于 5 的直线（横、竖、两条斜线）。
   static final List<List<int>> lines = _buildLines();
 
+  /// 经过每个交叉点的直线下标，供增量评分定位需要重算的直线。
+  static final List<List<int>> linesThrough = _buildLinesThrough();
+
   static List<List<int>> _buildLines() {
     final result = <List<int>>[];
     for (var start = 0; start < boardSize; start++) {
@@ -40,6 +43,16 @@ class GomokuEvaluation {
     return cells;
   }
 
+  static List<List<int>> _buildLinesThrough() {
+    final result = [for (var index = 0; index < cellCount; index++) <int>[]];
+    for (var index = 0; index < lines.length; index++) {
+      for (final point in lines[index]) {
+        result[point].add(index);
+      }
+    }
+    return result;
+  }
+
   /// 从 [side] 视角评估局面，进攻略高于防守。
   static int evaluate(Uint8List cells, int side) {
     final scores = totalScores(cells);
@@ -52,7 +65,7 @@ class GomokuEvaluation {
   static Int32List totalScores(Uint8List cells) {
     final scores = Int32List(2);
     for (final line in lines) {
-      _lineScores(cells, line, scores);
+      addLineScores(cells, line, scores);
     }
     return scores;
   }
@@ -102,7 +115,7 @@ class GomokuEvaluation {
   ///
   /// 五格窗口内只可能有一方的棋子，逐个窗口同时判断双方；
   /// 连子段按颜色分段累计，黑白的分数不会互相干扰。
-  static void _lineScores(Uint8List cells, List<int> line, Int32List scores) {
+  static void addLineScores(Uint8List cells, List<int> line, Int32List scores) {
     final n = line.length;
     for (var start = 0; start + 4 < n; start++) {
       var blackCount = 0;
@@ -152,5 +165,46 @@ class GomokuEvaluation {
       }
       index = end;
     }
+  }
+}
+
+/// 增量棋型分：按直线缓存双方分数，落子或撤销只重算经过该点的四条直线。
+///
+/// 搜索每层都要在叶节点评估局面，全盘重扫 72 条直线的开销远大于一次落子
+/// 影响的直线，因此把总分拆到直线上，用 [_cached] 做差分更新。
+class LineScoreBoard {
+  LineScoreBoard(this.cells) {
+    for (var index = 0; index < GomokuEvaluation.lines.length; index++) {
+      _refresh(index);
+    }
+  }
+
+  final Uint8List cells;
+
+  /// 黑白双方的棋型总分，下标为行棋方减一。
+  final Int32List total = Int32List(2);
+
+  final Int32List _cached = Int32List(GomokuEvaluation.lines.length * 2);
+  final Int32List _scratch = Int32List(2);
+
+  /// [index] 处的棋子变化后（落子或撤销）刷新受影响的直线。
+  void update(int index) {
+    for (final line in GomokuEvaluation.linesThrough[index]) {
+      _refresh(line);
+    }
+  }
+
+  void _refresh(int index) {
+    final scratch = _scratch..fillRange(0, 2, 0);
+    GomokuEvaluation.addLineScores(
+      cells,
+      GomokuEvaluation.lines[index],
+      scratch,
+    );
+    final base = index * 2;
+    total[0] += scratch[0] - _cached[base];
+    total[1] += scratch[1] - _cached[base + 1];
+    _cached[base] = scratch[0];
+    _cached[base + 1] = scratch[1];
   }
 }

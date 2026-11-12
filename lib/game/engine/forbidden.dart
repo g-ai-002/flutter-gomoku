@@ -25,11 +25,18 @@ class GomokuForbidden {
   GomokuForbidden._();
 
   /// 黑棋在 [index] 落子是否禁手，返回禁手类型，合法时返回 null。
-  static ForbiddenReason? at(Uint8List cells, int index) {
-    if (index < 0 || index >= cellCount || cells[index] != empty) return null;
-    final board = Uint8List.fromList(cells);
+  static ForbiddenReason? at(Uint8List cells, int index) =>
+      _place(Uint8List.fromList(cells), index);
+
+  /// 在可复用的棋盘副本上试落一子，判定后恢复空点。
+  ///
+  /// 根节点过滤上百个候选点时，共用一份副本省掉逐点整盘拷贝。
+  static ForbiddenReason? _place(Uint8List board, int index) {
+    if (index < 0 || index >= cellCount || board[index] != empty) return null;
     board[index] = black;
-    return _evaluate(board, index);
+    final reason = _evaluate(board, index);
+    board[index] = empty;
+    return reason;
   }
 
   /// 当前局面下黑棋的全部禁手点，供棋盘标记与落子校验。
@@ -37,9 +44,7 @@ class GomokuForbidden {
     final board = Uint8List.fromList(cells);
     final result = <int>{};
     for (final index in GomokuRules.candidateMoves(board)) {
-      board[index] = black;
-      if (_evaluate(board, index) != null) result.add(index);
-      board[index] = empty;
+      if (_place(board, index) != null) result.add(index);
     }
     return result;
   }
@@ -47,9 +52,10 @@ class GomokuForbidden {
   /// 过滤出黑棋可以落子的点，其余行棋方原样返回。
   static List<int> legalMoves(Uint8List cells, int side, Iterable<int> moves) {
     if (side != black) return List.of(moves);
+    final board = Uint8List.fromList(cells);
     return [
       for (final move in moves)
-        if (at(cells, move) == null) move,
+        if (_place(board, move) == null) move,
     ];
   }
 

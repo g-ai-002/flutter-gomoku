@@ -181,6 +181,32 @@ void main() {
         }
       }
     });
+
+    test('增量棋型分与全盘重算一致', () {
+      final random = math.Random(20261112);
+      for (var round = 0; round < 40; round++) {
+        final cells = emptyCells();
+        final scores = LineScoreBoard(cells);
+        final applied = <int>[];
+        for (var step = 0; step < 60; step++) {
+          if (applied.isNotEmpty && random.nextInt(4) == 0) {
+            final index = applied.removeLast();
+            cells[index] = empty;
+            scores.update(index);
+          } else {
+            final index = random.nextInt(cellCount);
+            if (cells[index] != empty) continue;
+            cells[index] = random.nextBool() ? black : white;
+            applied.add(index);
+            scores.update(index);
+          }
+          final expected = GomokuEvaluation.totalScores(cells);
+          expect(scores.total[0], expected[0], reason: '第 $round 局第 $step 步黑分');
+          expect(scores.total[1], expected[1], reason: '第 $round 局第 $step 步白分');
+        }
+        expect(GomokuEvaluation.linesThrough.length, cellCount);
+      }
+    });
   });
 
   group('候选点缓存', () {

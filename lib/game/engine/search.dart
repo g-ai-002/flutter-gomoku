@@ -87,14 +87,18 @@ class GomokuSearch {
     final maxDepth = math.max(1, depth);
     for (var current = 1; current <= maxDepth; current++) {
       try {
-        final scored = searcher.searchRoot(roots, side, current);
+        final scored = searcher.searchRoot(
+          roots,
+          side,
+          current,
+          tolerance: randomness,
+        );
         if (scored.isEmpty) break;
         scored.sort((a, b) => b.score.compareTo(a.score));
         bestScore = scored.first.score;
         completedDepth = current;
-        final tolerance = randomness;
         final pool = scored
-            .where((entry) => entry.score >= bestScore - tolerance)
+            .where((entry) => entry.score >= bestScore - randomness)
             .toList();
         final pick = (random ?? math.Random()).nextInt(pool.length);
         bestMove = pool[pick].move;
@@ -116,14 +120,22 @@ class GomokuSearch {
 class _Searcher {
   _Searcher(this.board, int timeLimitMillis)
     : _watch = Stopwatch()..start(),
-      _timeLimitMillis = timeLimitMillis;
+      _timeLimitMillis = timeLimitMillis,
+      _scores = LineScoreBoard(board);
 
   final Uint8List board;
   final Stopwatch _watch;
   final int _timeLimitMillis;
+  final LineScoreBoard _scores;
   int nodes = 0;
 
   bool get _expired => _watch.elapsedMilliseconds >= _timeLimitMillis;
+
+  /// 从 [side] 视角取棋型分，与 [GomokuEvaluation.evaluate] 口径一致。
+  int _evaluate(int side) {
+    final total = _scores.total;
+    return total[side - 1] - (total[opponentOf(side) - 1] * 1.05).round();
+  }
 
   /// 按双方在该点的形态分取出前 [limit] 个着法。
   ///
@@ -156,29 +168,33 @@ class _Searcher {
   }
 
   /// 根节点：逐个候选着法搜索，返回评分列表供随机度筛选。
+  ///
+  /// [tolerance] 是评分容差：劣于当前最优超过容差的着法用窗口直接剪掉、
+  /// 不再完整搜索，因此返回的列表可能只含仍有希望的着法。
   List<({int move, int score})> searchRoot(
     List<int> roots,
     int side,
-    int depth,
-  ) {
+    int depth, {
+    int tolerance = 0,
+  }) {
     final results = <({int move, int score})>[];
+    var floor = -_infinity;
     for (final move in roots) {
       if (_expired) throw const _SearchTimeout();
       board[move] = side;
+      _scores.update(move);
       int score;
       if (GomokuRules.hasFive(board, move, side)) {
         score = GomokuSearch.winScore;
       } else {
-        score = -_negamax(
-          opponentOf(side),
-          depth - 1,
-          -_infinity,
-          _infinity,
-          1,
-        );
+        score = -_negamax(opponentOf(side), depth - 1, -_infinity, -floor, 1);
       }
       board[move] = empty;
+      _scores.update(move);
+      if (score <= floor) continue;
       results.add((move: move, score: score));
+      final bound = score - tolerance;
+      if (bound > floor) floor = bound;
     }
     return results;
   }
@@ -186,7 +202,7 @@ class _Searcher {
   int _negamax(int side, int depth, int alpha, int beta, int ply) {
     nodes++;
     if ((nodes & 511) == 0 && _expired) throw const _SearchTimeout();
-    if (depth <= 0) return GomokuEvaluation.evaluate(board, side);
+    if (depth <= 0) return _evaluate(side);
 
     final moves = GomokuRules.candidateMoves(board);
     if (moves.isEmpty) return 0;
@@ -194,6 +210,7 @@ class _Searcher {
     var best = -_infinity;
     for (final move in orderedMoves) {
       board[move] = side;
+      _scores.update(move);
       int score;
       if (GomokuRules.hasFive(board, move, side)) {
         score = GomokuSearch.winScore - ply;
@@ -201,6 +218,7 @@ class _Searcher {
         score = -_negamax(opponentOf(side), depth - 1, -beta, -alpha, ply + 1);
       }
       board[move] = empty;
+      _scores.update(move);
       if (score > best) best = score;
       if (score > alpha) alpha = score;
       if (alpha >= beta) break;
