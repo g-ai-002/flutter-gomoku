@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// 打开一个新页面，统一页面跳转的路由类型与构建方式。
 Future<T?> pushScreen<T>(BuildContext context, Widget page) =>

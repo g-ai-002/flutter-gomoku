@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// 页面轻提示：先收起上一条，避免连续操作时提示排队等待。
 void showSnack(

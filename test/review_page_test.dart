@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gomoku/game/board_state.dart';
 import 'package:gomoku/game/engine/board_utils.dart';
 import 'package:gomoku/pages/review_page.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'support/helpers.dart';
 

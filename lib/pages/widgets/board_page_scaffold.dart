@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// 纵向界面（状态条与操作按钮）占用的高度，与棋盘页骨架保持一致。
 const double _chrome = 104;

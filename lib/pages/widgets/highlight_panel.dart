@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// 主题色淡底提示卡：用于开局库说明、残局进度等需要强调的信息块。
 class HighlightPanel extends StatelessWidget {

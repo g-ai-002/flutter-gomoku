@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gomoku/pages/widgets/board_hint_overlay.dart';
 import 'package:gomoku/pages/widgets/play_layout.dart';
@@ -9,6 +8,7 @@ import 'package:gomoku/pages/widgets/page_list.dart';
 import 'package:gomoku/pages/widgets/section_card.dart';
 import 'package:gomoku/pages/widgets/status_chip.dart';
 import 'package:gomoku/theme/app_theme.dart';
+import 'package:material_ui/material_ui.dart';
 
 Widget _host(Widget child) => MaterialApp(
   theme: buildLightTheme(),

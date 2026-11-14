@@ -1,10 +1,10 @@
 import 'package:flame/game.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gomoku/flame/gomoku_game.dart';
 import 'package:gomoku/game/puzzles.dart';
 import 'package:gomoku/pages/puzzle_library_page.dart';
 import 'package:gomoku/pages/puzzle_page.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'support/helpers.dart';
 

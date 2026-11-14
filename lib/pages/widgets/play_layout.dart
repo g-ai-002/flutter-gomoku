@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// 棋盘页骨架：棋盘居中，状态与提示悬浮在棋盘上方左右，操作按钮悬浮在下方。
 ///

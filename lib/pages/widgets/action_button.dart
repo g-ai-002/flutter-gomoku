@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// 对局页与残局页共用的底部操作按钮：图标在上、文字在下。
 class BoardActionButton extends StatelessWidget {

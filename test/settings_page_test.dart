@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gomoku/game/engine/board_utils.dart';
 import 'package:gomoku/game/handicap.dart';
 import 'package:gomoku/game/logic_rate.dart';
 import 'package:gomoku/models/game_models.dart';
 import 'package:gomoku/pages/settings_page.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'support/helpers.dart';
 

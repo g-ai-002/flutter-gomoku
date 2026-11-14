@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gomoku/pages/home_page.dart';
 import 'package:gomoku/pages/settings_page.dart';
 import 'package:gomoku/utils/constants.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'support/helpers.dart';
 

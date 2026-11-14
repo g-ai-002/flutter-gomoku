@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gomoku/game/custom_puzzles.dart';
 import 'package:gomoku/pages/puzzle_editor_page.dart';
 import 'package:gomoku/pages/puzzle_library_page.dart';
 import 'package:gomoku/services/puzzle_progress_service.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'support/helpers.dart';
 

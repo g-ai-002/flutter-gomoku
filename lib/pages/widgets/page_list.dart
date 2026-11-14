@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// 列表页统一骨架：居中限宽 + 纵向留白。
 ///

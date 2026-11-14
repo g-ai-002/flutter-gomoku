@@ -4,7 +4,6 @@ import 'dart:ui';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/gestures.dart' show PointerHoverEvent, TapDownDetails;
-import 'package:flutter/material.dart' hide PointerMoveEvent;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gomoku/flame/board_component.dart';
 import 'package:gomoku/flame/gomoku_game.dart';
@@ -15,6 +14,7 @@ import 'package:gomoku/game/logic_rate.dart';
 import 'package:gomoku/models/game_models.dart';
 import 'package:gomoku/models/move_record.dart';
 import 'package:gomoku/services/sound_service.dart';
+import 'package:material_ui/material_ui.dart' hide PointerMoveEvent;
 
 /// 棋盘组件的可控视图：测试直接改动棋谱、提示与禁手点。
 class _FakeView implements BoardView {

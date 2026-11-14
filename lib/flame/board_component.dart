@@ -3,7 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
-import 'package:flutter/material.dart' hide PointerMoveEvent;
+import 'package:material_ui/material_ui.dart' hide PointerMoveEvent;
 
 import '../game/board_view.dart';
 import '../game/engine/board_utils.dart';

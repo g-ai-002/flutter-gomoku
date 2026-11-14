@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gomoku/game/custom_puzzles.dart';
 import 'package:gomoku/providers/settings_provider.dart';
@@ -6,6 +5,7 @@ import 'package:gomoku/services/game_history_service.dart';
 import 'package:gomoku/services/puzzle_progress_service.dart';
 import 'package:gomoku/services/storage_service.dart';
 import 'package:gomoku/theme/app_theme.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
