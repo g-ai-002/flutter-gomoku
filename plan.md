@@ -60,7 +60,7 @@
 - [x] 新增「终局弹窗返回首页会离开对局页」组件测试
 - [x] `flutter analyze` 无告警，277 项测试全部通过
 - [x] lib 代码量 9986 行，低于 10000 行上限
-- [ ] Gitea Actions 在 v0.10.5 Tag 上完成 Android / Windows / Web 构建并发布 Release
+- [x] Gitea Actions 在 v0.10.5 Tag 上完成 Android / Windows / Web 构建并发布 Release
 
 ---
 
