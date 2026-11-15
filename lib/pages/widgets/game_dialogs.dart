@@ -2,46 +2,46 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../models/game_models.dart';
 
-/// 终局弹窗：展示胜负原因，可返回首页、复盘或再来一局。
-Future<void> showGameResultDialog(
+/// 终局弹窗的操作：返回首页、进入复盘或再来一局。
+enum GameResultAction { home, review, restart }
+
+/// 终局弹窗：展示胜负原因，由调用方按返回的操作处理页面跳转与重开。
+Future<GameResultAction?> showGameResultDialog(
   BuildContext context, {
   required GameResult result,
   required int moveCount,
-  required VoidCallback onRestart,
-  VoidCallback? onReview,
+  bool showReview = false,
 }) {
-  return showDialog<void>(
+  return showDialog<GameResultAction>(
     context: context,
     barrierDismissible: false,
-    builder: (dialogContext) => _ResultDialog(
-      icon: result.isDraw
-          ? Icons.handshake_outlined
-          : Icons.emoji_events_outlined,
-      title: result.title,
-      message: result.reason,
-      note: '共 $moveCount 手',
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(),
-          child: const Text('返回首页'),
-        ),
-        if (onReview != null)
+    builder: (dialogContext) {
+      void choose(GameResultAction action) =>
+          Navigator.of(dialogContext).pop(action);
+      return _ResultDialog(
+        icon: result.isDraw
+            ? Icons.handshake_outlined
+            : Icons.emoji_events_outlined,
+        title: result.title,
+        message: result.reason,
+        note: '共 $moveCount 手',
+        actions: [
           TextButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              onReview();
-            },
-            child: const Text('复盘'),
+            onPressed: () => choose(GameResultAction.home),
+            child: const Text('返回首页'),
           ),
-        FilledButton(
-          onPressed: () {
-            Navigator.of(dialogContext).pop();
-            onRestart();
-          },
-          child: const Text('再来一局'),
-        ),
-      ],
-    ),
+          if (showReview)
+            TextButton(
+              onPressed: () => choose(GameResultAction.review),
+              child: const Text('复盘'),
+            ),
+          FilledButton(
+            onPressed: () => choose(GameResultAction.restart),
+            child: const Text('再来一局'),
+          ),
+        ],
+      );
+    },
   );
 }
 

@@ -119,14 +119,26 @@ class _GamePageState extends State<GamePage> {
     _archiveGame(result, endedAt);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      showGameResultDialog(
-        context,
-        result: result,
-        moveCount: _controller.history.length,
-        onRestart: _restart,
-        onReview: _openReview,
-      );
+      unawaited(_showResult(result));
     });
+  }
+
+  Future<void> _showResult(GameResult result) async {
+    final action = await showGameResultDialog(
+      context,
+      result: result,
+      moveCount: _controller.history.length,
+      showReview: true,
+    );
+    if (!mounted || action == null) return;
+    switch (action) {
+      case GameResultAction.home:
+        Navigator.of(context).pop();
+      case GameResultAction.review:
+        _openReview();
+      case GameResultAction.restart:
+        _restart();
+    }
   }
 
   void _restart() {

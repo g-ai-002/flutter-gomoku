@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gomoku/flame/gomoku_game.dart';
 import 'package:gomoku/models/game_models.dart';
 import 'package:gomoku/pages/game_page.dart';
+import 'package:gomoku/pages/home_page.dart';
 import 'package:gomoku/utils/constants.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -241,6 +242,31 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 350));
     expect(find.text('白方胜'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('终局弹窗返回首页会离开对局页', (tester) async {
+    _useDesktopView(tester);
+    final settings = await createSettings();
+    await tester.pumpWidget(wrapPage(const HomePage(), settings));
+
+    await tester.tap(find.text('人机对战'));
+    await _pumpGame(tester);
+    expect(find.byType(GamePage), findsOneWidget);
+
+    await tester.tap(find.text('认输'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
+    await tester.tap(find.widgetWithText(FilledButton, '认输'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+    expect(find.text('白方胜'), findsOneWidget);
+
+    await tester.tap(find.text('返回首页'));
+    await tester.pumpAndSettle();
+    expect(find.byType(GamePage), findsNothing);
+    expect(find.text('黑白之间，方寸之上见胜负'), findsOneWidget);
+
     await tester.pumpWidget(const SizedBox.shrink());
   });
 }
