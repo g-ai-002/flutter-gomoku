@@ -25,7 +25,8 @@ class _ClockBarState extends State<ClockBar> {
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(const Duration(milliseconds: 250), (_) => _tick());
+    // 显示精度到秒，500ms 结算一次足够，唤醒次数减半。
+    _timer = Timer.periodic(const Duration(milliseconds: 500), (_) => _tick());
   }
 
   /// 只在本方走棋时结算并刷新，终局后定时器空转不再触发重建。
