@@ -102,6 +102,24 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('首页背景铺满窗口，内容水平与垂直居中', (tester) async {
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final settings = await createSettings();
+    await tester.pumpWidget(wrapPage(const HomePage(), settings));
+
+    expect(
+      tester.getSize(find.byKey(const ValueKey('home-backdrop'))),
+      const Size(1280, 800),
+    );
+    final content = tester.getRect(find.byKey(const ValueKey('home-content')));
+    expect(content.center.dx, closeTo(640, 1));
+    expect(content.center.dy, closeTo(400, 1));
+  });
+
   testWidgets('深色模式按钮切换偏好', (tester) async {
     final settings = await createSettings();
     await tester.pumpWidget(wrapPage(const HomePage(), settings));

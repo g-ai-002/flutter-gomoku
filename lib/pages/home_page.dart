@@ -29,6 +29,7 @@ class HomePage extends StatelessWidget {
 
     return Scaffold(
       body: Container(
+        key: const ValueKey('home-backdrop'),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -45,18 +46,29 @@ class HomePage extends StatelessWidget {
               // 折叠屏展开约 600dp 起即可并排两张入口卡片。
               final twoColumns = constraints.maxWidth >= 600;
               final horizontal = constraints.maxWidth >= 900 ? 40.0 : 20.0;
+              // 上下留白保持一致，内容才会在窗口正中，而不是略偏上。
+              const vertical = 14.0;
               final contentWidth = math.min(
                 constraints.maxWidth - horizontal * 2,
                 780.0,
               );
               return SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(horizontal, 14, horizontal, 24),
+                padding: EdgeInsets.fromLTRB(
+                  horizontal,
+                  vertical,
+                  horizontal,
+                  vertical,
+                ),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    minHeight: math.max(0, constraints.maxHeight - 38),
+                    minHeight: math.max(
+                      0,
+                      constraints.maxHeight - vertical * 2,
+                    ),
                   ),
                   child: Center(
                     child: ConstrainedBox(
+                      key: const ValueKey('home-content'),
                       constraints: const BoxConstraints(maxWidth: 780),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,

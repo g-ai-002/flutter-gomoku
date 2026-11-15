@@ -1,5 +1,16 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
+
+/// 让页面背景延伸到状态栏与导航栏下方。
+///
+/// Android 15 起系统强制边到边绘制，Android 14 及以下需要主动开启；
+/// 桌面与 Web 没有系统栏，直接跳过。棋盘页需要横屏时会自行切到
+/// `immersiveSticky`，返回后仍回到这里的边到边模式。
+Future<void> enableEdgeToEdge() async {
+  if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+}
 
 /// 系统栏（状态栏与导航栏）样式：透明底色，图标深浅由背景亮度决定。
 ///

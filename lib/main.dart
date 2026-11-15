@@ -12,6 +12,7 @@ import 'services/puzzle_progress_service.dart';
 import 'services/sound_service.dart';
 import 'services/storage_service.dart';
 import 'utils/constants.dart';
+import 'utils/system_ui.dart';
 import 'utils/window_setup.dart';
 
 Future<void> main() async {
@@ -26,9 +27,9 @@ Future<void> main() async {
     return true;
   };
 
-  // 窗口设置、日志与偏好互不依赖，并行准备以缩短首帧前的等待。
+  // 窗口设置、日志与系统栏互不依赖，并行准备以缩短首帧前的等待。
   final storageFuture = StorageService.instance;
-  await Future.wait([setupDesktopWindow(), initLogging()]);
+  await Future.wait([setupDesktopWindow(), initLogging(), enableEdgeToEdge()]);
 
   final storage = await storageFuture;
   await Future.wait([
