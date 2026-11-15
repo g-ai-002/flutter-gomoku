@@ -63,6 +63,12 @@ class BoardComponent extends PositionComponent
     ..style = PaintingStyle.stroke
     ..strokeCap = StrokeCap.round;
   final Paint _fill = Paint();
+  final Paint _stonePaint = Paint()..filterQuality = FilterQuality.medium;
+
+  /// 黑白棋子贴图按格宽缓存，静止棋子层只做图片绘制，不再逐子创建渐变。
+  final Map<int, ui.Image> _stoneSprites = {};
+  double _spriteCell = 0;
+  double _spriteRatio = 1;
 
   /// 坐标文字按尺寸缓存，缩放后须整体释放，避免按尺寸累积。
   void _disposeCoordPainters() {
@@ -70,6 +76,13 @@ class BoardComponent extends PositionComponent
       painter.dispose();
     }
     _coordPainters = null;
+  }
+
+  void _disposeStoneSprites() {
+    for (final image in _stoneSprites.values) {
+      image.dispose();
+    }
+    _stoneSprites.clear();
   }
 
   /// 释放录制图层与坐标文字缓存；页面销毁时由 [GomokuGame] 调用。
@@ -80,6 +93,7 @@ class BoardComponent extends PositionComponent
     _disposeCoordPainters();
     _boardLayer.clear();
     _stoneLayer.clear();
+    _disposeStoneSprites();
   }
 
   @override
@@ -156,6 +170,37 @@ class BoardComponent extends PositionComponent
 
   Offset _centerOf(int index) =>
       Offset(_originX + colOf(index) * _cell, _originY + rowOf(index) * _cell);
+
+  /// 取当前格宽下的棋子贴图，尺寸变化时整体重建。
+  ///
+  /// 贴图按设备像素比放大，最多 3 倍，兼顾清晰度与显存占用；满盘静止棋子
+  /// 每帧只做一次 `drawImage`，不再重放渐变、投影与描边。
+  ui.Image _stoneSprite(int side) {
+    final cached = _stoneSprites[side];
+    if (cached != null && (_spriteCell - _cell).abs() < 0.01) return cached;
+    _disposeStoneSprites();
+    _spriteCell = _cell;
+    _spriteRatio =
+        (ui.PlatformDispatcher.instance.implicitView?.devicePixelRatio ?? 1)
+            .clamp(1.0, 3.0);
+    final radius = _cell * 0.46;
+    final extent = radius * 1.3;
+    final pixels = (extent * 2 * _spriteRatio).round();
+    for (final value in const [black, white]) {
+      final recorder = ui.PictureRecorder();
+      final canvas = Canvas(recorder)..scale(_spriteRatio);
+      paintStoneDisc(
+        canvas,
+        center: Offset(extent, extent),
+        radius: radius,
+        face: faceOf(value),
+      );
+      final picture = recorder.endRecording();
+      _stoneSprites[value] = picture.toImageSync(pixels, pixels);
+      picture.dispose();
+    }
+    return _stoneSprites[side]!;
+  }
 
   static Offset _offsetOf(Vector2 position) => Offset(position.x, position.y);
 
@@ -314,18 +359,19 @@ class BoardComponent extends PositionComponent
       _anim?.index,
     );
     return _stoneLayer.paint(key, (canvas) {
-      final radius = _cell * 0.46;
+      final extent = _cell * 0.46 * 1.3;
       final animating = _anim?.index;
       for (var index = 0; index < cellCount; index++) {
         final side = view.cells[index];
         if (side == empty) continue;
         if (index == animating) continue;
-        paintStoneDisc(
-          canvas,
-          center: _centerOf(index),
-          radius: radius,
-          face: faceOf(side),
-        );
+        final sprite = _stoneSprite(side);
+        final center = _centerOf(index);
+        canvas.save();
+        canvas.translate(center.dx - extent, center.dy - extent);
+        canvas.scale(1 / _spriteRatio);
+        canvas.drawImage(sprite, Offset.zero, _stonePaint);
+        canvas.restore();
       }
     });
   }

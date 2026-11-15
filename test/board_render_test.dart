@@ -10,12 +10,15 @@ import 'package:gomoku/models/game_models.dart';
 
 const double _size = 480;
 
-Future<ByteData> _renderComponent(BoardComponent component) async {
+Future<ByteData> _renderComponent(
+  BoardComponent component, {
+  double size = _size,
+}) async {
   final recorder = ui.PictureRecorder();
   component.render(ui.Canvas(recorder));
   final image = await recorder.endRecording().toImage(
-    _size.toInt(),
-    _size.toInt(),
+    size.toInt(),
+    size.toInt(),
   );
   final data = await image.toByteData();
   image.dispose();
@@ -28,8 +31,13 @@ Future<ByteData> _renderBoard(GameController controller) async {
   return _renderComponent(component);
 }
 
-({int r, int g, int b}) _pixel(ByteData data, double x, double y) {
-  final offset = (y.round() * _size.toInt() + x.round()) * 4;
+({int r, int g, int b}) _pixel(
+  ByteData data,
+  double x,
+  double y, {
+  double size = _size,
+}) {
+  final offset = (y.round() * size.toInt() + x.round()) * 4;
   return (
     r: data.getUint8(offset),
     g: data.getUint8(offset + 1),
@@ -112,6 +120,37 @@ void main() {
       final second = await _renderComponent(component);
 
       expect(second.lengthInBytes, first.lengthInBytes);
+    });
+  });
+
+  testWidgets('棋盘缩放后棋子贴图按新格宽重建', (tester) async {
+    await tester.runAsync(() async {
+      final controller = GameController(
+        mode: GameMode.twoPlayers,
+        difficulty: Difficulty.entry,
+        humanSide: black,
+      );
+      addTearDown(controller.dispose);
+      controller.start();
+      controller.tapCell(centerIndex);
+      final component = BoardComponent(view: controller)
+        ..size = Vector2(_size, _size);
+      await _renderComponent(component);
+
+      const resized = 320.0;
+      component.size = Vector2(resized, resized);
+      final pixels = await _renderComponent(component, size: resized);
+      const cell = resized / 16.4;
+      final stone = _pixel(
+        pixels,
+        resized / 2 + cell * 0.3,
+        resized / 2,
+        size: resized,
+      );
+      expect(stone.r, lessThan(90));
+      expect(stone.g, lessThan(90));
+
+      component.disposeResources();
     });
   });
 }
