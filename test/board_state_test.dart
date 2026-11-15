@@ -62,14 +62,23 @@ void main() {
       expect(board.undoLast(), isNull);
     });
 
-    test('空盘落满可识别满盘和棋', () {
-      final board = GomokuBoard();
+    test('满盘判断随落子与悔棋更新', () {
+      final source = emptyCells();
       for (var index = 0; index < cellCount - 1; index++) {
-        board.cells[index] = index.isEven ? black : white;
+        source[index] = index.isEven ? black : white;
       }
+      final board = GomokuBoard.fromCells(source);
       expect(board.isFull, isFalse);
-      board.cells[cellCount - 1] = black;
+
+      expect(board.apply(cellCount - 1), isNotNull);
       expect(board.isFull, isTrue);
+      board.undoLast();
+      expect(board.isFull, isFalse);
+
+      final full = GomokuBoard.fromCells(
+        emptyCells()..fillRange(0, cellCount, black),
+      );
+      expect(full.isFull, isTrue);
     });
 
     test('导入棋谱逐手重演，非法着法返回 false', () {

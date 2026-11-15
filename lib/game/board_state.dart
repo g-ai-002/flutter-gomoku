@@ -22,6 +22,7 @@ class GomokuBoard {
     this.forbidBlack = false,
   }) : cells = Uint8List.fromList(source),
        handicap = Handicap.none {
+    _stoneTotal = stoneCount(cells);
     _adoptWinningLine();
   }
 
@@ -37,6 +38,7 @@ class GomokuBoard {
   int? lastIndex;
   List<int> winningLine = const [];
   int? winner;
+  int _stoneTotal = 0;
 
   /// 当前行棋方在 [index] 落子的禁手类型，未启用禁手或合法时为 null。
   ForbiddenReason? forbiddenAt(int index) {
@@ -50,6 +52,7 @@ class GomokuBoard {
     if (forbiddenAt(index) != null) return null;
     final side = sideToMove;
     cells[index] = side;
+    _stoneTotal++;
     sideToMove = opponentOf(side);
     final record = MoveRecord(
       index: index,
@@ -77,6 +80,7 @@ class GomokuBoard {
 
   void reset() {
     cells.fillRange(0, cellCount, empty);
+    _stoneTotal = 0;
     sideToMove = black;
     history.clear();
     lastIndex = null;
@@ -90,6 +94,7 @@ class GomokuBoard {
     if (!handicap.enabled) return;
     for (final index in handicap.points) {
       cells[index] = black;
+      _stoneTotal++;
     }
     sideToMove = white;
   }
@@ -98,6 +103,7 @@ class GomokuBoard {
     if (history.isEmpty) return null;
     final record = history.removeLast();
     cells[record.index] = empty;
+    _stoneTotal--;
     sideToMove = record.side;
     lastIndex = history.isEmpty ? null : history.last.index;
     winningLine = const [];
@@ -105,7 +111,7 @@ class GomokuBoard {
     return record;
   }
 
-  bool get isFull => stoneCount(cells) >= cellCount;
+  bool get isFull => _stoneTotal >= cellCount;
 
   /// 供棋谱导入与复盘校验：当前局面是否仍有五连。
   void _adoptWinningLine() {
