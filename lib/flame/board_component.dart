@@ -39,6 +39,9 @@ class BoardComponent extends PositionComponent
   double _cell = 0;
   double _originX = 0;
   double _originY = 0;
+  double _layoutWidth = -1;
+  double _layoutHeight = -1;
+  bool? _layoutCoords;
   double _time = 0;
   double _idle = 0;
   int _seenMoves = 0;
@@ -132,6 +135,15 @@ class BoardComponent extends PositionComponent
 
   void _layout(double width, double height) {
     final hasCoords = view.showCoordinates;
+    // 尺寸与坐标开关不变时布局与缓存键都不变，逐帧渲染不再重复计算。
+    if (width == _layoutWidth &&
+        height == _layoutHeight &&
+        hasCoords == _layoutCoords) {
+      return;
+    }
+    _layoutWidth = width;
+    _layoutHeight = height;
+    _layoutCoords = hasCoords;
     final cell = math.min(width, height) / (hasCoords ? 16.4 : 15.4);
     // 窗口缩放时同步丢弃坐标文字缓存，避免按尺寸累积 TextPainter。
     if ((cell - _cell).abs() > 0.01) _disposeCoordPainters();
