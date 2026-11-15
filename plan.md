@@ -65,7 +65,7 @@
 - [x] 棋盘像素渲染、空闲暂停与页面释放测试继续通过
 - [x] `flutter analyze` 无告警，276 项测试全部通过
 - [x] lib 代码量 9974 行，低于 10000 行上限
-- [ ] Gitea Actions 在 v0.10.4 Tag 上完成 Android / Windows / Web 构建并发布 Release
+- [x] Gitea Actions 在 v0.10.4 Tag 上完成 Android / Windows / Web 构建并发布 Release
 
 ---
 
