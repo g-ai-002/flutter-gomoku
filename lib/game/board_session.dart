@@ -8,6 +8,8 @@ import 'ai_player.dart';
 import 'board_state.dart';
 import 'board_view.dart';
 import 'engine/board_utils.dart';
+import 'engine/forbidden.dart';
+import 'engine/rules.dart';
 import 'hint_session.dart';
 import 'notation.dart';
 
@@ -66,6 +68,42 @@ abstract class BoardSession extends ChangeNotifier with BoardViewAdapter {
     cancelPending();
     clearHint(notify: false);
     endThinking();
+  }
+
+  /// 落子并写入统一格式的日志；非法着法返回 null。
+  ///
+  /// 对局与残局只在日志前缀和后续状态更新上不同，落子前的提示清理
+  /// 与日志格式收敛在这里，避免两处各写一份而出现格式漂移。
+  @protected
+  MoveRecord? playMove(int index, {String logPrefix = ''}) {
+    clearHint(notify: false);
+    final record = board.apply(index);
+    if (record == null) {
+      LogService.warning('$logPrefix落子被拒绝: ${MoveNotation.describe(index)}');
+      return null;
+    }
+    LogService.info(
+      '$logPrefix落子 ${sideName(record.side)} ${record.notation}'
+      '（第 ${record.moveNumber} 手）',
+    );
+    return record;
+  }
+
+  /// 校验 AI 回包并生成兜底着法，统一过滤黑棋禁手点。
+  ///
+  /// 搜索失败、越界、占用或落到禁手点时改用 [GomokuRules.pickMove] 的兜底，
+  /// 对局与残局由此共用同一套合法性判断。
+  @protected
+  int? legalAiMove(int side, int? candidate, {bool forbidBlack = false}) {
+    final forbidden = forbidBlack && side == black
+        ? GomokuForbidden.points(board.cells)
+        : const <int>{};
+    return GomokuRules.pickMove(
+      board.cells,
+      side,
+      candidate,
+      forbidden: forbidden,
+    );
   }
 
   /// 请求一次走子提示，统一加载态、回包竞态与合法着法校验。

@@ -9,7 +9,6 @@ import 'ai_player.dart';
 import 'board_session.dart';
 import 'board_state.dart';
 import 'engine/board_utils.dart';
-import 'engine/rules.dart';
 import 'puzzles.dart';
 
 /// 残局进度：进行中、通关或失败。
@@ -96,13 +95,9 @@ class PuzzleController extends BoardSession {
   }
 
   void _play(int index) {
-    clearHint(notify: false);
-    final record = board.apply(index);
+    final record = playMove(index, logPrefix: '残局 ${puzzle.id} ');
     if (record == null) return;
     if (record.side == black) playerMoves++;
-    LogService.info(
-      '残局 ${puzzle.id} 落子 ${sideName(record.side)} ${record.notation}',
-    );
     _afterMove();
   }
 
@@ -134,7 +129,7 @@ class PuzzleController extends BoardSession {
       search: () =>
           _aiMove(Uint8List.fromList(board.cells), white, Difficulty.normal),
       onReply: (reply) {
-        final move = GomokuRules.pickMove(board.cells, white, reply?.move);
+        final move = legalAiMove(white, reply?.move);
         if (move == null) {
           _fail('白棋已无子可下');
           return;

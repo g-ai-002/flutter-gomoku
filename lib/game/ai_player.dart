@@ -48,19 +48,14 @@ class AiPlayer {
     int side,
     Difficulty difficulty, {
     bool? forbidBlack,
-  }) {
-    return compute(
-      _runSearch,
-      _AiRequest(
-        Uint8List.fromList(cells),
-        side,
-        difficulty.depth,
-        difficulty.randomness,
-        difficulty.timeLimitMillis,
-        forbidBlack ?? false,
-      ),
-    );
-  }
+  }) => _search(
+    cells,
+    side,
+    depth: difficulty.depth,
+    randomness: difficulty.randomness,
+    timeLimitMillis: difficulty.timeLimitMillis,
+    forbidBlack: forbidBlack ?? false,
+  );
 
   /// 走子提示：浅层搜索，不引入随机性。
   static Future<int?> hintMove(
@@ -68,19 +63,36 @@ class AiPlayer {
     int side, {
     bool? forbidBlack,
   }) async {
-    final reply = await compute(
-      _runSearch,
-      _AiRequest(
-        Uint8List.fromList(cells),
-        side,
-        3,
-        0,
-        1200,
-        forbidBlack ?? false,
-      ),
+    final reply = await _search(
+      cells,
+      side,
+      depth: 3,
+      randomness: 0,
+      timeLimitMillis: 1200,
+      forbidBlack: forbidBlack ?? false,
     );
     return reply.move >= 0 ? reply.move : null;
   }
+
+  /// 对局与提示共用的搜索入口：复制局面后交给 isolate，避免共享可变缓冲。
+  static Future<AiReply> _search(
+    Uint8List cells,
+    int side, {
+    required int depth,
+    required int randomness,
+    required int timeLimitMillis,
+    required bool forbidBlack,
+  }) => compute(
+    _runSearch,
+    _AiRequest(
+      Uint8List.fromList(cells),
+      side,
+      depth,
+      randomness,
+      timeLimitMillis,
+      forbidBlack,
+    ),
+  );
 }
 
 class _AiRequest {

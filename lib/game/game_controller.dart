@@ -10,7 +10,6 @@ import 'board_session.dart';
 import 'board_state.dart';
 import 'engine/board_utils.dart';
 import 'engine/forbidden.dart';
-import 'engine/rules.dart';
 import 'handicap.dart';
 import 'match_clock.dart';
 import 'notation.dart';
@@ -266,19 +265,11 @@ class GameController extends BoardSession {
   void _play(int index) {
     tickClock();
     if (result != null) return;
-    clearHint(notify: false);
-    final record = board.apply(index);
-    if (record == null) {
-      LogService.warning('落子被拒绝: ${MoveNotation.describe(index)}');
-      return;
-    }
+    final record = playMove(index);
+    if (record == null) return;
     lastViolation = null;
     _forbiddenCache = null;
     _tracker?.mark();
-    LogService.info(
-      '落子 ${sideName(record.side)} ${record.notation}'
-      '（第 ${record.moveNumber} 手）',
-    );
     _afterMove();
   }
 
@@ -353,13 +344,10 @@ class GameController extends BoardSession {
           );
         }
 
-        final move = GomokuRules.pickMove(
-          board.cells,
+        final move = legalAiMove(
           board.sideToMove,
           reply?.move,
-          forbidden: forbidBlack && board.sideToMove == black
-              ? GomokuForbidden.points(board.cells)
-              : const {},
+          forbidBlack: forbidBlack,
         );
         if (move == null) {
           _afterMove();
