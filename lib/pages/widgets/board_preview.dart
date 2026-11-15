@@ -21,9 +21,11 @@ class BoardPreview extends StatelessWidget {
           ),
         ],
       ),
-      child: const CustomPaint(
-        size: Size.square(172),
-        painter: _BoardPreviewPainter(),
+      child: const RepaintBoundary(
+        child: CustomPaint(
+          size: Size.square(172),
+          painter: _BoardPreviewPainter(),
+        ),
       ),
     );
   }
