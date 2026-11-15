@@ -1,14 +1,10 @@
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
-import 'package:provider/provider.dart';
 
-import '../flame/gomoku_game.dart';
 import '../game/puzzle_controller.dart';
 import '../game/puzzles.dart';
-import '../providers/settings_provider.dart';
 import '../services/log_service.dart';
-import '../services/move_feedback_tracker.dart';
 import '../services/puzzle_progress_service.dart';
 import '../services/sound_service.dart';
 import '../utils/navigation.dart';
@@ -19,6 +15,7 @@ import 'widgets/play_layout.dart';
 import 'widgets/game_dialogs.dart';
 import 'widgets/move_sheet.dart';
 import 'widgets/puzzle_status_bar.dart';
+import 'widgets/session_board_view.dart';
 
 /// 残局挑战页：黑先杀局，白棋由本地 AI 应对，并记录通关进度。
 class PuzzlePage extends StatefulWidget {
@@ -32,27 +29,17 @@ class PuzzlePage extends StatefulWidget {
 
 class _PuzzlePageState extends State<PuzzlePage> {
   late final PuzzleController _controller;
-  late final GomokuGame _game;
-  late final MoveFeedbackTracker _feedback;
   bool _resultShown = false;
 
   @override
   void initState() {
     super.initState();
     _controller = PuzzleController(puzzle: widget.puzzle);
-    _game = GomokuGame(
-      view: _controller,
-      repaint: _controller,
-      logicRate: context.read<SettingsProvider>().logicRate,
-    );
-    _feedback = MoveFeedbackTracker(_controller);
-    _controller.addListener(_onChanged);
     LogService.info('进入残局: ${widget.puzzle.id} ${widget.puzzle.title}');
   }
 
   void _onChanged() {
     if (!mounted) return;
-    _feedback.sync();
     final status = _controller.status;
     if (status == PuzzleStatus.playing) {
       _resultShown = false;
@@ -89,7 +76,6 @@ class _PuzzlePageState extends State<PuzzlePage> {
     switch (action) {
       case PuzzleResultAction.retry:
         _resultShown = false;
-        _feedback.reset();
         _controller.restart();
       case PuzzleResultAction.next:
         final next = kGomokuPuzzles[index + 1];
@@ -136,14 +122,6 @@ class _PuzzlePageState extends State<PuzzlePage> {
   );
 
   @override
-  void dispose() {
-    _game.stop();
-    _controller.removeListener(_onChanged);
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return BoardPageScaffold(
       title: '残局挑战',
@@ -160,7 +138,12 @@ class _PuzzlePageState extends State<PuzzlePage> {
       body: PlayLayout(
         controller: _controller,
         status: (_) => PuzzleStatusBar(controller: _controller),
-        board: BoardStage(game: _game, gameKey: const ValueKey('puzzle-board')),
+        board: SessionBoardView<PuzzleController>(
+          controller: _controller,
+          onChanged: _onChanged,
+          boardBuilder: (_, game) =>
+              BoardStage(game: game, gameKey: const ValueKey('puzzle-board')),
+        ),
         actions: (_) => _buildActions(),
       ),
     );

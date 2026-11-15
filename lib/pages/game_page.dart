@@ -13,7 +13,6 @@ import '../models/saved_game.dart';
 import '../providers/settings_provider.dart';
 import '../services/game_history_service.dart';
 import '../services/log_service.dart';
-import '../services/move_feedback_tracker.dart';
 import '../services/sound_service.dart';
 import '../utils/navigation.dart';
 import 'review_page.dart';
@@ -27,6 +26,7 @@ import 'widgets/clock_bar.dart';
 import 'widgets/game_dialogs.dart';
 import 'widgets/game_status_bar.dart';
 import 'widgets/move_sheet.dart';
+import 'widgets/session_board_view.dart';
 
 class GamePage extends StatefulWidget {
   const GamePage({
@@ -46,8 +46,6 @@ class GamePage extends StatefulWidget {
 
 class _GamePageState extends State<GamePage> {
   late final GameController _controller;
-  late final GomokuGame _game;
-  late final MoveFeedbackTracker _feedback;
   late DateTime _startedAt;
   late String _gameId;
   late final bool _showPosition;
@@ -80,13 +78,6 @@ class _GamePageState extends State<GamePage> {
       handicap: handicap,
       openingBook: useBook ? OpeningBook.standard : null,
     );
-    _game = GomokuGame(
-      view: _controller,
-      repaint: _controller,
-      logicRate: settings.logicRate,
-    );
-    _feedback = MoveFeedbackTracker(_controller);
-    _controller.addListener(_onControllerChanged);
     final clock = _controller.timeControl;
     final clockText = clock.isTimed ? '，棋钟 ${clock.label}' : '';
     final sideText = selfPlay
@@ -102,9 +93,8 @@ class _GamePageState extends State<GamePage> {
     });
   }
 
-  void _onControllerChanged() {
+  void _onChanged() {
     if (!mounted) return;
-    _feedback.sync();
     if (_controller.violationCount > _seenViolations) {
       _seenViolations = _controller.violationCount;
       final violation = _controller.lastViolation;
@@ -141,7 +131,6 @@ class _GamePageState extends State<GamePage> {
 
   void _restart() {
     _resultShown = false;
-    _feedback.reset();
     _resetGameIdentity();
     _controller.restart();
   }
@@ -228,14 +217,6 @@ class _GamePageState extends State<GamePage> {
   }
 
   @override
-  void dispose() {
-    _game.stop();
-    _controller.removeListener(_onControllerChanged);
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return BoardPageScaffold(
       title: widget.mode.label,
@@ -250,7 +231,11 @@ class _GamePageState extends State<GamePage> {
       body: PlayLayout(
         controller: _controller,
         status: (_) => _buildStatus(),
-        board: _buildBoard(),
+        board: SessionBoardView<GameController>(
+          controller: _controller,
+          onChanged: _onChanged,
+          boardBuilder: (_, game) => _buildBoard(game),
+        ),
         actions: (_) => _buildActions(),
       ),
     );
@@ -270,8 +255,8 @@ class _GamePageState extends State<GamePage> {
     );
   }
 
-  Widget _buildBoard() => BoardStage(
-    game: _game,
+  Widget _buildBoard(GomokuGame game) => BoardStage(
+    game: game,
     gameKey: const ValueKey('gomoku-board'),
     overlays: IgnorePointer(
       child: AnimatedBuilder(
