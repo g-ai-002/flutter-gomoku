@@ -61,7 +61,7 @@
 - [x] 保留 `no_xiph_libs` 构建钩子配置，CI 不再下载无用的解码预编译库
 - [x] `flutter analyze` 无告警，277 项测试全部通过
 - [x] lib 代码量 9986 行，低于 10000 行上限
-- [ ] Gitea Actions 在 v0.10.6 Tag 上完成 Android / Windows / Web 构建并发布 Release
+- [x] Gitea Actions 在 v0.10.6 Tag 上完成 Android / Windows / Web 构建并发布 Release
 
 ---
 
